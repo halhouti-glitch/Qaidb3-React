@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>قيد بلوك 3</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Tahoma", "Arial", sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    margin: 0;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  html[dir="rtl"] body { font-family: "Tahoma", "Segoe UI", "Arial", sans-serif; }
+  .container { max-width: 1000px; margin: 0 auto; }
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; gap: 16px; }
+  h1 { margin: 0; font-size: 28px; }
+  h2 { font-size: 18px; margin: 0 0 12px; color: #cbd5e1; }
+  .card {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    border: 1px solid #334155;
+  }
+  label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; }
+  input[type="text"], input[type="number"], select {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    width: 100%;
+    font-family: inherit;
+  }
+  input:focus, select:focus { outline: none; border-color: #60a5fa; }
+  button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+    font-family: inherit;
+  }
+  button:hover { background: #2563eb; }
+  button.secondary { background: #475569; }
+  button.secondary:hover { background: #334155; }
+  button.danger { background: #dc2626; }
+  button.danger:hover { background: #b91c1c; }
+  button.warning { background: #d97706; }
+  button.warning:hover { background: #b45309; }
+  .lang-switch select { width: auto; padding: 6px 10px; font-size: 13px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+  .row > div { flex: 1; min-width: 140px; }
+  .player-inputs { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 10px 8px; text-align: center; border-bottom: 1px solid #334155; font-size: 14px; }
+  th { background: #0f172a; color: #94a3b8; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td.player-name, th.player-name { text-align: start; font-weight: 500; }
+  .dealer-badge {
+    display: inline-block;
+    background: #f59e0b;
+    color: #0f172a;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-inline-start: 6px;
+    text-transform: uppercase;
+  }
+  .winner-badge {
+    display: inline-block;
+    background: #10b981;
+    color: #0f172a;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-inline-start: 6px;
+    text-transform: uppercase;
+  }
+  .total { font-size: 18px; font-weight: 700; color: #fbbf24; }
+  .round-input { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 16px 0; }
+  .round-input input { text-align: center; }
+  .minus-btn {
+    width: 100%;
+    margin-top: 6px;
+    background: #475569;
+    color: #e2e8f0;
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  .minus-btn:hover { background: #334155; }
+  .minus-btn.active { background: #dc2626; color: white; }
+  .minus-btn.active:hover { background: #b91c1c; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .winner-banner {
+    background: linear-gradient(135deg, #10b981, #059669);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #0f172a;
+  }
+  .hidden { display: none; }
+  .threshold-info { color: #94a3b8; font-size: 13px; margin-top: 8px; margin-bottom: 12px; }
+
+  /* Player color dot */
+  .pdot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-inline-end: 8px;
+    vertical-align: middle;
+    flex-shrink: 0;
+  }
+  /* Round entry — colored left/right border per player card */
+  .round-input > div {
+    background: #0b1224;
+    border-radius: 8px;
+    padding: 10px;
+    border-inline-start: 4px solid var(--pcolor, #475569);
+  }
+  .round-input > div label {
+    display: flex;
+    align-items: center;
+    color: #e2e8f0;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  /* Standings — colored leading edge per player row.
+     Applied to the player-name cell (not the tr) because tr borders render
+     inconsistently when border-collapse: collapse is set. */
+  #standingsBody td.player-name {
+    border-inline-start: 4px solid var(--pcolor, transparent);
+    /* keep table-cell display; pdot is inline-block so it aligns naturally */
+  }
+
+  /* Landscape layout for tablets / wide screens */
+  @media (min-width: 900px) and (orientation: landscape) {
+    .container { max-width: 1400px; }
+    .game-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    .game-grid > .card { margin-bottom: 0; }
+    .history-card { grid-column: 1 / -1; }
+  }
+
+  /* Tighter, less-stuffed layout on phones */
+  @media (max-width: 600px) {
+    body { padding: 10px; }
+    .card { padding: 14px; border-radius: 10px; margin-bottom: 12px; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 15px; margin-bottom: 10px; }
+    .top-bar { margin-bottom: 14px; }
+    label { font-size: 12px; margin-bottom: 4px; }
+    input[type="text"], input[type="number"], select { padding: 8px 10px; font-size: 14px; }
+    button { padding: 9px 14px; font-size: 13px; }
+    th, td { padding: 6px 4px; font-size: 13px; }
+    th { font-size: 10px; letter-spacing: 0.2px; }
+    .total { font-size: 16px; }
+    .threshold-info { font-size: 12px; }
+    .dealer-badge, .winner-badge { font-size: 9px; padding: 1px 4px; margin-inline-start: 4px; }
+    .pdot { width: 8px; height: 8px; margin-inline-end: 6px; }
+
+    /* Round-entry cards: tighter, slimmer */
+    .round-input { gap: 8px; grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); }
+    .round-input > div { padding: 8px; border-inline-start-width: 3px; }
+    .round-input > div label { font-size: 12px; margin-bottom: 6px; }
+    .minus-btn { padding: 5px 6px; font-size: 11px; margin-top: 4px; }
+
+    /* Drop "Rounds Played" column in standings — info is in the page title bar implicitly */
+    #standingsTable th:nth-child(3), #standingsTable td:nth-child(3) { display: none; }
+
+    /* History: shrink edit inputs and action buttons */
+    #historyTable input[type="number"] { width: 56px; padding: 4px; font-size: 12px; }
+    #historyBody button { padding: 4px 6px; font-size: 11px; }
+    .winner-banner { font-size: 15px; padding: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="top-bar">
+    <h1 id="title">قيد بلوك 3</h1>
+    <div class="lang-switch">
+      <label for="langPicker" style="display:inline;margin-inline-end:8px;" data-t="language">اللغة</label>
+      <select id="langPicker" onchange="setLang(this.value)">
+        <option value="ar">العربية</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div id="setup" class="card">
+    <h2 data-t="gameSetup"></h2>
+    <div class="row">
+      <div>
+        <label data-t="numPlayersLabel"></label>
+        <input type="number" id="numPlayers" min="2" max="6" value="6" />
+      </div>
+      <div>
+        <label data-t="thresholdLabel"></label>
+        <input type="number" id="threshold" value="201" />
+      </div>
+      <div>
+        <label data-t="winCondLabel"></label>
+        <select id="winRule">
+          <option value="lowest" data-t="lowestWins"></option>
+          <option value="highest" data-t="highestWins"></option>
+        </select>
+      </div>
+      <div>
+        <button onclick="buildPlayerInputs()" data-t="setPlayers"></button>
+      </div>
+    </div>
+    <div id="playerNameSection" class="hidden">
+      <h2 style="margin-top:24px;" data-t="playerNames"></h2>
+      <div id="playerInputs" class="player-inputs"></div>
+      <button onclick="startGame()" data-t="startGame"></button>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="game" class="hidden">
+    <div id="winnerBanner" class="winner-banner hidden"></div>
+
+    <div class="game-grid">
+      <div class="card">
+        <h2 data-t="standings"></h2>
+        <div class="threshold-info" id="thresholdInfo"></div>
+        <table id="standingsTable">
+          <thead>
+            <tr>
+              <th class="player-name" data-t="thPlayer"></th>
+              <th data-t="thTotal"></th>
+              <th data-t="thRoundsPlayed"></th>
+              <th data-t="thToThreshold"></th>
+            </tr>
+          </thead>
+          <tbody id="standingsBody"></tbody>
+        </table>
+      </div>
+
+      <div class="card" id="roundEntry">
+        <h2><span data-t="enterRound"></span> <span id="roundNum">1</span> <span data-t="enterRoundSuffix"></span></h2>
+        <div class="round-input" id="roundInputs"></div>
+        <div class="actions">
+          <button onclick="submitRound()" data-t="saveRound"></button>
+          <button class="secondary" onclick="undoRound()" data-t="undoRound"></button>
+          <button class="warning" onclick="resetGame()" data-t="resetGame"></button>
+          <button class="danger" onclick="clearPlayers()" data-t="clearPlayers"></button>
+        </div>
+      </div>
+
+      <div class="card history-card">
+        <h2 data-t="roundHistory"></h2>
+        <div style="overflow-x:auto;">
+          <table id="historyTable">
+            <thead><tr id="historyHead"></tr></thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const I18N = {
+    en: {
+      title: 'قيد بلوك 3',
+      language: 'Language',
+      gameSetup: 'Game Setup',
+      numPlayersLabel: 'Number of players (2–6)',
+      thresholdLabel: 'Points (Win/Loss)',
+      winCondLabel: 'Win condition',
+      lowestWins: 'Highest score loses',
+      highestWins: 'Highest score wins',
+      setPlayers: 'Done',
+      playerNames: 'Player Names',
+      playerDefault: 'Player',
+      startGame: 'Start Game',
+      standings: 'Standings',
+      thPlayer: 'Player',
+      thTotal: 'Total',
+      thRoundsPlayed: 'Rounds',
+      thToThreshold: 'To Win/Lose',
+      dealerBadge: 'D',
+      winnerBadge: 'Winner',
+      enterRound: 'Enter Round',
+      enterRoundSuffix: 'Scores',
+      saveRound: 'Save Round',
+      undoRound: 'Undo Last Round',
+      resetGame: 'Reset Game',
+      roundHistory: 'Round History',
+      thRound: 'Round',
+      thDealerAfter: 'Dealer',
+      infoHighest: (t) => `Points to win: ${t} — first to reach wins; dealer is the lowest score.`,
+      infoLowest:  (t) => `Points to lose: ${t} — when anyone reaches it, lowest score wins; dealer is the highest score.`,
+      winnerBanner: (n, t) => `🏆 ${n} wins with ${t} points!`,
+      confirmUndo: 'Undo the last round?',
+      confirmReset: 'Reset the game? Scores will be cleared but players stay.',
+      thActions: 'Actions',
+      editBtn: 'Edit',
+      deleteBtn: 'Delete',
+      saveBtn: 'Save',
+      cancelBtn: 'Cancel',
+      editingRoundLabel: (n) => `Editing Round ${n}`,
+      confirmDelete: (n) => `Delete round ${n}? Totals will be recalculated.`,
+      minusBtn: 'Minus (−10)',
+      clearPlayers: 'New Game',
+      confirmClearPlayers: 'Start a new game with new players? This ends the current game.',
+    },
+    ar: {
+      title: 'قيد بلوك 3',
+      language: 'اللغة',
+      gameSetup: 'إعدادات اللعبة',
+      numPlayersLabel: 'عدد اللاعبين (2–6)',
+      thresholdLabel: 'النقاط (للفوز/للخساره)',
+      winCondLabel: 'طريقة الفوز',
+      lowestWins: 'الأعلى نقاطًا يخسر',
+      highestWins: 'الأعلى نقاطًا يفوز',
+      setPlayers: 'تم',
+      playerNames: 'أسماء اللاعبين',
+      playerDefault: 'لاعب',
+      startGame: 'وزع',
+      standings: 'الترتيب',
+      thPlayer: 'اللاعب',
+      thTotal: 'المجموع',
+      thRoundsPlayed: 'الجولات',
+      thToThreshold: 'للفوز/للخساره',
+      dealerBadge: 'ش',
+      winnerBadge: 'الفائز',
+      enterRound: 'قيد الجولة',
+      enterRoundSuffix: '',
+      saveRound: 'حفظ الجولة',
+      undoRound: 'امسح اخر جولة',
+      resetGame: 'داس جديد',
+      roundHistory: 'القيد',
+      thRound: 'الجولة',
+      thDealerAfter: 'الشيال',
+      infoHighest: (t) => `النقاط للفوز: ${t} — أول من يصل يفوز؛ والشيال هو صاحب أقل نقاط.`,
+      infoLowest:  (t) => `النقاط للخساره: ${t} — عند وصول أي لاعب يفوز صاحب أقل نقاط؛ والشيال هو صاحب أعلى نقاط.`,
+      winnerBanner: (n, t) => `🏆 فاز ${n} برصيد ${t} نقطة!`,
+      confirmUndo: 'مسح الجولة الأخيرة؟',
+      confirmReset: 'داس جديد؟ سيتم مسح النقاط فقط واللاعبين باقين.',
+      thActions: 'تعديل/مسح',
+      editBtn: 'تعديل',
+      deleteBtn: 'مسح',
+      saveBtn: 'حفظ',
+      cancelBtn: 'إلغاء',
+      editingRoundLabel: (n) => `تعديل الجولة ${n}`,
+      confirmDelete: (n) => `مسح الجولة ${n}؟ سيتم إعادة احتساب المجاميع.`,
+      minusBtn: 'ماينس (−10)',
+      clearPlayers: 'قيم جديد',
+      confirmClearPlayers: 'بدء قيم جديد بلاعبين جدد؟ سيتم إنهاء اللعبة الحالية.',
+    }
+  };
+
+  let state = {
+    players: [],
+    scores: [],
+    threshold: 201,
+    winRule: 'lowest',
+    gameOver: false,
+    lang: 'ar'
+  };
+  let editingRound = null; // index of round currently being edited (UI state, not persisted)
+
+  // Per-player color palette (cycles if >6, but we cap at 6 anyway)
+  const PLAYER_COLORS = ['#06b6d4', '#ec4899', '#84cc16', '#f97316', '#a855f7', '#facc15'];
+  function pcolor(i) { return PLAYER_COLORS[i % PLAYER_COLORS.length]; }
+  function pdot(i) { return `<span class="pdot" style="background:${pcolor(i)}"></span>`; }
+
+  const STORAGE_KEY = 'cardScoreTracker_v1';
+
+  function t(key) { return I18N[state.lang][key]; }
+
+  function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function load() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    try {
+      const loaded = JSON.parse(raw);
+      state = { ...state, ...loaded };
+      if (state.players && state.players.length) {
+        document.getElementById('setup').classList.add('hidden');
+        document.getElementById('game').classList.remove('hidden');
+        applyLang();
+        render();
+        return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  function setLang(lang) {
+    state.lang = lang;
+    save();
+    applyLang();
+    if (state.players.length) render();
+  }
+
+  function applyLang() {
+    const html = document.documentElement;
+    html.setAttribute('lang', state.lang);
+    html.setAttribute('dir', state.lang === 'ar' ? 'rtl' : 'ltr');
+    document.getElementById('langPicker').value = state.lang;
+    document.title = t('title');
+    document.querySelectorAll('[data-t]').forEach(el => {
+      const key = el.getAttribute('data-t');
+      const val = t(key);
+      if (typeof val === 'string') el.textContent = val;
+    });
+  }
+
+  function buildPlayerInputs() {
+    const n = Math.max(2, Math.min(6, parseInt(document.getElementById('numPlayers').value) || 2));
+    document.getElementById('numPlayers').value = n;
+    const container = document.getElementById('playerInputs');
+    container.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      const div = document.createElement('div');
+      const label = document.createElement('label');
+      label.textContent = `${t('playerDefault')} ${i+1}`;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = 'playerName' + i;
+      input.value = `${t('playerDefault')} ${i+1}`;
+      div.appendChild(label);
+      div.appendChild(input);
+      container.appendChild(div);
+    }
+    document.getElementById('playerNameSection').classList.remove('hidden');
+  }
+
+  function startGame() {
+    const n = parseInt(document.getElementById('numPlayers').value);
+    const players = [];
+    for (let i = 0; i < n; i++) {
+      const name = document.getElementById('playerName' + i).value.trim() || `${t('playerDefault')} ${i+1}`;
+      players.push(name);
+    }
+    state.players = players;
+    state.scores = [];
+    state.threshold = parseInt(document.getElementById('threshold').value) || 201;
+    state.winRule = document.getElementById('winRule').value;
+    state.gameOver = false;
+    document.getElementById('setup').classList.add('hidden');
+    document.getElementById('game').classList.remove('hidden');
+    save();
+    render();
+  }
+
+  function totals() {
+    return state.players.map((_, pi) =>
+      state.scores.reduce((sum, round) => sum + (round[pi] || 0), 0)
+    );
+  }
+
+  function dealerIndex(totalsArr) {
+    // Dealer is the opposite of the win condition:
+    //   highest-wins → dealer = lowest score
+    //   lowest-wins  → dealer = highest score
+    if (totalsArr.length === 0) return -1;
+    if (state.winRule === 'highest') {
+      let min = Infinity, idx = 0;
+      totalsArr.forEach((v, i) => { if (v < min) { min = v; idx = i; } });
+      return idx;
+    } else {
+      let max = -Infinity, idx = 0;
+      totalsArr.forEach((v, i) => { if (v > max) { max = v; idx = i; } });
+      return idx;
+    }
+  }
+
+  function checkWinner(totalsArr) {
+    if (state.winRule === 'highest') {
+      const reached = totalsArr.map((v, i) => v >= state.threshold ? i : -1).filter(i => i >= 0);
+      if (reached.length === 0) return -1;
+      let max = -Infinity, idx = -1;
+      reached.forEach(i => { if (totalsArr[i] > max) { max = totalsArr[i]; idx = i; } });
+      return idx;
+    } else {
+      const anyReached = totalsArr.some(v => v >= state.threshold);
+      if (!anyReached) return -1;
+      let min = Infinity, idx = -1;
+      totalsArr.forEach((v, i) => { if (v < min) { min = v; idx = i; } });
+      return idx;
+    }
+  }
+
+  function render() {
+    const totalsArr = totals();
+    const dealer = dealerIndex(totalsArr);
+    const winner = checkWinner(totalsArr);
+    state.gameOver = winner >= 0;
+
+    // Standings — keep original player order (no sorting)
+    const ranked = state.players.map((name, i) => ({ name, i, total: totalsArr[i] }));
+
+    const tbody = document.getElementById('standingsBody');
+    tbody.innerHTML = '';
+    ranked.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.style.setProperty('--pcolor', pcolor(p.i));
+      const isDealer = p.i === dealer;
+      const isWinner = p.i === winner;
+      const remaining = state.winRule === 'highest'
+        ? Math.max(0, state.threshold - p.total)
+        : state.threshold - p.total;
+      tr.innerHTML = `
+        <td class="player-name">${pdot(p.i)}<span>${escapeHtml(p.name)}</span>${isDealer ? `<span class="dealer-badge">${escapeHtml(t('dealerBadge'))}</span>` : ''}${isWinner ? `<span class="winner-badge">${escapeHtml(t('winnerBadge'))}</span>` : ''}</td>
+        <td class="total">${p.total}</td>
+        <td>${state.scores.length}</td>
+        <td>${remaining}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('thresholdInfo').textContent =
+      state.winRule === 'highest' ? t('infoHighest')(state.threshold) : t('infoLowest')(state.threshold);
+
+    // Round entry
+    document.getElementById('roundNum').textContent = state.scores.length + 1;
+    const rin = document.getElementById('roundInputs');
+    rin.innerHTML = '';
+    const n = state.players.length;
+    state.players.forEach((name, i) => {
+      const div = document.createElement('div');
+      div.style.setProperty('--pcolor', pcolor(i));
+      const label = document.createElement('label');
+      label.innerHTML = `${pdot(i)}<span>${escapeHtml(name)}</span>`;
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.inputMode = 'numeric';
+      input.id = 'roundScore' + i;
+      input.value = '0';
+      // Select-all on focus for fast overwrite
+      input.addEventListener('focus', () => input.select());
+      // Clear minus state if user types a different value
+      input.addEventListener('input', () => {
+        const btn = document.getElementById('minusBtn' + i);
+        if (btn && parseInt(input.value) !== -10) btn.classList.remove('active');
+      });
+      // Enter: jump to next input; Enter on last: submit round
+      input.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        if (i < n - 1) {
+          const next = document.getElementById('roundScore' + (i + 1));
+          if (next) next.focus();
+        } else {
+          submitRound();
+        }
+      });
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'minusBtn' + i;
+      btn.className = 'minus-btn';
+      btn.textContent = t('minusBtn');
+      btn.onclick = () => toggleMinus(i);
+      div.appendChild(label);
+      div.appendChild(input);
+      div.appendChild(btn);
+      rin.appendChild(div);
+    });
+    // Auto-focus first input if game is still ongoing and not editing a history row
+    if (!state.gameOver && n > 0 && editingRound === null) {
+      const first = document.getElementById('roundScore0');
+      if (first) first.focus();
+    }
+
+    // History
+    const head = document.getElementById('historyHead');
+    head.innerHTML = `<th>${escapeHtml(t('thRound'))}</th>` +
+      state.players.map((p, i) => `<th style="border-top:3px solid ${pcolor(i)};">${escapeHtml(p)}</th>`).join('') +
+      `<th>${escapeHtml(t('thDealerAfter'))}</th>` +
+      `<th>${escapeHtml(t('thActions'))}</th>`;
+    const hbody = document.getElementById('historyBody');
+    hbody.innerHTML = '';
+    let runningTotals = state.players.map(() => 0);
+    state.scores.forEach((round, ri) => {
+      runningTotals = runningTotals.map((v, i) => v + (round[i] || 0));
+      const dIdx = dealerIndex(runningTotals);
+      const tr = document.createElement('tr');
+      if (editingRound === ri) {
+        // Inline edit row
+        const lastIdx = state.players.length - 1;
+        tr.innerHTML = `<td><strong>${ri+1}</strong></td>` +
+          round.map((s, i) =>
+            `<td><input type="number" inputmode="numeric" id="editScore_${ri}_${i}" value="${s}" style="width:80px;text-align:center;" onfocus="this.select()" onkeydown="handleEditKey(event, ${ri}, ${i}, ${lastIdx})" /></td>`
+          ).join('') +
+          `<td>—</td>` +
+          `<td>
+            <button onclick="saveEditedRound(${ri})" style="padding:6px 10px;font-size:12px;">${escapeHtml(t('saveBtn'))}</button>
+            <button class="secondary" onclick="cancelEditRound()" style="padding:6px 10px;font-size:12px;margin-inline-start:4px;">${escapeHtml(t('cancelBtn'))}</button>
+          </td>`;
+      } else {
+        tr.innerHTML = `<td><strong>${ri+1}</strong></td>` +
+          round.map((s, i) => `<td>${s}<br><span style="color:#64748b;font-size:11px;">(${runningTotals[i]})</span></td>`).join('') +
+          `<td>${dIdx >= 0 ? escapeHtml(state.players[dIdx]) : '—'}</td>` +
+          `<td>
+            <button class="secondary" onclick="startEditRound(${ri})" style="padding:6px 10px;font-size:12px;">${escapeHtml(t('editBtn'))}</button>
+            <button class="danger" onclick="deleteRound(${ri})" style="padding:6px 10px;font-size:12px;margin-inline-start:4px;">${escapeHtml(t('deleteBtn'))}</button>
+          </td>`;
+      }
+      hbody.appendChild(tr);
+    });
+
+    // Winner banner
+    const banner = document.getElementById('winnerBanner');
+    const roundEntry = document.getElementById('roundEntry');
+    if (winner >= 0) {
+      banner.textContent = t('winnerBanner')(state.players[winner], totalsArr[winner]);
+      banner.classList.remove('hidden');
+      roundEntry.style.opacity = '0.5';
+    } else {
+      banner.classList.add('hidden');
+      roundEntry.style.opacity = '1';
+    }
+  }
+
+  function submitRound() {
+    const round = state.players.map((_, i) => {
+      const v = parseInt(document.getElementById('roundScore' + i).value);
+      return isNaN(v) ? 0 : v;
+    });
+    state.scores.push(round);
+    save();
+    render();
+  }
+
+  function toggleMinus(i) {
+    const input = document.getElementById('roundScore' + i);
+    const btn = document.getElementById('minusBtn' + i);
+    if (!input || !btn) return;
+    if (btn.classList.contains('active')) {
+      btn.classList.remove('active');
+      input.value = '0';
+    } else {
+      btn.classList.add('active');
+      input.value = '-10';
+    }
+  }
+
+  function startEditRound(ri) {
+    editingRound = ri;
+    render();
+    // Focus first edit input after render
+    setTimeout(() => {
+      const f = document.getElementById(`editScore_${ri}_0`);
+      if (f) f.focus();
+    }, 0);
+  }
+
+  function handleEditKey(ev, ri, i, lastIdx) {
+    if (ev.key !== 'Enter') return;
+    ev.preventDefault();
+    if (i < lastIdx) {
+      const next = document.getElementById(`editScore_${ri}_${i + 1}`);
+      if (next) next.focus();
+    } else {
+      saveEditedRound(ri);
+    }
+  }
+
+  function cancelEditRound() {
+    editingRound = null;
+    render();
+  }
+
+  function saveEditedRound(ri) {
+    const updated = state.players.map((_, i) => {
+      const v = parseInt(document.getElementById(`editScore_${ri}_${i}`).value);
+      return isNaN(v) ? 0 : v;
+    });
+    state.scores[ri] = updated;
+    editingRound = null;
+    save();
+    render();
+  }
+
+  function deleteRound(ri) {
+    if (!confirm(t('confirmDelete')(ri + 1))) return;
+    state.scores.splice(ri, 1);
+    if (editingRound === ri) editingRound = null;
+    else if (editingRound !== null && editingRound > ri) editingRound -= 1;
+    save();
+    render();
+  }
+
+  function undoRound() {
+    if (state.scores.length === 0) return;
+    if (!confirm(t('confirmUndo'))) return;
+    state.scores.pop();
+    save();
+    render();
+  }
+
+  function resetGame() {
+    if (!confirm(t('confirmReset'))) return;
+    // Keep players, threshold, winRule, lang. Just wipe scores & end-of-game state.
+    state.scores = [];
+    state.gameOver = false;
+    editingRound = null;
+    save();
+    render();
+  }
+
+  function clearPlayers() {
+    if (!confirm(t('confirmClearPlayers'))) return;
+    const keepLang = state.lang;
+    localStorage.removeItem(STORAGE_KEY);
+    state = { players: [], scores: [], threshold: 201, winRule: 'lowest', gameOver: false, lang: keepLang };
+    editingRound = null;
+    document.getElementById('game').classList.add('hidden');
+    document.getElementById('setup').classList.remove('hidden');
+    document.getElementById('playerNameSection').classList.add('hidden');
+    applyLang();
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // Init
+  applyLang();
+  load();
+</script>
+</body>
+</html>

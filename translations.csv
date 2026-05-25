@@ -1,0 +1,41 @@
+﻿key,english,arabic,notes
+title,قيد بلوك 3,قيد بلوك 3,Page title (kept Arabic in both languages)
+language,Language,اللغة,
+gameSetup,Game Setup,إعدادات اللعبة,
+numPlayersLabel,Number of players (2–6),عدد اللاعبين (2–6),
+thresholdLabel,Points (Win/Loss),النقاط (للفوز/للخساره),
+winCondLabel,Win condition,طريقة الفوز,
+lowestWins,Highest score loses,الأعلى نقاطًا يخسر,
+highestWins,Highest score wins,الأعلى نقاطًا يفوز,
+setPlayers,Done,تم,
+playerNames,Player Names,أسماء اللاعبين,
+playerDefault,Player,لاعب,Used for default names like 'Player 1'
+startGame,Start Game,وزع,
+standings,Standings,الترتيب,
+thPlayer,Player,اللاعب,Standings table header
+thTotal,Total,المجموع,
+thRoundsPlayed,Rounds,الجولات,
+thToThreshold,To Win/Lose,للفوز/للخساره,
+dealerBadge,D,ش,
+winnerBadge,Winner,الفائز,
+enterRound,Enter Round,قيد الجولة,Followed by the round number
+enterRoundSuffix,Scores,,Trailing word after round number (empty in Arabic)
+saveRound,Save Round,حفظ الجولة,
+undoRound,Undo Last Round,امسح اخر جولة,
+resetGame,Reset Game,داس جديد,
+roundHistory,Round History,القيد,
+thRound,Round,الجولة,History table header
+thDealerAfter,Dealer,االشيال,
+thActions,Actions,تعديل/مسح,
+editBtn,Edit,تعديل,
+deleteBtn,Delete,مسح,
+saveBtn,Save,حفظ,
+cancelBtn,Cancel,إلغاء,
+minusBtn,Minus (−10),ماينس (−10),Shortcut button under each player in round entry
+infoHighest,Win threshold: {t} — first to reach wins; dealer is the lowest score.,حد الفوز: {t} — أول من يصل يفوز؛ والموزع هو صاحب أقل نقاط.,{t} = threshold value
+infoLowest,"Win threshold: {t} — when anyone reaches it, lowest score wins; dealer is the highest score.",حد الفوز: {t} — عند وصول أي لاعب يفوز صاحب أقل نقاط؛ والموزع هو صاحب أعلى نقاط.,{t} = threshold value
+winnerBanner,🏆 {name} wins with {t} points!,🏆 فاز {name} برصيد {t} نقطة!,{name} = winner name; {t} = total
+confirmUndo,Undo the last round?,مسح الجولة الأخيرة؟,Browser confirm prompt
+confirmReset,Reset everything? This clears scores and players.,داس جديد؟ سيتم مسح النقاط واللاعبين.,Browser confirm prompt
+editingRoundLabel,Editing Round {n},تعديل الجولة {n},{n} = round number (currently unused in UI)
+confirmDelete,Delete round {n}? Totals will be recalculated.,حذف الجولة {n}؟ سيتم إعادة احتساب المجاميع.,{n} = round number
