@@ -55,7 +55,7 @@
     --surface: rgba(36,36,40,0.55);
     --surface-elev: rgba(48,48,54,0.72);
     --surface-solid: #1c1c1e;
-    --tile-warm: rgba(58,52,40,0.6);
+    --tile-warm: rgba(96, 78, 36, 0.88);
     --ink: #f5f5f7;
     --ink-soft: #d6d6d8;
     --muted: #9b9b9f;
@@ -820,6 +820,22 @@
     letter-spacing: 0.16em;
     color: var(--muted);
     font-weight: 600;
+  }
+  /* Play toolbar stacks: ROUND N eyebrow on top, game-mode name below */
+  .screen-toolbar .play-title {
+    flex-direction: column;
+    line-height: 1.1;
+    gap: 2px;
+  }
+  .screen-toolbar .play-title .game-name {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    line-height: 1.05;
+  }
+  @media (max-width: 600px) {
+    .screen-toolbar .play-title .game-name { font-size: 22px; }
   }
   .icon-btn {
     width: 40px; height: 40px;
@@ -1624,9 +1640,9 @@
   <div id="screen-play" class="screen hidden">
     <div class="screen-toolbar">
       <button class="icon-btn" onclick="navigate('home')" aria-label="Home">‹</button>
-      <span class="screen-title">
-        <span class="eyebrow" data-t="roundLabel"></span>
-        <span class="num" id="playRoundNum">1</span>
+      <span class="screen-title play-title">
+        <span class="eyebrow"><span data-t="roundLabel"></span> <span class="num" id="playRoundNum">1</span></span>
+        <span class="game-name" id="playGameName"></span>
       </span>
       <button class="icon-btn with-label" onclick="navigate('history')" aria-label="History">
         <span class="icon-glyph">⟲</span>
@@ -1795,7 +1811,7 @@
       goBack: 'Back',
       finalScore: 'Final score',
       roundsPlayed: (n) => `${n} round${n === 1 ? '' : 's'}`,
-      entryStylePlusMinus: 'Adjust',
+      entryStylePlusMinus: 'Bulk',
       entryStyleNumpad: 'Numpad',
       manualEntry: 'Manual entry',
       prevPlayer: 'Previous',
@@ -1892,8 +1908,8 @@
       goBack: 'رجوع',
       finalScore: 'النتيجة النهائية',
       roundsPlayed: (n) => `${n} ${n === 1 ? 'جولة' : 'جولات'}`,
-      entryStylePlusMinus: 'تعديل',
-      entryStyleNumpad: 'لوحة أرقام',
+      entryStylePlusMinus: 'جملة',
+      entryStyleNumpad: 'مفرق',
       manualEntry: 'إدخال يدوي',
       prevPlayer: 'السابق',
       nextPlayer: 'التالي',
@@ -1915,7 +1931,7 @@
     gameLogged: false,   // true once the finished game has been pushed to recentGames
     lang: 'ar',
     koutEntryMode: 'contract',     // 'contract' | 'manual' — for Kout round entry
-    entryStyle: 'numpad',          // 'numpad' | 'pm' — for Sebeeta + Custom score entry
+    entryStyle: 'pm',              // 'pm' (Bulk) | 'numpad' — for Sebeeta + Custom score entry
     currentScreen: 'home',         // 'home' | 'setup' | 'play' | 'history' | 'winner'
     recentGames: [],               // array of { kind, players, when, winner, score, teamNames }
     theme: 'light'                 // 'light' | 'dark' — UI theme
@@ -2396,10 +2412,12 @@
     return t;
   }
 
-  // Dealer at the *player* level — same logic as before, only meaningful for
-  // custom + sebeeta (kout has no individual dealer).
+  // Dealer = the side that's losing (opposite of the win condition).
+  //   Custom / Sebeeta (winRule lowest) → highest individual score is dealer.
+  //   Custom (winRule highest)          → lowest individual score is dealer.
+  //   Kout (winRule highest, team-level) → lowest team total is dealer.
   function dealerIndex(totalsArr) {
-    if (state.gameMode === 'kout' || totalsArr.length === 0) return -1;
+    if (totalsArr.length === 0) return -1;
     if (state.winRule === 'highest') {
       let min = Infinity, idx = 0;
       totalsArr.forEach((v, i) => { if (v < min) { min = v; idx = i; } });
@@ -2509,17 +2527,22 @@
     if (state.gameMode === 'kout') {
       const stack = document.createElement('div');
       stack.className = 'team-stack';
+      // Dealer = lowest-scoring team. Only meaningful once any score is on the board.
+      const anyScore = totalsArr[0] + totalsArr[1] > 0;
       [0, 1].forEach(ti => {
         const total = totalsArr[ti];
         const pct = Math.min(100, (total / state.threshold) * 100);
         const isWinner = winner && winner.type === 'team' && winner.idx === ti;
+        const isDealer = anyScore && ti === dealer && !isWinner;
         const members = state.players.filter((_, pi) => state.playerTeam[pi] === ti).join(' · ');
         const tile = document.createElement('div');
-        tile.className = 'team-tile' + (isWinner ? ' leader' : '');
+        tile.className = 'team-tile' + (isWinner || isDealer ? ' leader' : '');
+        const dealerBadge = isDealer ? `<span class="dealer-badge">${escapeHtml(t('dealerBadge'))}</span>` : '';
+        const winnerBadge = isWinner ? `<span class="winner-badge">${escapeHtml(t('winnerBadge'))}</span>` : '';
         tile.innerHTML = `
           <div class="team-row">
             <div>
-              <div class="team-name">${escapeHtml(teamName(ti))}${isWinner ? `<span class="winner-badge">${escapeHtml(t('winnerBadge'))}</span>` : ''}</div>
+              <div class="team-name">${escapeHtml(teamName(ti))}${dealerBadge}${winnerBadge}</div>
               <div class="members">${escapeHtml(members)}</div>
             </div>
           </div>
@@ -2564,10 +2587,14 @@
     else infoText = state.winRule === 'highest' ? t('infoHighest')(state.threshold) : t('infoLowest')(state.threshold);
     document.getElementById('thresholdInfo').textContent = infoText;
 
-    // Round number in toolbar + action button
+    // Round number + game-mode label in toolbar, plus the record button
     const nextRound = state.scores.length + 1;
     document.getElementById('playRoundNum').textContent = nextRound;
     document.getElementById('recordRoundNum').textContent = nextRound;
+    const gameNameKey = state.gameMode === 'kout' ? 'gameKout'
+                      : state.gameMode === 'sebeeta' ? 'gameSebeeta'
+                      : 'gameCustom';
+    document.getElementById('playGameName').textContent = t(gameNameKey);
 
     // Disable record/undo as appropriate
     const recordBtn = document.querySelector('#screen-play .record-btn');
@@ -2706,13 +2733,13 @@
 
   function renderPlayerSheet(rin) {
     // Sebeeta + Custom: per-player entries, with optional numpad style
-    const style = state.entryStyle || 'numpad';
+    const style = state.entryStyle || 'pm';
 
     const styleToggle = document.createElement('div');
     styleToggle.className = 'entry-style-toggle';
     styleToggle.innerHTML = `
-      <button type="button" class="${style === 'numpad' ? 'active' : ''}" onclick="setEntryStyle('numpad')">${escapeHtml(t('entryStyleNumpad'))}</button>
       <button type="button" class="${style === 'pm' ? 'active' : ''}" onclick="setEntryStyle('pm')">${escapeHtml(t('entryStylePlusMinus'))}</button>
+      <button type="button" class="${style === 'numpad' ? 'active' : ''}" onclick="setEntryStyle('numpad')">${escapeHtml(t('entryStyleNumpad'))}</button>
     `;
     rin.appendChild(styleToggle);
 
@@ -2906,15 +2933,16 @@
       : state.players.map((name) => ({ name }));
     head.innerHTML = `<th>${escapeHtml(t('thRound'))}</th>` +
       colHeaders.map(c => `<th>${escapeHtml(c.name)}</th>`).join('') +
-      (state.gameMode === 'kout' ? '' : `<th>${escapeHtml(t('thDealerAfter'))}</th>`) +
       `<th>${escapeHtml(t('thActions'))}</th>`;
     const hbody = document.getElementById('historyBody');
     hbody.innerHTML = '';
     const colCount = colHeaders.length;
     let runningTotals = new Array(colCount).fill(0);
+    const dealerBadgeHtml = `<span class="dealer-badge" style="margin-inline-start:0;display:inline-block;margin-top:2px;">${escapeHtml(t('dealerBadge'))}</span>`;
     state.scores.forEach((round, ri) => {
       runningTotals = runningTotals.map((v, i) => v + (round[i] || 0));
-      const dIdx = dealerIndex(runningTotals);
+      // Who is the dealer at the end of this round? Only mark once someone has scored.
+      const dIdx = runningTotals.some(v => v > 0) ? dealerIndex(runningTotals) : -1;
       const tr = document.createElement('tr');
       if (editingRound === ri) {
         const lastIdx = colCount - 1;
@@ -2924,7 +2952,6 @@
         }
         tr.innerHTML = `<td><strong>${ri+1}</strong></td>` +
           inputs.join('') +
-          (state.gameMode === 'kout' ? '' : `<td>—</td>`) +
           `<td>
             <button onclick="saveEditedRound(${ri})">${escapeHtml(t('saveBtn'))}</button>
             <button class="secondary" onclick="cancelEditRound()" style="margin-inline-start:4px;">${escapeHtml(t('cancelBtn'))}</button>
@@ -2932,12 +2959,11 @@
       } else {
         const cells = [];
         for (let i = 0; i < colCount; i++) {
-          cells.push(`<td><span class="num">${round[i] || 0}</span><span class="running">${runningTotals[i]}</span></td>`);
+          const isDealerCell = i === dIdx;
+          cells.push(`<td><span class="num">${round[i] || 0}</span><span class="running">${runningTotals[i]}${isDealerCell ? ' ' + dealerBadgeHtml : ''}</span></td>`);
         }
-        const dealerCell = state.gameMode === 'kout' ? '' : `<td>${dIdx >= 0 ? escapeHtml(state.players[dIdx]) : '—'}</td>`;
         tr.innerHTML = `<td><strong>${ri+1}</strong></td>` +
           cells.join('') +
-          dealerCell +
           `<td>
             <button class="secondary" onclick="startEditRound(${ri})">${escapeHtml(t('editBtn'))}</button>
             <button class="danger" onclick="deleteRound(${ri})" style="margin-inline-start:4px;">${escapeHtml(t('deleteBtn'))}</button>
