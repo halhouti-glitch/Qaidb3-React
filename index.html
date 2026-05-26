@@ -255,9 +255,9 @@
       <div>
         <label data-t="gameType"></label>
         <select id="gameMode" onchange="onGameModeChange()">
-          <option value="custom" data-t="gameCustom"></option>
           <option value="sebeeta" data-t="gameSebeeta"></option>
           <option value="kout" data-t="gameKout"></option>
+          <option value="custom" data-t="gameCustom"></option>
         </select>
       </div>
       <div id="numPlayersWrap">
@@ -456,7 +456,7 @@
   };
 
   let state = {
-    gameMode: 'custom',  // 'custom' | 'sebeeta' | 'kout'
+    gameMode: 'sebeeta', // 'sebeeta' | 'kout' | 'custom'
     players: [],
     playerTeam: [],      // team index (0 or 1) per player; used in sebeeta + kout
     scores: [],          // custom/sebeeta: per-player arrays; kout: per-team [a,b] arrays
@@ -726,16 +726,24 @@
     const winner = checkWinner(totalsArr);
     state.gameOver = winner !== null;
 
-    // ---- Team summary (sebeeta + kout) ----
+    // ---- Top-scorer per team (Sebeeta only) ----
+    // Sebeeta lost when any individual hits 201, so the "leader" of each team
+    // (highest individual score) is who's closest to losing for that team.
     const teamSummary = document.getElementById('teamSummary');
     if (state.gameMode === 'sebeeta') {
-      const tTot = teamTotalsFromPlayers(totalsArr);
       teamSummary.innerHTML = [0, 1].map(ti => {
-        const members = state.players.filter((_, pi) => state.playerTeam[pi] === ti).join(' · ');
+        let topIdx = -1, topScore = -Infinity;
+        state.playerTeam.forEach((tIdx, pIdx) => {
+          if (tIdx === ti && totalsArr[pIdx] > topScore) {
+            topScore = totalsArr[pIdx];
+            topIdx = pIdx;
+          }
+        });
+        const topName = topIdx >= 0 ? state.players[topIdx] : '—';
+        const score = topIdx >= 0 ? totalsArr[topIdx] : 0;
         return `<div class="team-summary-card" style="--tcolor:${tcolor(ti)};">
-          <div class="label">${escapeHtml(teamName(ti))}</div>
-          <div class="value">${tTot[ti]}</div>
-          <div class="members">${escapeHtml(members)}</div>
+          <div class="label">${escapeHtml(teamName(ti))} — ${escapeHtml(topName)}</div>
+          <div class="value">${score}</div>
         </div>`;
       }).join('');
       teamSummary.classList.remove('hidden');
@@ -842,15 +850,18 @@
           submitRound();
         }
       });
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.id = 'minusBtn' + i;
-      btn.className = 'minus-btn';
-      btn.textContent = t('minusBtn');
-      btn.onclick = () => toggleMinus(i);
       div.appendChild(label);
       div.appendChild(input);
-      div.appendChild(btn);
+      // Minus button — only meaningful for individual scoring (custom + sebeeta)
+      if (state.gameMode !== 'kout') {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.id = 'minusBtn' + i;
+        btn.className = 'minus-btn';
+        btn.textContent = t('minusBtn');
+        btn.onclick = () => toggleMinus(i);
+        div.appendChild(btn);
+      }
       rin.appendChild(div);
     });
 
@@ -1036,7 +1047,10 @@
 
   // Init
   applyLang();
-  load();
+  if (!load()) {
+    // Fresh session — apply the default game-mode UI (Sebeeta hides threshold/winRule)
+    onGameModeChange();
+  }
 </script>
 </body>
 </html>
