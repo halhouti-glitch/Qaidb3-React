@@ -5,189 +5,1271 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>قيد بلوك 3</title>
 <style>
-  * { box-sizing: border-box; }
+  @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+
+  /* ---- Light theme (default) ---- */
+  :root {
+    --bg: #f0eee9;
+    --bg-grad-1: radial-gradient(1200px 800px at 10% -10%, rgba(255,210,170,0.55), transparent 60%),
+                 radial-gradient(1000px 800px at 100% 0%, rgba(150,200,255,0.45), transparent 55%),
+                 radial-gradient(900px 700px at 50% 110%, rgba(255,200,220,0.45), transparent 60%);
+    --surface: rgba(255,255,255,0.62);
+    --surface-elev: rgba(255,255,255,0.78);
+    --surface-solid: #ffffff;
+    --tile-warm: rgba(255,253,246,0.78);
+    --ink: #0a0a0a;
+    --ink-soft: #2a2a2a;
+    --muted: #6e6e72;
+    --line: rgba(0,0,0,0.08);
+    --line-strong: rgba(0,0,0,0.18);
+    --accent-soft: rgba(0,0,0,0.05);
+    --gold: #f5b800;
+    --positive: #1b8a4b;
+    --negative: #c1432f;
+    --on-gold: #1a1100;
+    --on-negative: #ffffff;
+    --on-positive: #ffffff;
+    --font-body: 'Geist', system-ui, -apple-system, sans-serif;
+    --font-num: 'Geist Mono', monospace;
+    --num-weight: 600;
+    --radius-s: 10px;
+    --radius: 16px;
+    --radius-l: 24px;
+    /* Glass tokens */
+    --glass-blur: blur(28px) saturate(180%);
+    --glass-highlight: rgba(255,255,255,0.7);
+    --glass-edge: rgba(255,255,255,0.45);
+    --shadow-card: 0 0 0 1px var(--line), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lift: 0 12px 32px -12px rgba(0,0,0,0.18), 0 0 0 1px var(--line);
+  }
+
+  /* ---- Dark theme ---- */
+  [data-theme="dark"] {
+    --bg: #0a0a0c;
+    --bg-grad-1: radial-gradient(1200px 800px at 10% -10%, rgba(110,80,40,0.45), transparent 60%),
+                 radial-gradient(1000px 800px at 100% 0%, rgba(40,80,140,0.4), transparent 55%),
+                 radial-gradient(900px 700px at 50% 110%, rgba(120,40,80,0.4), transparent 60%);
+    --surface: rgba(36,36,40,0.55);
+    --surface-elev: rgba(48,48,54,0.72);
+    --surface-solid: #1c1c1e;
+    --tile-warm: rgba(58,52,40,0.6);
+    --ink: #f5f5f7;
+    --ink-soft: #d6d6d8;
+    --muted: #9b9b9f;
+    --line: rgba(255,255,255,0.12);
+    --line-strong: rgba(255,255,255,0.22);
+    --accent-soft: rgba(255,255,255,0.08);
+    --gold: #ffd60a;
+    --positive: #30d158;
+    --negative: #ff453a;
+    --on-gold: #1a1100;
+    --on-negative: #ffffff;
+    --on-positive: #052e15;
+    --glass-blur: blur(28px) saturate(160%);
+    --glass-highlight: rgba(255,255,255,0.18);
+    --glass-edge: rgba(255,255,255,0.08);
+    --shadow-card: 0 0 0 1px var(--line);
+    --shadow-lift: 0 14px 36px -12px rgba(0,0,0,0.6), 0 0 0 1px var(--line);
+  }
+
+  html[lang="ar"] { --font-body: 'IBM Plex Sans Arabic', 'Geist', system-ui, sans-serif; }
+
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Tahoma", "Arial", sans-serif;
-    background: #0f172a;
-    color: #e2e8f0;
-    margin: 0;
-    padding: 24px;
+    background: var(--bg-grad-1), var(--bg);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: var(--font-body);
     min-height: 100vh;
+    padding: 16px;
+    line-height: 1.4;
   }
-  html[dir="rtl"] body { font-family: "Tahoma", "Segoe UI", "Arial", sans-serif; }
-  .container { max-width: 1000px; margin: 0 auto; }
-  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; gap: 16px; }
-  h1 { margin: 0; font-size: 28px; }
-  h2 { font-size: 18px; margin: 0 0 12px; color: #cbd5e1; }
+  .container { max-width: 980px; margin: 0 auto; }
+
+  /* Common glass treatment — translucent surface + backdrop blur + soft inner
+     highlight on the top edge to suggest glass thickness. Apply by adding the
+     .glass class OR by extending via CSS variables on .card / .sheet / etc. */
+  .glass, .card, .sheet, .game-card, .play-actions, .winner-stage > .winner-card {
+    background: var(--surface);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+  /* Subtle top-edge highlight on glass surfaces */
+  .card, .game-card, .sheet, .winner-stage > .winner-card {
+    position: relative;
+  }
+  .card::before,
+  .game-card::before,
+  .sheet::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 12px; right: 12px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--glass-highlight), transparent);
+    pointer-events: none;
+    border-radius: 1px;
+  }
+
+  /* Numbers — tabular, mono */
+  .num {
+    font-family: var(--font-num);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--num-weight);
+    letter-spacing: -0.02em;
+  }
+  html[dir="rtl"] .num,
+  html[dir="rtl"] .pt-score,
+  html[dir="rtl"] .team-score,
+  html[dir="rtl"] .pt-seat { direction: ltr; unicode-bidi: isolate; }
+
+  /* Header */
+  .app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    padding: 6px 2px;
+  }
+  .app-header .title-block { display: flex; flex-direction: column; line-height: 1.1; }
+  .app-header .eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .app-header h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
+  .header-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .lang-switch select {
+    width: auto;
+    padding: 6px 12px;
+    font-size: 13px;
+    background: var(--surface-elev);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink);
+    font-family: inherit;
+  }
+  .theme-toggle-btn {
+    width: 36px; height: 36px;
+    border-radius: 999px;
+    display: grid; place-items: center;
+    background: var(--surface-elev);
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--line);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    padding: 0;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .theme-toggle-btn:hover { background: var(--accent-soft); opacity: 1; }
+  .theme-toggle-btn .theme-icon { display: inline-block; }
+  [data-theme="dark"] .theme-toggle-btn .theme-icon { transform: rotate(180deg); }
+
+  /* Card surfaces */
   .card {
-    background: #1e293b;
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 20px;
-    border: 1px solid #334155;
+    background: var(--surface);
+    border-radius: var(--radius-l);
+    padding: 22px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow-card);
   }
-  label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; }
+  h2 {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+  label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  /* Inputs */
   input[type="text"], input[type="number"], select {
-    background: #0f172a;
-    border: 1px solid #334155;
-    color: #e2e8f0;
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-size: 14px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 11px 14px;
+    border-radius: var(--radius);
+    font-size: 15px;
     width: 100%;
     font-family: inherit;
-  }
-  input:focus, select:focus { outline: none; border-color: #60a5fa; }
-  button {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
     font-weight: 500;
-    font-family: inherit;
   }
-  button:hover { background: #2563eb; }
-  button.secondary { background: #475569; }
-  button.secondary:hover { background: #334155; }
-  button.danger { background: #dc2626; }
-  button.danger:hover { background: #b91c1c; }
-  button.warning { background: #d97706; }
-  button.warning:hover { background: #b45309; }
-  .lang-switch select { width: auto; padding: 6px 10px; font-size: 13px; }
+  input:focus, select:focus { outline: none; border-color: var(--ink-soft); }
+
+  /* Buttons */
+  button {
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.2px;
+    padding: 12px 18px;
+    border-radius: var(--radius);
+    border: 0;
+    cursor: pointer;
+    background: var(--ink);
+    color: var(--bg);
+    transition: transform 80ms ease, opacity 120ms ease, background 120ms ease;
+  }
+  button:hover { opacity: 0.92; }
+  button:active { transform: scale(0.98); }
+  button.secondary {
+    background: transparent;
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  button.secondary:hover { background: var(--accent-soft); opacity: 1; }
+  button.warning { background: var(--gold); color: var(--on-gold); }
+  button.danger {
+    background: transparent;
+    color: var(--negative);
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  button.danger:hover { background: var(--accent-soft); opacity: 1; }
+
+  /* Layout helpers */
   .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
   .row > div { flex: 1; min-width: 140px; }
-  .player-inputs { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { padding: 10px 8px; text-align: center; border-bottom: 1px solid #334155; font-size: 14px; }
-  th { background: #0f172a; color: #94a3b8; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-  td.player-name, th.player-name { text-align: start; font-weight: 500; }
+
+  /* Chip-style game-mode picker */
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    padding: 9px 18px;
+    border-radius: 100px;
+    background: var(--bg);
+    color: var(--ink-soft);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: inset 0 0 0 1px var(--line);
+    border: 0;
+    font-family: inherit;
+  }
+  .chip.active {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: none;
+  }
+
+  /* Player input rows in setup */
+  .player-inputs { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 16px; }
+  .player-inputs > div > label { display: none; }
+  .player-input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .player-input-row .seat {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--accent-soft);
+    color: var(--ink);
+    font-family: var(--font-num);
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .player-input-row > input {
+    flex: 1; min-width: 0;
+    border: 0; background: transparent;
+    padding: 4px 0;
+    font-size: 15px;
+    border-radius: 0;
+  }
+  .player-input-row > input:focus { outline: none; border-color: transparent; }
+  .team-toggle { display: inline-flex; gap: 4px; flex-shrink: 0; }
+  .team-toggle button {
+    background: transparent;
+    color: var(--muted);
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 100px;
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .team-toggle button.active {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: none;
+  }
+
+  /* Team setup: 2 columns side-by-side, players 1/3/5 vs 2/4/6 with a vs divider */
+  .team-pair-setup {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 10px;
+    align-items: start;
+    margin: 8px 0 14px;
+  }
+  .team-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .team-col-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: var(--radius);
+  }
+  .team-col-header .team-letter {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-num);
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .team-col-header input {
+    flex: 1; min-width: 0;
+    background: transparent;
+    border: 0;
+    color: var(--bg);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 0;
+  }
+  .team-col-header input::placeholder { color: rgba(255,255,255,0.5); }
+  .team-col-header input:focus { outline: none; }
+  .vs-divider {
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--muted);
+    padding: 0 2px;
+    font-weight: 500;
+  }
+  @media (max-width: 600px) {
+    .team-pair-setup { grid-template-columns: 1fr; gap: 8px; }
+    .vs-divider { padding: 4px 0; }
+  }
+
+  /* Hint text */
+  .threshold-info {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  /* Standings: player grid (tiles) for Custom + Sebeeta */
+  .player-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .player-tile {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 14px 14px 12px;
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 110px;
+  }
+  .player-tile.leader { box-shadow: inset 0 0 0 2px var(--gold); }
+  .player-tile .pt-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .player-tile .pt-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .player-tile .pt-seat {
+    font-family: var(--font-num);
+    font-size: 11px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .player-tile .pt-score {
+    font-family: var(--font-num);
+    font-weight: var(--num-weight);
+    font-size: 38px;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+    line-height: 1;
+    margin-top: 10px;
+  }
+  .player-tile .pt-bar {
+    margin-top: 10px;
+    height: 3px;
+    border-radius: 3px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .player-tile .pt-bar > div {
+    height: 100%;
+    background: var(--ink);
+    border-radius: 3px;
+    transition: width 400ms cubic-bezier(.2,.7,.2,1);
+  }
+  .team-chip {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 100px;
+    background: var(--accent-soft);
+    color: var(--ink-soft);
+    margin-inline-start: 6px;
+    vertical-align: middle;
+  }
   .dealer-badge {
     display: inline-block;
-    background: #f59e0b;
-    color: #0f172a;
+    background: var(--gold);
+    color: var(--on-gold);
     font-size: 10px;
     font-weight: 700;
-    padding: 2px 6px;
+    padding: 1px 6px;
     border-radius: 4px;
     margin-inline-start: 6px;
-    text-transform: uppercase;
+    vertical-align: middle;
   }
   .winner-badge {
     display: inline-block;
-    background: #10b981;
-    color: #0f172a;
+    background: var(--positive);
+    color: var(--on-positive);
     font-size: 10px;
     font-weight: 700;
-    padding: 2px 6px;
+    padding: 1px 6px;
     border-radius: 4px;
     margin-inline-start: 6px;
-    text-transform: uppercase;
+    vertical-align: middle;
   }
-  .total { font-size: 18px; font-weight: 700; color: #fbbf24; }
-  .round-input { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 16px 0; }
-  .round-input input { text-align: center; }
-  .minus-btn {
-    width: 100%;
-    margin-top: 6px;
-    background: #475569;
-    color: #e2e8f0;
-    padding: 6px 10px;
+
+  /* Team tiles (Kout) */
+  .team-stack { display: flex; flex-direction: column; gap: 10px; }
+  .team-tile {
+    background: var(--tile-warm);
+    border-radius: var(--radius-l);
+    padding: 18px;
+    position: relative;
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    overflow: hidden;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+  .team-tile.leader { box-shadow: inset 0 0 0 2px var(--gold); }
+  .team-tile .team-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .team-tile .team-name {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .team-tile .members {
     font-size: 12px;
-    border-radius: 6px;
-    font-weight: 500;
+    color: var(--muted);
+    margin-top: 2px;
   }
-  .minus-btn:hover { background: #334155; }
-  .minus-btn.active { background: #dc2626; color: white; }
-  .minus-btn.active:hover { background: #b91c1c; }
-  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .team-tile .team-score {
+    font-family: var(--font-num);
+    font-weight: var(--num-weight);
+    font-size: 52px;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin-top: 14px;
+  }
+  .team-tile .team-bar {
+    height: 4px;
+    border-radius: 4px;
+    background: var(--line);
+    overflow: hidden;
+    margin-top: 12px;
+  }
+  .team-tile .team-bar > div {
+    height: 100%;
+    background: var(--ink);
+    border-radius: 4px;
+    transition: width 500ms cubic-bezier(.2,.7,.2,1);
+  }
+
+  /* Top-scorer summary (Sebeeta) */
+  .team-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .team-summary-card {
+    background: var(--tile-warm);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+  .team-summary-card .label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .team-summary-card .value {
+    font-family: var(--font-num);
+    font-size: 28px;
+    font-weight: var(--num-weight);
+    letter-spacing: -0.03em;
+    color: var(--ink);
+  }
+
+  /* Round entry */
+  .round-entry-list {
+    display: flex;
+    flex-direction: column;
+    margin: 4px 0 14px;
+  }
+  .entry-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .entry-row:last-child { border-bottom: 0; }
+  .entry-row .seat {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--accent-soft);
+    font-family: var(--font-num);
+    font-size: 11px;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+  .entry-row .who {
+    flex: 1; min-width: 0;
+    font-size: 14px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .entry-row .who .members {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-top: 1px;
+  }
+  .entry-row input[type="number"] {
+    width: 80px;
+    text-align: center;
+    font-family: var(--font-num);
+    font-weight: 600;
+    padding: 8px 10px;
+    font-size: 15px;
+  }
+  .entry-row .minus-btn {
+    background: transparent;
+    color: var(--negative);
+    padding: 5px 11px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 100px;
+    box-shadow: inset 0 0 0 1px var(--line-strong);
+  }
+  .entry-row .minus-btn:hover { background: rgba(193,67,47,0.06); opacity: 1; }
+  .entry-row .minus-btn.active {
+    background: var(--negative);
+    color: white;
+    box-shadow: none;
+  }
+
+  /* Actions bar */
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* Top-of-game actions (Reset / New Game) — sits above the standings card */
+  .game-top-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    justify-content: flex-end;
+  }
+  .game-top-actions button {
+    padding: 9px 16px;
+    font-size: 13px;
+  }
+  @media (max-width: 600px) {
+    .game-top-actions { justify-content: stretch; }
+    .game-top-actions button { flex: 1; padding: 10px 12px; font-size: 13px; }
+  }
+
+  /* Kout contract entry */
+  .entry-mode-toggle {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    background: var(--bg);
+    border-radius: 100px;
+    box-shadow: inset 0 0 0 1px var(--line);
+    margin-bottom: 14px;
+  }
+  .entry-mode-toggle button {
+    background: transparent;
+    color: var(--muted);
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 100px;
+    letter-spacing: -0.1px;
+  }
+  .entry-mode-toggle button.active {
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .contract-section { margin-bottom: 12px; }
+  .contract-section .label {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .contract-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .contract-chips .chip {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  .contract-chips .chip.outcome-win.active { background: var(--positive); color: var(--on-positive); }
+  .contract-chips .chip.outcome-fail.active { background: var(--negative); color: var(--on-negative); }
+  .contract-preview {
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: inset 0 0 0 1px var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    margin: 14px 0 12px;
+  }
+  .contract-preview .team-result {
+    flex: 1;
+    min-width: 0;
+  }
+  .contract-preview .team-result .label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .contract-preview .team-result .value {
+    font-family: var(--font-num);
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .contract-preview .team-result.win .value { color: var(--positive); }
+  .contract-preview .vs {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .contract-hint {
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+    padding: 12px 0;
+  }
+
+  /* History table */
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  th {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line-strong);
+  }
+  td .running {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    font-family: var(--font-num);
+    margin-top: 2px;
+  }
+  #historyTable input[type="number"] {
+    width: 70px;
+    padding: 6px 8px;
+    font-size: 13px;
+    text-align: center;
+    font-family: var(--font-num);
+    font-weight: 600;
+  }
+  #historyBody button {
+    padding: 5px 10px;
+    font-size: 11px;
+    border-radius: 100px;
+  }
+
+  /* Winner banner */
   .winner-banner {
-    background: linear-gradient(135deg, #10b981, #059669);
-    padding: 20px;
-    border-radius: 12px;
+    background: var(--ink);
+    color: var(--bg);
+    padding: 22px;
+    border-radius: var(--radius-l);
     text-align: center;
     font-size: 18px;
     font-weight: 600;
-    margin-bottom: 20px;
-    color: #0f172a;
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
   }
-  .hidden { display: none; }
-  .threshold-info { color: #94a3b8; font-size: 13px; margin-top: 8px; margin-bottom: 12px; }
 
-  /* Team chip used in setup and standings */
-  .team-chip {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 999px;
-    color: #0f172a;
-    margin-inline-start: 6px;
-  }
-  .team-chip.team-a { background: #06b6d4; }
-  .team-chip.team-b { background: #ec4899; }
-  /* Team selector (radio-like toggle) shown next to player name inputs */
-  .team-toggle { display: inline-flex; gap: 4px; margin-inline-start: 8px; }
-  .team-toggle button {
-    background: #334155;
-    color: #e2e8f0;
-    padding: 4px 10px;
-    font-size: 12px;
-    font-weight: 700;
-    border-radius: 6px;
-    border: 2px solid transparent;
-  }
-  .team-toggle button.active.team-a { background: #06b6d4; color: #0f172a; border-color: #06b6d4; }
-  .team-toggle button.active.team-b { background: #ec4899; color: #0f172a; border-color: #ec4899; }
-  .team-toggle button:hover { filter: brightness(1.1); }
-  .player-input-row { display: flex; align-items: end; gap: 8px; }
-  .player-input-row > input { flex: 1; }
-  /* Team-totals summary block (Sebeeta) */
-  .team-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-  .team-summary-card {
-    padding: 12px;
-    border-radius: 8px;
-    background: #0b1224;
-    border-inline-start: 4px solid var(--tcolor, #475569);
-  }
-  .team-summary-card .label { font-size: 12px; color: #94a3b8; }
-  .team-summary-card .value { font-size: 24px; font-weight: 700; color: #fbbf24; margin-top: 4px; }
-  .team-summary-card .members { font-size: 12px; color: #cbd5e1; margin-top: 4px; }
+  .hidden { display: none !important; }
 
-  /* Player color dot */
-  .pdot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-inline-end: 8px;
-    vertical-align: middle;
-    flex-shrink: 0;
+  /* Screen containers */
+  .screen {
+    animation: fadein 180ms ease-out;
   }
-  /* Round entry — colored left/right border per player card */
-  .round-input > div {
-    background: #0b1224;
-    border-radius: 8px;
-    padding: 10px;
-    border-inline-start: 4px solid var(--pcolor, #475569);
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
-  .round-input > div label {
+  .screen-toolbar {
     display: flex;
     align-items: center;
-    color: #e2e8f0;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 10px;
+  }
+  .screen-toolbar .screen-title {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    flex: 1;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .screen-toolbar .screen-title .eyebrow {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .icon-btn {
+    width: 40px; height: 40px;
+    border-radius: 999px;
+    display: grid; place-items: center;
+    background: transparent;
+    color: var(--ink);
+    font-size: 22px;
+    line-height: 1;
+    padding: 0;
+    border: 0;
+    cursor: pointer;
+  }
+  .icon-btn:hover { background: var(--accent-soft); opacity: 1; }
+  .icon-btn.with-label {
+    width: auto;
+    height: auto;
+    padding: 8px 14px 8px 12px;
+    border-radius: 999px;
+    background: var(--surface-elev);
+    box-shadow: inset 0 0 0 1px var(--line);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-size: 13px;
+    font-weight: 600;
+  }
+  .icon-btn.with-label .icon-glyph { font-size: 18px; line-height: 1; }
+  .icon-btn.with-label .icon-label { font-size: 13px; }
+
+  /* Home screen */
+  .home-hero {
+    padding: 14px 4px 22px;
+  }
+  .home-hero .eyebrow {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
     font-weight: 600;
     margin-bottom: 8px;
   }
-  /* Standings — colored leading edge per player row.
-     Applied to the player-name cell (not the tr) because tr borders render
-     inconsistently when border-collapse: collapse is set. */
-  #standingsBody td.player-name {
-    border-inline-start: 4px solid var(--pcolor, transparent);
-    /* keep table-cell display; pdot is inline-block so it aligns naturally */
+  .home-hero .heading {
+    font-size: 36px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin: 0 0 8px;
+    color: var(--ink);
   }
+  .home-hero .sub {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.4;
+    max-width: 360px;
+  }
+  .home-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .game-card {
+    background: var(--surface);
+    border-radius: var(--radius-l);
+    padding: 0;
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    text-align: start;
+    color: var(--ink);
+    width: 100%;
+    overflow: hidden;
+    transition: box-shadow 120ms ease, transform 120ms ease;
+  }
+  .game-card:hover { box-shadow: var(--shadow-lift); transform: translateY(-1px); opacity: 1; }
+  .game-card .gc-art {
+    width: 100%;
+    height: 130px;
+    background: linear-gradient(180deg, #f8f6f0, #ede9dd);
+    display: grid; place-items: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+  }
+  .game-card .gc-art {
+    /* Lock the card artwork to LTR so the SVG coords + <text> anchoring
+       render identically in both languages */
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+  .game-card .gc-art svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    direction: ltr;
+  }
+  .game-card .gc-art[data-game="kout"]   { background: linear-gradient(180deg, #f0f4ee, #d8e6d7); }
+  .game-card .gc-art[data-game="sebeeta"]{ background: linear-gradient(180deg, #fdf3f0, #f3d9d3); }
+  .game-card .gc-art[data-game="custom"] { background: linear-gradient(180deg, #eef0f5, #d4d9e3); }
+  .game-card .gc-meta { flex: 1; min-width: 0; padding: 18px; }
+  .game-card .gc-meta .name {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .game-card .gc-meta .desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+  .game-card .gc-meta .meta-row {
+    display: flex; gap: 8px;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+  }
+  .resume-row button {
+    width: 100%;
+    background: var(--gold);
+    color: var(--ink);
+    padding: 14px 20px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .recent-section { padding-top: 8px; }
+  .recent-section h3 {
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 10px;
+    padding: 0 4px;
+  }
+  .recent-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    margin-bottom: 8px;
+    cursor: default;
+    text-align: start;
+    width: 100%;
+  }
+  .recent-row .left .game-name { font-weight: 600; font-size: 14px; }
+  .recent-row .left .when { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .recent-row .right { text-align: end; }
+  .recent-row .right .winner { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
+  .recent-row .right .score { font-family: var(--font-num); font-size: 13px; color: var(--ink); font-weight: 600; }
+
+  /* Play screen — bottom action bar */
+  .play-body { padding-bottom: 4px; }
+  .play-actions {
+    position: sticky;
+    bottom: 12px;
+    margin-top: 14px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    /* glass treatment handled by the shared rule above; just keep layout here */
+    padding: 8px;
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-lift);
+  }
+  .play-actions .undo-btn {
+    flex: 0 0 auto;
+    width: 56px;
+    padding: 0;
+    height: 52px;
+    font-size: 20px;
+    line-height: 1;
+  }
+  .play-actions .record-btn {
+    flex: 1;
+    padding: 16px 20px;
+    font-size: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    height: 52px;
+  }
+  .play-actions .record-btn .plus {
+    font-size: 18px;
+    line-height: 1;
+  }
+  .play-actions .record-btn[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .game-meta-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 0 4px;
+  }
+  .game-meta-actions button {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 100px;
+  }
+  .game-meta-actions .reset-btn {
+    background: var(--gold);
+    color: var(--on-gold);
+    box-shadow: none;
+  }
+  .game-meta-actions .reset-btn:hover { filter: brightness(0.95); opacity: 1; }
+  .game-meta-actions .newgame-btn {
+    background: var(--negative);
+    color: var(--on-negative);
+    box-shadow: none;
+  }
+  .game-meta-actions .newgame-btn:hover { filter: brightness(0.95); opacity: 1; }
+
+  /* Bottom sheet */
+  .sheet-scrim {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.32);
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 240ms ease;
+    pointer-events: none;
+  }
+  .sheet-scrim:not(.hidden) { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: var(--surface);
+    border-radius: 28px 28px 0 0;
+    z-index: 101;
+    transform: translateY(100%);
+    transition: transform 320ms cubic-bezier(.2,.7,.2,1);
+    display: flex;
+    flex-direction: column;
+    max-height: 88vh;
+    box-shadow: 0 -20px 40px -20px rgba(0,0,0,0.32);
+  }
+  .sheet:not(.hidden) { transform: translateY(0); }
+  .sheet .grabber {
+    width: 36px; height: 4px;
+    border-radius: 4px;
+    background: var(--line-strong);
+    margin: 10px auto 6px;
+    flex-shrink: 0;
+  }
+  .sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 22px 14px;
+    flex-shrink: 0;
+  }
+  .sheet-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    text-transform: none;
+  }
+  .sheet-body {
+    padding: 0 22px 16px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .sheet-foot {
+    padding: 12px 22px 22px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    background: var(--surface-elev);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+  .sheet-foot button { flex: 1; }
+
+  /* Numpad (Sebeeta + Custom: optional numpad entry style) */
+  .numpad-section {
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .numpad-context {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+  .numpad-context .seat {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--accent-soft);
+    font-family: var(--font-num);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .numpad-context .who {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .numpad-display {
+    background: var(--surface);
+    border-radius: var(--radius-s);
+    padding: 14px;
+    text-align: center;
+    font-family: var(--font-num);
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+    min-height: 56px;
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .numpad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .numpad-grid button {
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-num);
+    font-size: 18px;
+    font-weight: 600;
+    padding: 14px 0;
+    border-radius: var(--radius-s);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+  .numpad-grid button:hover { background: var(--accent-soft); opacity: 1; }
+  .numpad-grid button.np-action { background: var(--ink); color: var(--bg); box-shadow: none; }
+  .numpad-grid button.np-sign { background: var(--bg); }
+  .numpad-grid button.np-pen {
+    background: var(--negative);
+    color: white;
+    box-shadow: none;
+    font-size: 13px;
+  }
+  .numpad-nav button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 1;
+    padding: 12px 6px;
+  }
+  .numpad-nav .np-arrow { font-size: 18px; line-height: 1; }
+  .numpad-nav .np-label { font-size: 12px; font-weight: 600; }
+  .numpad-nav button[disabled] { opacity: 0.35; cursor: not-allowed; }
+  /* In RTL the arrows should mirror */
+  html[dir="rtl"] .numpad-nav .np-arrow { transform: scaleX(-1); display: inline-block; }
+  .entry-style-toggle {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    background: var(--bg);
+    border-radius: 100px;
+    box-shadow: inset 0 0 0 1px var(--line);
+    margin-bottom: 12px;
+  }
+  .entry-style-toggle button {
+    background: transparent;
+    color: var(--muted);
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 100px;
+  }
+  .entry-style-toggle button.active {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  /* Winner screen */
+  .winner-stage {
+    padding: 60px 22px 40px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-height: 60vh;
+    justify-content: center;
+  }
+  .winner-crest {
+    font-size: 80px;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .winner-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .winner-name {
+    font-size: 44px;
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+    line-height: 1.05;
+    margin: 8px 0 4px;
+    word-wrap: break-word;
+    max-width: 100%;
+  }
+  .winner-score {
+    font-family: var(--font-num);
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--gold);
+  }
+  .winner-meta {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .winner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 32px;
+    justify-content: center;
+  }
+  .winner-actions button { padding: 12px 22px; }
+  html[dir="rtl"] .winner-score, html[dir="rtl"] .winner-name { direction: ltr; unicode-bidi: isolate; }
+  html[dir="rtl"] .winner-name { direction: inherit; unicode-bidi: normal; }
 
   /* Landscape layout for tablets / wide screens */
   @media (min-width: 900px) and (orientation: landscape) {
@@ -195,133 +1277,390 @@
     .game-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 20px;
+      gap: 14px;
       align-items: start;
     }
     .game-grid > .card { margin-bottom: 0; }
     .history-card { grid-column: 1 / -1; }
   }
 
-  /* Tighter, less-stuffed layout on phones */
+  /* Compact phone */
   @media (max-width: 600px) {
-    body { padding: 10px; }
-    .card { padding: 14px; border-radius: 10px; margin-bottom: 12px; }
-    h1 { font-size: 20px; }
-    h2 { font-size: 15px; margin-bottom: 10px; }
-    .top-bar { margin-bottom: 14px; }
-    label { font-size: 12px; margin-bottom: 4px; }
-    input[type="text"], input[type="number"], select { padding: 8px 10px; font-size: 14px; }
-    button { padding: 9px 14px; font-size: 13px; }
-    th, td { padding: 6px 4px; font-size: 13px; }
-    th { font-size: 10px; letter-spacing: 0.2px; }
-    .total { font-size: 16px; }
-    .threshold-info { font-size: 12px; }
-    .dealer-badge, .winner-badge { font-size: 9px; padding: 1px 4px; margin-inline-start: 4px; }
-    .pdot { width: 8px; height: 8px; margin-inline-end: 6px; }
-
-    /* Round-entry cards: tighter, slimmer */
-    .round-input { gap: 8px; grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); }
-    .round-input > div { padding: 8px; border-inline-start-width: 3px; }
-    .round-input > div label { font-size: 12px; margin-bottom: 6px; }
-    .minus-btn { padding: 5px 6px; font-size: 11px; margin-top: 4px; }
-
-    /* Drop "Rounds Played" column in standings — info is in the page title bar implicitly */
-    #standingsTable th:nth-child(3), #standingsTable td:nth-child(3) { display: none; }
-
-    /* History: shrink edit inputs and action buttons */
-    #historyTable input[type="number"] { width: 56px; padding: 4px; font-size: 12px; }
-    #historyBody button { padding: 4px 6px; font-size: 11px; }
-    .winner-banner { font-size: 15px; padding: 14px; }
+    body { padding: 12px; }
+    .card { padding: 16px; border-radius: var(--radius); margin-bottom: 10px; }
+    .app-header h1 { font-size: 22px; }
+    .player-tile { padding: 12px 12px 10px; min-height: 100px; }
+    .player-tile .pt-score { font-size: 32px; margin-top: 8px; }
+    .team-tile .team-score { font-size: 44px; }
+    .entry-row { padding: 8px 0; gap: 8px; }
+    .entry-row input[type="number"] { width: 64px; padding: 6px 8px; font-size: 14px; }
+    .entry-row .minus-btn { padding: 4px 9px; font-size: 11px; }
+    button { padding: 11px 16px; font-size: 14px; }
+    .winner-banner { font-size: 16px; padding: 18px; }
   }
 </style>
 </head>
 <body>
 <div class="container">
-  <div class="top-bar">
-    <h1 id="title">قيد بلوك 3</h1>
-    <div class="lang-switch">
-      <label for="langPicker" style="display:inline;margin-inline-end:8px;" data-t="language">اللغة</label>
-      <select id="langPicker" onchange="setLang(this.value)">
-        <option value="ar">العربية</option>
-        <option value="en">English</option>
-      </select>
+  <header class="app-header">
+    <div class="title-block">
+      <span class="eyebrow">QAID · BLOCK 3</span>
+      <h1 id="title">قيد بلوك 3</h1>
+    </div>
+    <div class="header-controls">
+      <button id="themeToggle" class="theme-toggle-btn" type="button" onclick="toggleTheme()" aria-label="Toggle theme">
+        <span class="theme-icon" id="themeIcon">☀</span>
+      </button>
+      <div class="lang-switch">
+        <select id="langPicker" onchange="setLang(this.value)" aria-label="Language">
+          <option value="ar">العربية</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- HOME SCREEN — game picker + recent games -->
+  <div id="screen-home" class="screen">
+    <div class="home-hero">
+      <span class="eyebrow" data-t="homePickGame"></span>
+      <div class="heading" data-t="homeTitle"></div>
+      <div class="sub" data-t="homeSub"></div>
+    </div>
+    <div class="home-body">
+      <button type="button" class="game-card" onclick="pickGame('sebeeta')">
+        <div class="gc-art" data-game="sebeeta">
+          <svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sebeeta">
+            <defs><style>
+              .sa-bg{fill:#FFFFFF;stroke:#0F1A2E;stroke-width:2}
+              .sa-shadow{fill:#0F1A2E;opacity:0.15}
+              .sa-red{fill:#D72638}.sa-dark{fill:#0F1A2E}
+              .sa-y{fill:#F4C430}.sa-g{fill:#2E8B57}.sa-p{fill:#6B3FA0}
+              .sa-corner{font-family:Helvetica,Arial,sans-serif;font-weight:800}
+              .sa-jtxt{font-family:Helvetica,Arial,sans-serif;font-weight:800;font-size:11px;letter-spacing:1px}
+            </style></defs>
+            <g transform="translate(225,50) rotate(-22)">
+              <rect class="sa-shadow" x="3" y="4" width="110" height="155" rx="12"/>
+              <rect class="sa-bg" x="0" y="0" width="110" height="155" rx="12"/>
+              <text class="sa-jtxt sa-red" x="8" y="20">JOKER</text>
+              <g transform="translate(55,82)">
+                <path class="sa-red" d="M -28 -10 L -20 -32 L -12 -14 Z"/>
+                <path class="sa-y"   d="M -12 -14 L 0 -36 L 12 -14 Z"/>
+                <path class="sa-g"   d="M 12 -14 L 20 -32 L 28 -10 Z"/>
+                <path class="sa-red" d="M -28 -10 L -12 -14 L 28 -10 Z"/>
+                <path class="sa-p"   d="M -28 -10 L 28 -10 L 24 -6 L -24 -6 Z"/>
+                <circle class="sa-y" cx="-20" cy="-32" r="3"/>
+                <circle class="sa-red" cx="0" cy="-36" r="3"/>
+                <circle class="sa-y" cx="20" cy="-32" r="3"/>
+                <ellipse fill="#FFFFFF" stroke="#0F1A2E" stroke-width="2" cx="0" cy="2" rx="16" ry="18"/>
+                <circle class="sa-red" cx="-9" cy="6" r="2.5" opacity="0.6"/>
+                <circle class="sa-red" cx="9" cy="6" r="2.5" opacity="0.6"/>
+                <path d="M -7 -2 Q -5 -5 -3 -2" fill="none" stroke="#0F1A2E" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 3 -2 Q 5 -5 7 -2" fill="none" stroke="#0F1A2E" stroke-width="2" stroke-linecap="round"/>
+                <path d="M -6 8 Q 0 14 6 8" fill="none" stroke="#0F1A2E" stroke-width="2" stroke-linecap="round"/>
+                <path class="sa-red" d="M -16 22 L -22 30 L -10 28 Z"/>
+                <path class="sa-y"   d="M -10 28 L 0 36 L 10 28 Z"/>
+                <path class="sa-g"   d="M 10 28 L 22 30 L 16 22 Z"/>
+              </g>
+              <text class="sa-jtxt sa-red" x="102" y="143" text-anchor="end" transform="rotate(180 102 143)">JOKER</text>
+            </g>
+            <g transform="translate(285,35) rotate(-8)">
+              <rect class="sa-shadow" x="3" y="4" width="110" height="155" rx="12"/>
+              <rect class="sa-bg" x="0" y="0" width="110" height="155" rx="12"/>
+              <text class="sa-jtxt sa-dark" x="8" y="20">JOKER</text>
+              <g transform="translate(55,82)">
+                <path class="sa-dark" d="M -28 -10 L -20 -32 L -12 -14 L 0 -36 L 12 -14 L 20 -32 L 28 -10 Z"/>
+                <circle class="sa-dark" cx="-20" cy="-32" r="3"/>
+                <circle class="sa-dark" cx="0" cy="-36" r="3"/>
+                <circle class="sa-dark" cx="20" cy="-32" r="3"/>
+                <ellipse fill="#FFFFFF" stroke="#0F1A2E" stroke-width="2" cx="0" cy="2" rx="16" ry="18"/>
+                <path d="M -7 -2 Q -5 -5 -3 -2" fill="none" stroke="#0F1A2E" stroke-width="2" stroke-linecap="round"/>
+                <path d="M 3 -2 Q 5 -5 7 -2" fill="none" stroke="#0F1A2E" stroke-width="2" stroke-linecap="round"/>
+                <path d="M -6 8 Q 0 14 6 8" fill="none" stroke="#0F1A2E" stroke-width="2" stroke-linecap="round"/>
+                <path class="sa-dark" d="M -16 22 L -22 30 L -8 28 L 0 36 L 8 28 L 22 30 L 16 22 Z"/>
+              </g>
+              <text class="sa-jtxt sa-dark" x="102" y="143" text-anchor="end" transform="rotate(180 102 143)">JOKER</text>
+            </g>
+            <g transform="translate(345,35) rotate(8)">
+              <rect class="sa-shadow" x="3" y="4" width="110" height="155" rx="12"/>
+              <rect class="sa-bg" x="0" y="0" width="110" height="155" rx="12"/>
+              <text class="sa-corner sa-red" x="10" y="26" font-size="20">10</text>
+              <polygon class="sa-red" points="26,32 31,38 26,44 21,38"/>
+              <g class="sa-red">
+                <polygon points="35,42 42,50 35,58 28,50"/>
+                <polygon points="35,66 42,74 35,82 28,74"/>
+                <polygon points="35,90 42,98 35,106 28,98"/>
+                <polygon points="35,114 42,122 35,130 28,122"/>
+                <polygon points="75,42 82,50 75,58 68,50"/>
+                <polygon points="75,66 82,74 75,82 68,74"/>
+                <polygon points="75,90 82,98 75,106 68,98"/>
+                <polygon points="75,114 82,122 75,130 68,122"/>
+                <polygon points="55,54 62,62 55,70 48,62"/>
+                <polygon points="55,102 62,110 55,118 48,110"/>
+              </g>
+              <g transform="translate(100,145) rotate(180)">
+                <text class="sa-corner sa-red" x="0" y="0" font-size="20">10</text>
+                <polygon class="sa-red" points="16,8 21,14 16,20 11,14"/>
+              </g>
+            </g>
+            <g transform="translate(405,50) rotate(22)">
+              <rect class="sa-shadow" x="3" y="4" width="110" height="155" rx="12"/>
+              <rect class="sa-bg" x="0" y="0" width="110" height="155" rx="12"/>
+              <text class="sa-corner sa-dark" x="12" y="26" font-size="20">Q</text>
+              <g transform="translate(20,38) scale(0.45)">
+                <path class="sa-dark" d="M 0 -26 Q -22 -6 -22 7 Q -22 19 -10 19 Q -4 19 -2 14 L -6 28 L 6 28 L 2 14 Q 4 19 10 19 Q 22 19 22 7 Q 22 -6 0 -26 Z"/>
+              </g>
+              <g transform="translate(55,85)">
+                <path class="sa-dark" d="M -20 -25 L -16 -10 L -10 -22 L -4 -10 L 0 -28 L 4 -10 L 10 -22 L 16 -10 L 20 -25 L 20 -4 L -20 -4 Z"/>
+                <circle class="sa-dark" cx="-20" cy="-25" r="2.5"/>
+                <circle class="sa-dark" cx="0" cy="-28" r="2.5"/>
+                <circle class="sa-dark" cx="20" cy="-25" r="2.5"/>
+                <ellipse class="sa-dark" cx="0" cy="8" rx="14" ry="16"/>
+                <path class="sa-dark" d="M -20 30 Q 0 18 20 30 L 20 32 L -20 32 Z"/>
+              </g>
+              <g transform="translate(98,145) rotate(180)">
+                <text class="sa-corner sa-dark" x="0" y="0" font-size="20">Q</text>
+                <g transform="translate(-10,12) scale(0.4)">
+                  <path class="sa-dark" d="M 0 -26 Q -22 -6 -22 7 Q -22 19 -10 19 Q -4 19 -2 14 L -6 28 L 6 28 L 2 14 Q 4 19 10 19 Q 22 19 22 7 Q 22 -6 0 -26 Z"/>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="gc-meta">
+          <div class="name" data-t="gameSebeeta"></div>
+          <div class="desc" data-t="gameSebeetaDesc"></div>
+          <div class="meta-row"><span data-t="gameSebeetaMeta"></span></div>
+        </div>
+      </button>
+
+      <button type="button" class="game-card" onclick="pickGame('kout')">
+        <div class="gc-art" data-game="kout">
+          <svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kout">
+            <defs><style>
+              .ka-bg{fill:#FFFFFF;stroke:#0F1A2E;stroke-width:2}
+              .ka-shadow{fill:#0F1A2E;opacity:0.15}
+              .ka-red{fill:#D72638}.ka-dark{fill:#0F1A2E}
+              .ka-corner{font-family:Helvetica,Arial,sans-serif;font-weight:800}
+            </style></defs>
+            <g transform="translate(225,50) rotate(-22)">
+              <rect class="ka-shadow" x="3" y="4" width="110" height="155" rx="12"/>
+              <rect class="ka-bg" x="0" y="0" width="110" height="155" rx="12"/>
+              <text class="ka-corner ka-dark" x="12" y="26" font-size="20">A</text>
+              <g transform="translate(55,80)">
+                <circle class="ka-dark" cx="0" cy="-14" r="11"/>
+                <circle class="ka-dark" cx="-11" cy="5" r="11"/>
+                <circle class="ka-dark" cx="11" cy="5" r="11"/>
+                <path class="ka-dark" d="M -5 5 L -9 26 L 9 26 L 5 5 Z"/>
+              </g>
+            </g>
+            <g transform="translate(285,35) rotate(-8)">
+              <rect class="ka-shadow" x="3" y="4" width="110" height="155" rx="12"/>
+              <rect class="ka-bg" x="0" y="0" width="110" height="155" rx="12"/>
+              <text class="ka-corner ka-red" x="12" y="26" font-size="20">A</text>
+              <g transform="translate(55,80)">
+                <polygon class="ka-red" points="0,-26 20,0 0,26 -20,0"/>
+              </g>
+            </g>
+            <g transform="translate(345,35) rotate(8)">
+              <rect class="ka-shadow" x="3" y="4" width="110" height="155" rx="12"/>
+              <rect class="ka-bg" x="0" y="0" width="110" height="155" rx="12"/>
+              <text class="ka-corner ka-red" x="12" y="26" font-size="20">A</text>
+              <g transform="translate(55,82)">
+                <path class="ka-red" d="M 0 20 L -22 -6 Q -28 -16 -20 -22 Q -10 -28 0 -14 Q 10 -28 20 -22 Q 28 -16 22 -6 Z"/>
+              </g>
+            </g>
+            <g transform="translate(405,50) rotate(22)">
+              <rect class="ka-shadow" x="3" y="4" width="110" height="155" rx="12"/>
+              <rect class="ka-bg" x="0" y="0" width="110" height="155" rx="12"/>
+              <text class="ka-corner ka-dark" x="12" y="26" font-size="20">A</text>
+              <g transform="translate(55,80)">
+                <path class="ka-dark" d="M 0 -26 Q -22 -6 -22 7 Q -22 19 -10 19 Q -4 19 -2 14 L -6 28 L 6 28 L 2 14 Q 4 19 10 19 Q 22 19 22 7 Q 22 -6 0 -26 Z"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="gc-meta">
+          <div class="name" data-t="gameKout"></div>
+          <div class="desc" data-t="gameKoutDesc"></div>
+          <div class="meta-row"><span data-t="gameKoutMeta"></span></div>
+        </div>
+      </button>
+
+      <button type="button" class="game-card" onclick="pickGame('custom')">
+        <div class="gc-art" data-game="custom">
+          <svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Custom — open scorepad">
+            <defs><style>
+              .cb-bg{fill:#FFFFFF;stroke:#0F1A2E;stroke-width:2}
+              .cb-shadow{fill:#0F1A2E;opacity:0.15}
+              .cb-back{fill:#7c2528}
+              .cb-stripe{stroke:#a83d3f;stroke-width:1.2;fill:none}
+              .cb-ring{fill:#f4c430}
+              .cb-inner{fill:#7c2528}
+              .cb-mark{fill:#f4c430;font-family:Georgia,serif;font-weight:700;font-size:24px}
+            </style></defs>
+
+            <!-- Card 1: back-left -->
+            <g transform="translate(225,50) rotate(-22)">
+              <rect class="cb-shadow" x="3" y="4" width="110" height="155" rx="12"/>
+              <rect class="cb-bg" x="0" y="0" width="110" height="155" rx="12"/>
+              <rect class="cb-back" x="6" y="6" width="98" height="143" rx="9"/>
+              <g class="cb-stripe">
+                <line x1="6" y1="32" x2="104" y2="32"/>
+                <line x1="6" y1="46" x2="104" y2="46"/>
+                <line x1="6" y1="108" x2="104" y2="108"/>
+                <line x1="6" y1="122" x2="104" y2="122"/>
+              </g>
+              <circle class="cb-ring" cx="55" cy="77" r="22"/>
+              <circle class="cb-inner" cx="55" cy="77" r="17"/>
+              <text class="cb-mark" x="55" y="86" text-anchor="middle">Q</text>
+            </g>
+
+            <!-- Card 2 -->
+            <g transform="translate(285,35) rotate(-8)">
+              <rect class="cb-shadow" x="3" y="4" width="110" height="155" rx="12"/>
+              <rect class="cb-bg" x="0" y="0" width="110" height="155" rx="12"/>
+              <rect class="cb-back" x="6" y="6" width="98" height="143" rx="9"/>
+              <g class="cb-stripe">
+                <line x1="6" y1="32" x2="104" y2="32"/>
+                <line x1="6" y1="46" x2="104" y2="46"/>
+                <line x1="6" y1="108" x2="104" y2="108"/>
+                <line x1="6" y1="122" x2="104" y2="122"/>
+              </g>
+              <circle class="cb-ring" cx="55" cy="77" r="22"/>
+              <circle class="cb-inner" cx="55" cy="77" r="17"/>
+              <text class="cb-mark" x="55" y="86" text-anchor="middle">Q</text>
+            </g>
+
+            <!-- Card 3 -->
+            <g transform="translate(345,35) rotate(8)">
+              <rect class="cb-shadow" x="3" y="4" width="110" height="155" rx="12"/>
+              <rect class="cb-bg" x="0" y="0" width="110" height="155" rx="12"/>
+              <rect class="cb-back" x="6" y="6" width="98" height="143" rx="9"/>
+              <g class="cb-stripe">
+                <line x1="6" y1="32" x2="104" y2="32"/>
+                <line x1="6" y1="46" x2="104" y2="46"/>
+                <line x1="6" y1="108" x2="104" y2="108"/>
+                <line x1="6" y1="122" x2="104" y2="122"/>
+              </g>
+              <circle class="cb-ring" cx="55" cy="77" r="22"/>
+              <circle class="cb-inner" cx="55" cy="77" r="17"/>
+              <text class="cb-mark" x="55" y="86" text-anchor="middle">Q</text>
+            </g>
+
+            <!-- Card 4: front-right -->
+            <g transform="translate(405,50) rotate(22)">
+              <rect class="cb-shadow" x="3" y="4" width="110" height="155" rx="12"/>
+              <rect class="cb-bg" x="0" y="0" width="110" height="155" rx="12"/>
+              <rect class="cb-back" x="6" y="6" width="98" height="143" rx="9"/>
+              <g class="cb-stripe">
+                <line x1="6" y1="32" x2="104" y2="32"/>
+                <line x1="6" y1="46" x2="104" y2="46"/>
+                <line x1="6" y1="108" x2="104" y2="108"/>
+                <line x1="6" y1="122" x2="104" y2="122"/>
+              </g>
+              <circle class="cb-ring" cx="55" cy="77" r="22"/>
+              <circle class="cb-inner" cx="55" cy="77" r="17"/>
+              <text class="cb-mark" x="55" y="86" text-anchor="middle">Q</text>
+            </g>
+          </svg>
+        </div>
+        <div class="gc-meta">
+          <div class="name" data-t="gameCustom"></div>
+          <div class="desc" data-t="gameCustomDesc"></div>
+          <div class="meta-row"><span data-t="gameCustomMeta"></span></div>
+        </div>
+      </button>
+
+      <div id="resumeRow" class="resume-row hidden">
+        <button type="button" onclick="navigate('play')" data-t="resumeGame"></button>
+      </div>
+      <div id="recentSection" class="recent-section hidden">
+        <h3 data-t="recentGames"></h3>
+        <div id="recentList"></div>
+      </div>
     </div>
   </div>
 
-  <!-- SETUP -->
-  <div id="setup" class="card">
-    <h2 data-t="gameSetup"></h2>
-    <div class="row">
-      <div>
-        <label data-t="gameType"></label>
-        <select id="gameMode" onchange="onGameModeChange()">
-          <option value="sebeeta" data-t="gameSebeeta"></option>
-          <option value="kout" data-t="gameKout"></option>
-          <option value="custom" data-t="gameCustom"></option>
-        </select>
-      </div>
-      <div id="numPlayersWrap">
-        <label data-t="numPlayersLabel"></label>
-        <input type="number" id="numPlayers" min="2" max="6" value="6" />
-      </div>
-      <div id="thresholdWrap">
-        <label data-t="thresholdLabel"></label>
-        <input type="number" id="threshold" value="201" />
-      </div>
-      <div id="winRuleWrap">
-        <label data-t="winCondLabel"></label>
-        <select id="winRule">
-          <option value="lowest" data-t="lowestWins"></option>
-          <option value="highest" data-t="highestWins"></option>
-        </select>
-      </div>
-      <div>
-        <button onclick="buildPlayerInputs()" data-t="setPlayers"></button>
-      </div>
+  <!-- SETUP SCREEN -->
+  <div id="screen-setup" class="screen hidden">
+    <div class="screen-toolbar">
+      <button class="icon-btn" onclick="navigate('home')" aria-label="Back">‹</button>
+      <span class="screen-title" data-t="gameSetup"></span>
+      <span></span>
     </div>
-    <div id="playerNameSection" class="hidden">
-      <h2 style="margin-top:24px;" data-t="playerNames"></h2>
-      <div id="setupHint" class="threshold-info"></div>
-      <div id="playerInputs" class="player-inputs"></div>
-      <button onclick="startGame()" data-t="startGame"></button>
-    </div>
-  </div>
-
-  <!-- GAME -->
-  <div id="game" class="hidden">
-    <div id="winnerBanner" class="winner-banner hidden"></div>
-
-    <div class="game-grid">
-      <div class="card">
-        <h2 data-t="standings"></h2>
-        <div class="threshold-info" id="thresholdInfo"></div>
-        <div id="teamSummary" class="team-summary hidden"></div>
-        <table id="standingsTable">
-          <thead>
-            <tr>
-              <th class="player-name" data-t="thPlayer"></th>
-              <th data-t="thTotal"></th>
-              <th data-t="thRoundsPlayed"></th>
-              <th data-t="thToThreshold"></th>
-            </tr>
-          </thead>
-          <tbody id="standingsBody"></tbody>
-        </table>
-      </div>
-
-      <div class="card" id="roundEntry">
-        <h2><span data-t="enterRound"></span> <span id="roundNum">1</span> <span data-t="enterRoundSuffix"></span></h2>
-        <div class="round-input" id="roundInputs"></div>
-        <div class="actions">
-          <button onclick="submitRound()" data-t="saveRound"></button>
-          <button class="secondary" onclick="undoRound()" data-t="undoRound"></button>
-          <button class="warning" onclick="resetGame()" data-t="resetGame"></button>
-          <button class="danger" onclick="clearPlayers()" data-t="clearPlayers"></button>
+    <div class="card">
+      <div class="row" id="setupConfigRow">
+        <div id="numPlayersWrap">
+          <label data-t="numPlayersLabel"></label>
+          <input type="number" id="numPlayers" min="2" max="6" value="6" />
+        </div>
+        <div id="thresholdWrap">
+          <label data-t="thresholdLabel"></label>
+          <input type="number" id="threshold" value="201" />
+        </div>
+        <div id="winRuleWrap">
+          <label data-t="winCondLabel"></label>
+          <select id="winRule">
+            <option value="lowest" data-t="lowestWins"></option>
+            <option value="highest" data-t="highestWins"></option>
+          </select>
+        </div>
+        <div>
+          <button onclick="buildPlayerInputs()" data-t="setPlayers"></button>
         </div>
       </div>
 
+      <div id="playerNameSection" class="hidden">
+        <h2 style="margin-top:20px;" data-t="playerNames"></h2>
+        <div id="setupHint" class="threshold-info"></div>
+        <div id="playerInputs" class="player-inputs"></div>
+        <button onclick="startGame()" data-t="startGame"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAY SCREEN — scoreboard + bottom action bar; round entry lives in a sheet -->
+  <div id="screen-play" class="screen hidden">
+    <div class="screen-toolbar">
+      <button class="icon-btn" onclick="navigate('home')" aria-label="Home">‹</button>
+      <span class="screen-title">
+        <span class="eyebrow" data-t="roundLabel"></span>
+        <span class="num" id="playRoundNum">1</span>
+      </span>
+      <button class="icon-btn with-label" onclick="navigate('history')" aria-label="History">
+        <span class="icon-glyph">⟲</span>
+        <span class="icon-label" data-t="roundHistory"></span>
+      </button>
+    </div>
+    <div class="play-body">
+      <div class="threshold-info" id="thresholdInfo"></div>
+      <div id="teamSummary" class="team-summary hidden"></div>
+      <div id="standingsContainer"></div>
+    </div>
+    <div class="play-actions">
+      <button class="secondary undo-btn" onclick="undoRound()" aria-label="Undo">↶</button>
+      <button class="primary record-btn" onclick="openSheet()">
+        <span class="plus">+</span>
+        <span data-t="recordRound"></span>
+        <span class="num" id="recordRoundNum">1</span>
+      </button>
+    </div>
+    <div class="game-meta-actions">
+      <button class="reset-btn" onclick="resetGame()" data-t="resetGame"></button>
+      <button class="newgame-btn" onclick="clearPlayers()" data-t="clearPlayers"></button>
+    </div>
+  </div>
+
+  <!-- HISTORY SCREEN -->
+  <div id="screen-history" class="screen hidden">
+    <div class="screen-toolbar">
+      <button class="icon-btn" onclick="navigate('play')" aria-label="Back">‹</button>
+      <span class="screen-title" data-t="roundHistory"></span>
+      <span></span>
+    </div>
+    <div class="play-body">
       <div class="card history-card">
-        <h2 data-t="roundHistory"></h2>
         <div style="overflow-x:auto;">
           <table id="historyTable">
             <thead><tr id="historyHead"></tr></thead>
@@ -329,6 +1668,39 @@
           </table>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- WINNER SCREEN -->
+  <div id="screen-winner" class="screen hidden">
+    <div class="winner-stage">
+      <div class="winner-crest">🏆</div>
+      <div class="winner-eyebrow" data-t="matchComplete"></div>
+      <div class="winner-name" id="winnerName"></div>
+      <div class="winner-score" id="winnerScore"></div>
+      <div class="winner-meta" id="winnerMeta"></div>
+      <div class="winner-actions">
+        <button onclick="winnerNewGame()" data-t="newGame"></button>
+        <button class="secondary" onclick="winnerHome()" data-t="goHome"></button>
+        <button class="secondary" onclick="navigate('play')" data-t="goBack"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROUND-ENTRY BOTTOM SHEET -->
+  <div id="sheetScrim" class="sheet-scrim hidden" onclick="closeSheet()"></div>
+  <div id="sheet" class="sheet hidden">
+    <div class="grabber"></div>
+    <div class="sheet-header">
+      <h2><span data-t="enterRound"></span> <span class="num" id="sheetRoundNum">1</span></h2>
+      <button class="icon-btn" onclick="closeSheet()" aria-label="Close">×</button>
+    </div>
+    <div class="sheet-body">
+      <div class="round-entry-list" id="roundInputs"></div>
+    </div>
+    <div class="sheet-foot">
+      <button class="secondary" onclick="closeSheet()" data-t="cancelBtn"></button>
+      <button onclick="submitRound()" data-t="saveRound"></button>
     </div>
   </div>
 </div>
@@ -384,8 +1756,8 @@
       gameKout: 'Kout',
       teamA: 'A',
       teamB: 'B',
-      teamAFull: 'Team A',
-      teamBFull: 'Team B',
+      teamAFull: 'Team Alif',
+      teamBFull: 'Team Baa',
       teamLabel: 'Team',
       thTeam: 'Team',
       teamTotal: 'Team Total',
@@ -393,6 +1765,44 @@
       teamWinnerBanner: (n) => `🏆 ${n} wins!`,
       sebeetaHint: 'Sebeeta: 6 players in 2 teams of 3. Any individual score reaching 201 ends the game — the opposing team wins.',
       koutHint: 'Kout: 6 players in 2 teams of 3. Scores are entered per team. First team to 101 wins.',
+      contractMode: 'Contract',
+      manualMode: 'Manual',
+      callerLabel: 'Caller',
+      levelLabel: 'Level',
+      outcomeLabel: 'Outcome',
+      levelBab: 'Bab',
+      levelBawan: 'Bawan',
+      levelMalzoom: 'Malzoom',
+      outcomeMade: 'Made it',
+      outcomeFailed: 'Failed',
+      contractHint: 'Pick caller, level, and outcome to compute the scores.',
+      homePickGame: 'Pick a game',
+      homeTitle: 'Keep score, fast.',
+      homeSub: 'Three preset games — Sebeeta, Kout, and an open scorepad for everything else.',
+      gameSebeetaDesc: 'Highest score loses. Six players in two teams of three. First to 201 ends the round.',
+      gameSebeetaMeta: '6 players · 2 teams',
+      gameKoutDesc: 'Contract-based. Partners across. First team to 101 wins.',
+      gameKoutMeta: '6 players · 2 teams',
+      gameCustomDesc: 'Open scorepad. 2–6 players, any target, your own rules.',
+      gameCustomMeta: '2–6 players',
+      resumeGame: 'Resume current game',
+      recentGames: 'Recent games',
+      roundLabel: 'Round',
+      recordRound: 'Record round',
+      matchComplete: 'Match complete',
+      newGame: 'New Game',
+      goHome: 'Home',
+      goBack: 'Back',
+      finalScore: 'Final score',
+      roundsPlayed: (n) => `${n} round${n === 1 ? '' : 's'}`,
+      entryStylePlusMinus: 'Adjust',
+      entryStyleNumpad: 'Numpad',
+      manualEntry: 'Manual entry',
+      prevPlayer: 'Previous',
+      nextPlayer: 'Next',
+      themeToggle: 'Theme',
+      themeLight: 'Light',
+      themeDark: 'Dark',
     },
     ar: {
       title: 'قيد بلوك 3',
@@ -438,20 +1848,58 @@
       clearPlayers: 'قيم جديد',
       confirmClearPlayers: 'بدء قيم جديد بلاعبين جدد؟ سيتم إنهاء اللعبة الحالية.',
       gameType: 'اللعبة',
-      gameCustom: 'مخصص',
-      gameSebeeta: 'سبيتي',
+      gameCustom: 'قيد مفتوح',
+      gameSebeeta: 'سبيته',
       gameKout: 'كوت',
       teamA: 'أ',
       teamB: 'ب',
-      teamAFull: 'فريق أ',
-      teamBFull: 'فريق ب',
+      teamAFull: 'فريق ألف',
+      teamBFull: 'فريق باء',
       teamLabel: 'الفريق',
       thTeam: 'الفريق',
       teamTotal: 'مجموع الفريق',
       teamUneven: (a, b) => `كل فريق يجب أن يحتوي على 3 لاعبين (حالياً ${a} / ${b}).`,
       teamWinnerBanner: (n) => `🏆 فاز ${n}!`,
-      sebeetaHint: 'سبيتي: 6 لاعبين في فريقين كل فريق 3. عند وصول أي لاعب إلى 201 تنتهي اللعبة ويفوز الفريق الآخر.',
+      sebeetaHint: 'سبيته: 6 لاعبين في فريقين كل فريق 3. عند وصول أي لاعب إلى 201 تنتهي اللعبة ويفوز الفريق الآخر.',
       koutHint: 'كوت: 6 لاعبين في فريقين كل فريق 3. النقاط تُدخل لكل فريق. أول فريق يصل إلى 101 يفوز.',
+      contractMode: 'حكم',
+      manualMode: 'يدوي',
+      callerLabel: 'الحاكم',
+      levelLabel: 'الحكمه',
+      outcomeLabel: 'النتيجة',
+      levelBab: 'باب',
+      levelBawan: 'باون',
+      levelMalzoom: 'ملزوم',
+      outcomeMade: 'فوز',
+      outcomeFailed: 'خساره',
+      contractHint: 'اختر الحاكم والحكمه والنتيجة لحساب النقاط.',
+      homePickGame: 'اختر اللعبة',
+      homeTitle: 'قيد سريع، بدون لخبطه.',
+      homeSub: 'ثلاث ألعاب جاهزة — سبيته، كوت، وقيد مفتوح لأي لعبة ثانية.',
+      gameSebeetaDesc: 'الأعلى نقاطًا يخسر. 6 لاعبين في فريقين كل فريق 3. أول من يوصل 201 ينهي الجولة.',
+      gameSebeetaMeta: '6 لاعبين · فريقين',
+      gameKoutDesc: 'لعبة بالحكم. الشريك بالمقابل. أول فريق يوصل 101 يفوز.',
+      gameKoutMeta: '6 لاعبين · فريقين',
+      gameCustomDesc: 'قيد مفتوح. من 2 إلى 6 لاعبين، أي هدف، قواعدك أنت.',
+      gameCustomMeta: '2 إلى 6 لاعبين',
+      resumeGame: 'كمل اللعبة الحالية',
+      recentGames: 'آخر الألعاب',
+      roundLabel: 'الجولة',
+      recordRound: 'سجل الجولة',
+      matchComplete: 'انتهت اللعبة',
+      newGame: 'قيم جديد',
+      goHome: 'الرئيسية',
+      goBack: 'رجوع',
+      finalScore: 'النتيجة النهائية',
+      roundsPlayed: (n) => `${n} ${n === 1 ? 'جولة' : 'جولات'}`,
+      entryStylePlusMinus: 'تعديل',
+      entryStyleNumpad: 'لوحة أرقام',
+      manualEntry: 'إدخال يدوي',
+      prevPlayer: 'السابق',
+      nextPlayer: 'التالي',
+      themeToggle: 'الوضع',
+      themeLight: 'فاتح',
+      themeDark: 'داكن',
     }
   };
 
@@ -459,13 +1907,75 @@
     gameMode: 'sebeeta', // 'sebeeta' | 'kout' | 'custom'
     players: [],
     playerTeam: [],      // team index (0 or 1) per player; used in sebeeta + kout
+    teamNames: [],       // custom names for the two teams (sebeeta + kout)
     scores: [],          // custom/sebeeta: per-player arrays; kout: per-team [a,b] arrays
     threshold: 201,
     winRule: 'lowest',
     gameOver: false,
-    lang: 'ar'
+    gameLogged: false,   // true once the finished game has been pushed to recentGames
+    lang: 'ar',
+    koutEntryMode: 'contract',     // 'contract' | 'manual' — for Kout round entry
+    entryStyle: 'numpad',          // 'numpad' | 'pm' — for Sebeeta + Custom score entry
+    currentScreen: 'home',         // 'home' | 'setup' | 'play' | 'history' | 'winner'
+    recentGames: [],               // array of { kind, players, when, winner, score, teamNames }
+    theme: 'light'                 // 'light' | 'dark' — UI theme
   };
   let editingRound = null; // index of round currently being edited (UI state, not persisted)
+
+  // Kout contract entry — caller (0=Alif, 1=Baa), level, outcome ('made'|'failed').
+  // Lives outside `state` because it's per-round-in-progress, cleared on submit.
+  let koutContract = { caller: null, level: null, outcome: null };
+
+  // Contract scoring table: { level: { made: <caller>, failed: <opponent> } }
+  const KOUT_CONTRACT_SCORES = {
+    bab:     { made: 5,  failed: 10 },
+    '6':     { made: 6,  failed: 12 },
+    '7':     { made: 7,  failed: 14 },
+    '8':     { made: 8,  failed: 16 },
+    bawan:   { made: 36, failed: 18 },
+    malzoom: { made: 5,  failed: 5 },
+  };
+  const KOUT_LEVELS = ['bab', '6', '7', '8', 'bawan', 'malzoom'];
+
+  function koutLevelLabel(level) {
+    if (level === 'bab') return t('levelBab');
+    if (level === 'bawan') return t('levelBawan');
+    if (level === 'malzoom') return t('levelMalzoom');
+    return level; // '6', '7', '8'
+  }
+
+  // Compute [teamAScore, teamBScore] for a contract. Returns [0,0] if incomplete.
+  function computeContractScore(caller, level, outcome) {
+    if (caller === null || !level || !outcome) return [0, 0];
+    const cfg = KOUT_CONTRACT_SCORES[level];
+    if (!cfg) return [0, 0];
+    const out = [0, 0];
+    if (outcome === 'made') out[caller] = cfg.made;
+    else out[1 - caller] = cfg.failed;
+    return out;
+  }
+
+  function setKoutEntryMode(mode) {
+    state.koutEntryMode = mode;
+    save();
+    render();
+  }
+
+  function setContractCaller(c) {
+    koutContract.caller = (koutContract.caller === c) ? null : c;
+    render();
+  }
+  function setContractLevel(l) {
+    koutContract.level = (koutContract.level === l) ? null : l;
+    render();
+  }
+  function setContractOutcome(o) {
+    koutContract.outcome = (koutContract.outcome === o) ? null : o;
+    render();
+  }
+  function resetContract() {
+    koutContract = { caller: null, level: null, outcome: null };
+  }
 
   // Per-player color palette (cycles if >6, but we cap at 6 anyway)
   const PLAYER_COLORS = ['#ec4899', '#06b6d4', '#facc15', '#a855f7', '#f97316', '#84cc16'];
@@ -476,7 +1986,12 @@
   const TEAM_COLORS = ['#06b6d4', '#ec4899'];
   function tcolor(i) { return TEAM_COLORS[i] || '#475569'; }
   function tdot(i) { return `<span class="pdot" style="background:${tcolor(i)}"></span>`; }
-  function teamName(i) { return i === 0 ? t('teamAFull') : t('teamBFull'); }
+  function teamName(i) {
+    // Prefer custom name from state when set; fall back to the i18n default.
+    const custom = (state.teamNames && state.teamNames[i] && state.teamNames[i].trim());
+    if (custom) return custom;
+    return i === 0 ? t('teamAFull') : t('teamBFull');
+  }
   function isTeamMode() { return state.gameMode === 'sebeeta' || state.gameMode === 'kout'; }
 
   // Per-entity color (player color for player rows, team color for team rows / kout)
@@ -493,13 +2008,15 @@
     try {
       const loaded = JSON.parse(raw);
       state = { ...state, ...loaded };
-      if (state.players && state.players.length) {
-        document.getElementById('setup').classList.add('hidden');
-        document.getElementById('game').classList.remove('hidden');
-        applyLang();
-        render();
-        return true;
-      }
+      applyTheme();
+      applyLang();
+      // Decide initial screen: respect saved currentScreen if it's a real screen
+      // with the data to support it; otherwise fall back to home.
+      let target = state.currentScreen || 'home';
+      if (target === 'play' && (!state.players || state.players.length === 0)) target = 'home';
+      if (target === 'winner' && !state.gameLogged) target = 'play';
+      navigate(target);
+      return true;
     } catch (e) {}
     return false;
   }
@@ -509,6 +2026,19 @@
     save();
     applyLang();
     if (state.players.length) render();
+  }
+
+  // ===== Theme (light / dark) =====
+  function applyTheme() {
+    const theme = state.theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.textContent = theme === 'dark' ? '☾' : '☀';
+  }
+  function toggleTheme() {
+    state.theme = state.theme === 'dark' ? 'light' : 'dark';
+    save();
+    applyTheme();
   }
 
   function applyLang() {
@@ -524,10 +2054,155 @@
     });
   }
 
+  // ===== Screen routing =====
+  const SCREENS = ['home', 'setup', 'play', 'history', 'winner'];
+  function navigate(screen) {
+    if (!SCREENS.includes(screen)) return;
+    state.currentScreen = screen;
+    SCREENS.forEach(s => {
+      const el = document.getElementById('screen-' + s);
+      if (el) el.classList.toggle('hidden', s !== screen);
+    });
+    // Close the sheet whenever we navigate
+    if (screen !== 'play') closeSheet();
+    save();
+    render();
+  }
+
+  // ===== Home screen =====
+  function pickGame(mode) {
+    selectedSetupMode = mode;
+    navigate('setup');
+    // Mode-specific form state (hides threshold/winRule + locks numPlayers for team modes)
+    onGameModeChange();
+    // For team modes there's no config step — jump straight to player/team setup
+    if (mode === 'sebeeta' || mode === 'kout') {
+      buildPlayerInputs();
+    }
+  }
+
+  function renderHome() {
+    // Resume row: show if there's an active game with scores
+    const hasActive = state.players.length > 0 && state.scores.length > 0 && !state.gameOver;
+    document.getElementById('resumeRow').classList.toggle('hidden', !hasActive);
+
+    // Recent games list
+    const list = document.getElementById('recentList');
+    list.innerHTML = '';
+    const recents = state.recentGames || [];
+    if (recents.length === 0) {
+      document.getElementById('recentSection').classList.add('hidden');
+    } else {
+      document.getElementById('recentSection').classList.remove('hidden');
+      recents.slice(0, 5).forEach(g => {
+        const gameNameKey = g.kind === 'kout' ? 'gameKout' : g.kind === 'sebeeta' ? 'gameSebeeta' : 'gameCustom';
+        const when = relativeWhen(g.when);
+        const row = document.createElement('div');
+        row.className = 'recent-row';
+        row.innerHTML = `
+          <div class="left">
+            <div class="game-name">${escapeHtml(t(gameNameKey))} · ${escapeHtml(g.players.join(', '))}</div>
+            <div class="when">${escapeHtml(when)} · ${escapeHtml(t('roundsPlayed')(g.roundCount || 0))}</div>
+          </div>
+          <div class="right">
+            <div class="winner">${escapeHtml(g.winner || '')}</div>
+            <div class="score">${escapeHtml(g.score || '')}</div>
+          </div>`;
+        list.appendChild(row);
+      });
+    }
+  }
+
+  function relativeWhen(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    const now = new Date();
+    const diffMs = now - d;
+    const diffH = diffMs / 3600000;
+    if (diffH < 1) return state.lang === 'ar' ? 'قبل قليل' : 'Just now';
+    if (diffH < 24) return state.lang === 'ar' ? 'اليوم' : 'Today';
+    if (diffH < 48) return state.lang === 'ar' ? 'أمس' : 'Yesterday';
+    const days = Math.floor(diffH / 24);
+    if (days < 7) return state.lang === 'ar' ? `قبل ${days} أيام` : `${days} days ago`;
+    return d.toLocaleDateString(state.lang === 'ar' ? 'ar' : 'en');
+  }
+
+  // ===== Recent games — log a finished game =====
+  function logFinishedGame(winnerObj, totalsArr) {
+    if (state.gameLogged) return;
+    const recent = {
+      kind: state.gameMode,
+      players: state.players.slice(),
+      teamNames: state.teamNames ? state.teamNames.slice() : [],
+      when: Date.now(),
+      roundCount: state.scores.length,
+      winner: winnerObj.type === 'player' ? state.players[winnerObj.idx] : teamName(winnerObj.idx),
+      score: state.gameMode === 'kout'
+        ? `${totalsArr[0]}–${totalsArr[1]}`
+        : (winnerObj.type === 'player' ? `${totalsArr[winnerObj.idx]}` : `${totalsArr.join(' / ')}`)
+    };
+    state.recentGames = [recent, ...(state.recentGames || [])].slice(0, 10);
+    state.gameLogged = true;
+  }
+
+  // ===== Bottom sheet for round entry =====
+  function openSheet() {
+    if (state.gameOver) return;
+    // Kout always opens in Contract mode and with a fresh picker
+    if (state.gameMode === 'kout') {
+      state.koutEntryMode = 'contract';
+      resetContract();
+    }
+    document.getElementById('sheetScrim').classList.remove('hidden');
+    document.getElementById('sheet').classList.remove('hidden');
+    document.getElementById('sheetRoundNum').textContent = state.scores.length + 1;
+    renderSheet();
+    // Lock body scroll while sheet is open
+    document.body.style.overflow = 'hidden';
+    // Focus first input after sheet animates in
+    setTimeout(() => {
+      const first = document.getElementById('roundScore0');
+      if (first) first.focus();
+    }, 320);
+  }
+  function closeSheet() {
+    document.getElementById('sheetScrim').classList.add('hidden');
+    document.getElementById('sheet').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  // ===== Winner-screen actions =====
+  function winnerNewGame() {
+    // Keep players + teams, just clear scores and go back to play
+    state.scores = [];
+    state.gameOver = false;
+    state.gameLogged = false;
+    editingRound = null;
+    resetContract();
+    save();
+    navigate('play');
+  }
+  function winnerHome() {
+    navigate('home');
+  }
+
+  // Track the currently-selected game mode in the setup UI (chip picker)
+  let selectedSetupMode = 'sebeeta';
+
+  function setGameMode(mode) {
+    selectedSetupMode = mode;
+    document.querySelectorAll('#gameModeChips .chip').forEach(chip => {
+      chip.classList.toggle('active', chip.getAttribute('data-mode') === mode);
+    });
+    onGameModeChange();
+  }
+
   function onGameModeChange() {
-    const mode = document.getElementById('gameMode').value;
+    const mode = selectedSetupMode;
     const isTeam = (mode === 'sebeeta' || mode === 'kout');
-    // Hide threshold/winRule for team modes (presets), lock players to 6
+    // For team modes the config row is hidden entirely (numPlayers locked at 6,
+    // threshold + winRule are presets, no need for a "Done" step).
+    document.getElementById('setupConfigRow').classList.toggle('hidden', isTeam);
     document.getElementById('thresholdWrap').style.display = isTeam ? 'none' : '';
     document.getElementById('winRuleWrap').style.display = isTeam ? 'none' : '';
     if (isTeam) {
@@ -537,7 +2212,6 @@
     } else {
       document.getElementById('numPlayers').disabled = false;
     }
-    // Reset the player-name section so user re-clicks "Done" after changing mode
     document.getElementById('playerNameSection').classList.add('hidden');
   }
 
@@ -556,7 +2230,7 @@
   }
 
   function buildPlayerInputs() {
-    const mode = document.getElementById('gameMode').value;
+    const mode = selectedSetupMode;
     const isTeam = (mode === 'sebeeta' || mode === 'kout');
     const n = isTeam ? 6 : Math.max(2, Math.min(6, parseInt(document.getElementById('numPlayers').value) || 2));
     document.getElementById('numPlayers').value = n;
@@ -567,43 +2241,94 @@
     else if (mode === 'kout') hint.textContent = t('koutHint');
     else hint.textContent = '';
 
-    // Default team assignment: alternating (0,1,0,1,0,1) — easy to change via toggles
+    // Team assignment is fixed by position: players 1,3,5 → team 0; players 2,4,6 → team 1.
     setupTeams = [];
     for (let i = 0; i < n; i++) setupTeams.push(isTeam ? (i % 2) : 0);
 
     const container = document.getElementById('playerInputs');
     container.innerHTML = '';
-    for (let i = 0; i < n; i++) {
-      const div = document.createElement('div');
-      const label = document.createElement('label');
-      label.textContent = `${t('playerDefault')} ${i+1}`;
-      div.appendChild(label);
 
-      const row = document.createElement('div');
-      row.className = 'player-input-row';
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.id = 'playerName' + i;
-      input.value = `${t('playerDefault')} ${i+1}`;
-      row.appendChild(input);
+    if (isTeam) {
+      // 2-column layout with vs divider. Team 0 holds players 1,3,5 (indices 0,2,4);
+      // Team 1 holds players 2,4,6 (indices 1,3,5).
+      const pair = document.createElement('div');
+      pair.className = 'team-pair-setup';
 
-      if (isTeam) {
-        const toggle = document.createElement('div');
-        toggle.className = 'team-toggle';
-        toggle.innerHTML = `
-          <button type="button" id="teamBtn_${i}_a" class="team-a${setupTeams[i] === 0 ? ' active' : ''}" onclick="setSetupTeam(${i}, 0)">${escapeHtml(t('teamA'))}</button>
-          <button type="button" id="teamBtn_${i}_b" class="team-b${setupTeams[i] === 1 ? ' active' : ''}" onclick="setSetupTeam(${i}, 1)">${escapeHtml(t('teamB'))}</button>
-        `;
-        row.appendChild(toggle);
+      [0, 1].forEach(ti => {
+        const col = document.createElement('div');
+        col.className = 'team-col';
+
+        // Team name header (dark pill with team letter + name input)
+        const header = document.createElement('div');
+        header.className = 'team-col-header';
+        const letter = document.createElement('span');
+        letter.className = 'team-letter';
+        letter.textContent = ti === 0 ? t('teamA') : t('teamB');
+        header.appendChild(letter);
+        const teamInput = document.createElement('input');
+        teamInput.type = 'text';
+        teamInput.id = 'teamNameInput' + ti;
+        const defaultName = ti === 0 ? t('teamAFull') : t('teamBFull');
+        teamInput.value = defaultName;
+        teamInput.placeholder = defaultName;
+        header.appendChild(teamInput);
+        col.appendChild(header);
+
+        // Three player slots for this team
+        for (let slot = 0; slot < 3; slot++) {
+          const playerIdx = ti + slot * 2; // team 0: 0,2,4 — team 1: 1,3,5
+          const row = document.createElement('div');
+          row.className = 'player-input-row';
+          const seat = document.createElement('div');
+          seat.className = 'seat';
+          seat.textContent = (playerIdx + 1).toString();
+          row.appendChild(seat);
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.id = 'playerName' + playerIdx;
+          input.value = `${t('playerDefault')} ${playerIdx + 1}`;
+          input.placeholder = `${t('playerDefault')} ${playerIdx + 1}`;
+          row.appendChild(input);
+          col.appendChild(row);
+        }
+
+        pair.appendChild(col);
+
+        // Insert "vs" between the two columns
+        if (ti === 0) {
+          const vs = document.createElement('div');
+          vs.className = 'vs-divider';
+          vs.textContent = 'vs';
+          pair.appendChild(vs);
+        }
+      });
+
+      container.appendChild(pair);
+    } else {
+      // Custom mode — flat list of player rows
+      for (let i = 0; i < n; i++) {
+        const wrap = document.createElement('div');
+        const row = document.createElement('div');
+        row.className = 'player-input-row';
+        const seat = document.createElement('div');
+        seat.className = 'seat';
+        seat.textContent = (i + 1).toString();
+        row.appendChild(seat);
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = 'playerName' + i;
+        input.value = `${t('playerDefault')} ${i+1}`;
+        input.placeholder = `${t('playerDefault')} ${i+1}`;
+        row.appendChild(input);
+        wrap.appendChild(row);
+        container.appendChild(wrap);
       }
-      div.appendChild(row);
-      container.appendChild(div);
     }
     document.getElementById('playerNameSection').classList.remove('hidden');
   }
 
   function startGame() {
-    const mode = document.getElementById('gameMode').value;
+    const mode = selectedSetupMode;
     const isTeam = (mode === 'sebeeta' || mode === 'kout');
     const n = isTeam ? 6 : parseInt(document.getElementById('numPlayers').value);
 
@@ -622,8 +2347,13 @@
         return;
       }
       state.playerTeam = setupTeams.slice();
+      // Capture custom team names (fall back to defaults if blank)
+      const nameA = (document.getElementById('teamNameInput0')?.value || '').trim() || t('teamAFull');
+      const nameB = (document.getElementById('teamNameInput1')?.value || '').trim() || t('teamBFull');
+      state.teamNames = [nameA, nameB];
     } else {
       state.playerTeam = [];
+      state.teamNames = [];
     }
 
     state.gameMode = mode;
@@ -642,10 +2372,9 @@
       state.winRule = document.getElementById('winRule').value;
     }
 
-    document.getElementById('setup').classList.add('hidden');
-    document.getElementById('game').classList.remove('hidden');
+    state.currentScreen = 'play';
     save();
-    render();
+    navigate('play');
   }
 
   // Returns per-entity totals.
@@ -720,15 +2449,37 @@
     }
   }
 
+  // Top-level render — picks the right per-screen renderer based on currentScreen,
+  // also auto-navigates to the winner screen the moment the game ends.
   function render() {
     const totalsArr = totals();
     const dealer = dealerIndex(totalsArr);
     const winner = checkWinner(totalsArr);
     state.gameOver = winner !== null;
 
-    // ---- Top-scorer per team (Sebeeta only) ----
-    // Sebeeta lost when any individual hits 201, so the "leader" of each team
-    // (highest individual score) is who's closest to losing for that team.
+    // Auto-navigate to winner screen on first detection of a finished game
+    if (winner !== null && !state.gameLogged && state.players.length > 0) {
+      logFinishedGame(winner, totalsArr);
+      save();
+      closeSheet();
+      navigate('winner');
+      return;
+    }
+
+    if (state.currentScreen === 'home')    renderHome();
+    if (state.currentScreen === 'play')    renderPlay(totalsArr, dealer, winner);
+    if (state.currentScreen === 'history') renderHistory();
+    if (state.currentScreen === 'winner')  renderWinner(totalsArr, winner);
+
+    // Sheet renders independently of currentScreen
+    if (!document.getElementById('sheet').classList.contains('hidden')) {
+      renderSheet();
+    }
+  }
+
+  // ===== Play screen — standings tiles + threshold info + round number =====
+  function renderPlay(totalsArr, dealer, winner) {
+    // Team summary (Sebeeta only — top scorer per team)
     const teamSummary = document.getElementById('teamSummary');
     if (state.gameMode === 'sebeeta') {
       teamSummary.innerHTML = [0, 1].map(ti => {
@@ -741,8 +2492,8 @@
         });
         const topName = topIdx >= 0 ? state.players[topIdx] : '—';
         const score = topIdx >= 0 ? totalsArr[topIdx] : 0;
-        return `<div class="team-summary-card" style="--tcolor:${tcolor(ti)};">
-          <div class="label">${escapeHtml(teamName(ti))} — ${escapeHtml(topName)}</div>
+        return `<div class="team-summary-card">
+          <div class="label">${escapeHtml(teamName(ti))} · ${escapeHtml(topName)}</div>
           <div class="value">${score}</div>
         </div>`;
       }).join('');
@@ -752,84 +2503,240 @@
       teamSummary.innerHTML = '';
     }
 
-    // ---- Standings table ----
-    const standingsHead = document.querySelector('#standingsTable thead tr');
-    const tbody = document.getElementById('standingsBody');
-    tbody.innerHTML = '';
-
+    // Standings tiles
+    const standings = document.getElementById('standingsContainer');
+    standings.innerHTML = '';
     if (state.gameMode === 'kout') {
-      // Standings = 2 team rows
-      standingsHead.innerHTML = `
-        <th class="player-name">${escapeHtml(t('thTeam'))}</th>
-        <th>${escapeHtml(t('thTotal'))}</th>
-        <th>${escapeHtml(t('thRoundsPlayed'))}</th>
-        <th>${escapeHtml(t('thToThreshold'))}</th>`;
+      const stack = document.createElement('div');
+      stack.className = 'team-stack';
       [0, 1].forEach(ti => {
         const total = totalsArr[ti];
-        const remaining = Math.max(0, state.threshold - total);
+        const pct = Math.min(100, (total / state.threshold) * 100);
         const isWinner = winner && winner.type === 'team' && winner.idx === ti;
         const members = state.players.filter((_, pi) => state.playerTeam[pi] === ti).join(' · ');
-        const tr = document.createElement('tr');
-        tr.style.setProperty('--pcolor', tcolor(ti));
-        tr.innerHTML = `
-          <td class="player-name">${tdot(ti)}<span>${escapeHtml(teamName(ti))}</span>${isWinner ? `<span class="winner-badge">${escapeHtml(t('winnerBadge'))}</span>` : ''}<div style="font-size:11px;color:#94a3b8;margin-top:2px;">${escapeHtml(members)}</div></td>
-          <td class="total">${total}</td>
-          <td>${state.scores.length}</td>
-          <td>${remaining}</td>`;
-        tbody.appendChild(tr);
+        const tile = document.createElement('div');
+        tile.className = 'team-tile' + (isWinner ? ' leader' : '');
+        tile.innerHTML = `
+          <div class="team-row">
+            <div>
+              <div class="team-name">${escapeHtml(teamName(ti))}${isWinner ? `<span class="winner-badge">${escapeHtml(t('winnerBadge'))}</span>` : ''}</div>
+              <div class="members">${escapeHtml(members)}</div>
+            </div>
+          </div>
+          <div class="team-score">${total}</div>
+          <div class="team-bar"><div style="width:${pct}%"></div></div>`;
+        stack.appendChild(tile);
       });
+      standings.appendChild(stack);
     } else {
-      // Custom + Sebeeta: per-player rows
-      standingsHead.innerHTML = `
-        <th class="player-name">${escapeHtml(t('thPlayer'))}</th>
-        <th>${escapeHtml(t('thTotal'))}</th>
-        <th>${escapeHtml(t('thRoundsPlayed'))}</th>
-        <th>${escapeHtml(t('thToThreshold'))}</th>`;
+      const grid = document.createElement('div');
+      grid.className = 'player-grid';
       state.players.forEach((name, i) => {
         const total = totalsArr[i];
-        const isDealer = i === dealer;
-        const isWinner = winner && winner.type === 'player' && winner.idx === i;
-        const remaining = state.winRule === 'highest'
-          ? Math.max(0, state.threshold - total)
-          : state.threshold - total;
+        const isDealer = i === dealer && total > 0;
+        const isWinnerTile = winner && winner.type === 'player' && winner.idx === i;
+        const pct = Math.min(100, (Math.abs(total) / state.threshold) * 100);
         const teamChip = isTeamMode()
-          ? `<span class="team-chip ${state.playerTeam[i] === 0 ? 'team-a' : 'team-b'}">${escapeHtml(state.playerTeam[i] === 0 ? t('teamA') : t('teamB'))}</span>`
+          ? `<span class="team-chip">${escapeHtml(state.playerTeam[i] === 0 ? t('teamA') : t('teamB'))}</span>`
           : '';
-        const tr = document.createElement('tr');
-        tr.style.setProperty('--pcolor', pcolor(i));
-        tr.innerHTML = `
-          <td class="player-name">${pdot(i)}<span>${escapeHtml(name)}</span>${teamChip}${isDealer ? `<span class="dealer-badge">${escapeHtml(t('dealerBadge'))}</span>` : ''}${isWinner ? `<span class="winner-badge">${escapeHtml(t('winnerBadge'))}</span>` : ''}</td>
-          <td class="total">${total}</td>
-          <td>${state.scores.length}</td>
-          <td>${remaining}</td>`;
-        tbody.appendChild(tr);
+        const dealerBadge = isDealer ? `<span class="dealer-badge">${escapeHtml(t('dealerBadge'))}</span>` : '';
+        const winnerBadge = isWinnerTile ? `<span class="winner-badge">${escapeHtml(t('winnerBadge'))}</span>` : '';
+        const tile = document.createElement('div');
+        tile.className = 'player-tile' + (isWinnerTile || isDealer ? ' leader' : '');
+        tile.innerHTML = `
+          <div class="pt-head">
+            <div class="pt-name">${escapeHtml(name)}${teamChip}${dealerBadge}${winnerBadge}</div>
+            <span class="pt-seat">${i + 1}</span>
+          </div>
+          <div>
+            <div class="pt-score">${total}</div>
+            <div class="pt-bar"><div style="width:${pct}%"></div></div>
+          </div>`;
+        grid.appendChild(tile);
       });
+      standings.appendChild(grid);
     }
 
-    // ---- Threshold info caption ----
+    // Threshold caption
     let infoText;
     if (state.gameMode === 'sebeeta') infoText = t('sebeetaHint');
     else if (state.gameMode === 'kout') infoText = t('koutHint');
     else infoText = state.winRule === 'highest' ? t('infoHighest')(state.threshold) : t('infoLowest')(state.threshold);
     document.getElementById('thresholdInfo').textContent = infoText;
 
-    // ---- Round entry ----
-    document.getElementById('roundNum').textContent = state.scores.length + 1;
+    // Round number in toolbar + action button
+    const nextRound = state.scores.length + 1;
+    document.getElementById('playRoundNum').textContent = nextRound;
+    document.getElementById('recordRoundNum').textContent = nextRound;
+
+    // Disable record/undo as appropriate
+    const recordBtn = document.querySelector('#screen-play .record-btn');
+    if (recordBtn) recordBtn.disabled = state.gameOver;
+    const undoBtn = document.querySelector('#screen-play .undo-btn');
+    if (undoBtn) undoBtn.disabled = state.scores.length === 0;
+  }
+
+  // ===== Round-entry sheet =====
+  function renderSheet() {
+    document.getElementById('sheetRoundNum').textContent = state.scores.length + 1;
     const rin = document.getElementById('roundInputs');
     rin.innerHTML = '';
 
-    // Determine what entities to render inputs for
-    const entries = state.gameMode === 'kout'
-      ? [0, 1].map(ti => ({ name: teamName(ti), color: tcolor(ti), idx: ti, teamMode: true }))
-      : state.players.map((name, i) => ({ name, color: pcolor(i), idx: i, teamMode: false }));
-    const n = entries.length;
+    if (state.gameMode === 'kout') {
+      renderKoutSheet(rin);
+    } else {
+      renderPlayerSheet(rin);
+    }
+  }
 
+  function renderKoutSheet(rin) {
+    const mode = state.koutEntryMode || 'contract';
+    const toggle = document.createElement('div');
+    toggle.className = 'entry-mode-toggle';
+    toggle.innerHTML = `
+      <button type="button" class="${mode === 'contract' ? 'active' : ''}" onclick="setKoutEntryMode('contract')">${escapeHtml(t('contractMode'))}</button>
+      <button type="button" class="${mode === 'manual' ? 'active' : ''}" onclick="setKoutEntryMode('manual')">${escapeHtml(t('manualMode'))}</button>
+    `;
+    rin.appendChild(toggle);
+
+    if (mode === 'contract') {
+      const callerSec = document.createElement('div');
+      callerSec.className = 'contract-section';
+      callerSec.innerHTML = `<div class="label">${escapeHtml(t('callerLabel'))}</div>`;
+      const callerChips = document.createElement('div');
+      callerChips.className = 'contract-chips';
+      [0, 1].forEach(c => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip' + (koutContract.caller === c ? ' active' : '');
+        b.textContent = teamName(c);
+        b.onclick = () => setContractCaller(c);
+        callerChips.appendChild(b);
+      });
+      callerSec.appendChild(callerChips);
+      rin.appendChild(callerSec);
+
+      const levelSec = document.createElement('div');
+      levelSec.className = 'contract-section';
+      levelSec.innerHTML = `<div class="label">${escapeHtml(t('levelLabel'))}</div>`;
+      const levelChips = document.createElement('div');
+      levelChips.className = 'contract-chips';
+      KOUT_LEVELS.forEach(lv => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip' + (koutContract.level === lv ? ' active' : '');
+        b.textContent = koutLevelLabel(lv);
+        b.onclick = () => setContractLevel(lv);
+        levelChips.appendChild(b);
+      });
+      levelSec.appendChild(levelChips);
+      rin.appendChild(levelSec);
+
+      const outSec = document.createElement('div');
+      outSec.className = 'contract-section';
+      outSec.innerHTML = `<div class="label">${escapeHtml(t('outcomeLabel'))}</div>`;
+      const outChips = document.createElement('div');
+      outChips.className = 'contract-chips';
+      [
+        { key: 'made', label: t('outcomeMade'), cls: 'outcome-win' },
+        { key: 'failed', label: t('outcomeFailed'), cls: 'outcome-fail' }
+      ].forEach(o => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = `chip ${o.cls}` + (koutContract.outcome === o.key ? ' active' : '');
+        b.textContent = o.label;
+        b.onclick = () => setContractOutcome(o.key);
+        outChips.appendChild(b);
+      });
+      outSec.appendChild(outChips);
+      rin.appendChild(outSec);
+
+      if (koutContract.caller !== null && koutContract.level && koutContract.outcome) {
+        const [aScore, bScore] = computeContractScore(koutContract.caller, koutContract.level, koutContract.outcome);
+        const preview = document.createElement('div');
+        preview.className = 'contract-preview';
+        preview.innerHTML = `
+          <div class="team-result ${aScore > 0 ? 'win' : ''}">
+            <div class="label">${escapeHtml(teamName(0))}</div>
+            <div class="value">+${aScore}</div>
+          </div>
+          <div class="vs">vs</div>
+          <div class="team-result ${bScore > 0 ? 'win' : ''}">
+            <div class="label">${escapeHtml(teamName(1))}</div>
+            <div class="value">+${bScore}</div>
+          </div>`;
+        rin.appendChild(preview);
+      } else {
+        const hint = document.createElement('div');
+        hint.className = 'contract-hint';
+        hint.textContent = t('contractHint');
+        rin.appendChild(hint);
+      }
+    } else {
+      // MANUAL — two entry rows
+      [0, 1].forEach((ti, i) => {
+        const row = document.createElement('div');
+        row.className = 'entry-row';
+        const seat = document.createElement('div');
+        seat.className = 'seat';
+        seat.textContent = ti === 0 ? 'A' : 'B';
+        row.appendChild(seat);
+        const who = document.createElement('div');
+        who.className = 'who';
+        const members = state.players.filter((_, pi) => state.playerTeam[pi] === ti).join(' · ');
+        who.innerHTML = `${escapeHtml(teamName(ti))}<span class="members">${escapeHtml(members)}</span>`;
+        row.appendChild(who);
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.inputMode = 'numeric';
+        input.id = 'roundScore' + i;
+        input.value = '0';
+        input.addEventListener('focus', () => input.select());
+        input.addEventListener('keydown', (e) => {
+          if (e.key !== 'Enter') return;
+          e.preventDefault();
+          if (i < 1) document.getElementById('roundScore1')?.focus();
+          else submitRound();
+        });
+        row.appendChild(input);
+        rin.appendChild(row);
+      });
+    }
+  }
+
+  function renderPlayerSheet(rin) {
+    // Sebeeta + Custom: per-player entries, with optional numpad style
+    const style = state.entryStyle || 'numpad';
+
+    const styleToggle = document.createElement('div');
+    styleToggle.className = 'entry-style-toggle';
+    styleToggle.innerHTML = `
+      <button type="button" class="${style === 'numpad' ? 'active' : ''}" onclick="setEntryStyle('numpad')">${escapeHtml(t('entryStyleNumpad'))}</button>
+      <button type="button" class="${style === 'pm' ? 'active' : ''}" onclick="setEntryStyle('pm')">${escapeHtml(t('entryStylePlusMinus'))}</button>
+    `;
+    rin.appendChild(styleToggle);
+
+    if (style === 'numpad') {
+      renderNumpadEntry(rin);
+    } else {
+      renderPlayerRowsEntry(rin);
+    }
+  }
+
+  function renderPlayerRowsEntry(rin) {
+    const entries = state.players.map((name, i) => ({ name, seat: (i + 1).toString() }));
+    const n = entries.length;
     entries.forEach((ent, i) => {
-      const div = document.createElement('div');
-      div.style.setProperty('--pcolor', ent.color);
-      const label = document.createElement('label');
-      const dotHtml = `<span class="pdot" style="background:${ent.color}"></span>`;
-      label.innerHTML = `${dotHtml}<span>${escapeHtml(ent.name)}</span>`;
+      const row = document.createElement('div');
+      row.className = 'entry-row';
+      const seat = document.createElement('div');
+      seat.className = 'seat';
+      seat.textContent = ent.seat;
+      row.appendChild(seat);
+      const who = document.createElement('div');
+      who.className = 'who';
+      who.textContent = ent.name;
+      row.appendChild(who);
       const input = document.createElement('input');
       input.type = 'number';
       input.inputMode = 'numeric';
@@ -843,44 +2750,164 @@
       input.addEventListener('keydown', (e) => {
         if (e.key !== 'Enter') return;
         e.preventDefault();
-        if (i < n - 1) {
-          const next = document.getElementById('roundScore' + (i + 1));
-          if (next) next.focus();
-        } else {
-          submitRound();
-        }
+        if (i < n - 1) document.getElementById('roundScore' + (i + 1))?.focus();
+        else submitRound();
       });
-      div.appendChild(label);
-      div.appendChild(input);
-      // Minus button — only meaningful for individual scoring (custom + sebeeta)
-      if (state.gameMode !== 'kout') {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.id = 'minusBtn' + i;
-        btn.className = 'minus-btn';
-        btn.textContent = t('minusBtn');
-        btn.onclick = () => toggleMinus(i);
-        div.appendChild(btn);
-      }
-      rin.appendChild(div);
+      row.appendChild(input);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'minusBtn' + i;
+      btn.className = 'minus-btn';
+      btn.textContent = '−10';
+      btn.onclick = () => toggleMinus(i);
+      row.appendChild(btn);
+      rin.appendChild(row);
     });
+  }
 
-    if (!state.gameOver && n > 0 && editingRound === null) {
-      const first = document.getElementById('roundScore0');
-      if (first) first.focus();
+  // Numpad entry: one player at a time, with a 3x4 keypad
+  let numpadActive = 0;        // which player is currently being entered
+  let numpadBuffer = '0';      // current input value as a string ('-' allowed at front)
+  let numpadValues = [];       // committed values per player for this round
+  function renderNumpadEntry(rin) {
+    // Initialize numpad state if not already
+    if (numpadValues.length !== state.players.length) {
+      numpadValues = state.players.map(() => 0);
+      numpadActive = 0;
+      numpadBuffer = '0';
     }
 
-    // ---- History ----
+    const sec = document.createElement('div');
+    sec.className = 'numpad-section';
+
+    // Current player context
+    const ctx = document.createElement('div');
+    ctx.className = 'numpad-context';
+    ctx.innerHTML = `
+      <div class="seat">${numpadActive + 1}</div>
+      <div class="who">${escapeHtml(state.players[numpadActive] || '')}</div>
+      <div style="font-family:var(--font-num); font-size:12px; color:var(--muted);">
+        ${numpadActive + 1} / ${state.players.length}
+      </div>
+    `;
+    sec.appendChild(ctx);
+
+    const display = document.createElement('div');
+    display.className = 'numpad-display';
+    display.textContent = numpadBuffer;
+    sec.appendChild(display);
+
+    const grid = document.createElement('div');
+    grid.className = 'numpad-grid';
+    // Row 1-3: digits, Row 4: sign, 0, backspace; bottom row: prev/next/penalty
+    const keys = [
+      ['1','2','3'],
+      ['4','5','6'],
+      ['7','8','9'],
+      ['±','0','⌫']
+    ];
+    keys.flat().forEach(k => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = k;
+      if (k === '±') b.className = 'np-sign';
+      if (k === '⌫') b.className = 'np-sign';
+      b.onclick = () => numpadKey(k);
+      grid.appendChild(b);
+    });
+    sec.appendChild(grid);
+
+    // Footer row: prev / -10 penalty / next-or-save
+    const footer = document.createElement('div');
+    footer.className = 'numpad-grid numpad-nav';
+    footer.style.marginTop = '6px';
+    const isLast = numpadActive === state.players.length - 1;
+
+    const prev = document.createElement('button');
+    prev.type = 'button';
+    prev.className = 'np-sign';
+    prev.innerHTML = `<span class="np-arrow">‹</span><span class="np-label">${escapeHtml(t('prevPlayer'))}</span>`;
+    prev.disabled = numpadActive === 0;
+    prev.onclick = () => numpadNav(-1);
+    footer.appendChild(prev);
+
+    const pen = document.createElement('button');
+    pen.type = 'button';
+    pen.className = 'np-pen';
+    pen.textContent = '−10';
+    pen.onclick = () => { numpadBuffer = '-10'; renderSheet(); };
+    footer.appendChild(pen);
+
+    const next = document.createElement('button');
+    next.type = 'button';
+    next.className = 'np-action';
+    if (isLast) {
+      next.textContent = t('saveBtn');
+    } else {
+      next.innerHTML = `<span class="np-label">${escapeHtml(t('nextPlayer'))}</span><span class="np-arrow">›</span>`;
+    }
+    next.onclick = () => numpadNav(+1);
+    footer.appendChild(next);
+
+    sec.appendChild(footer);
+    rin.appendChild(sec);
+  }
+
+  function numpadKey(k) {
+    if (k === '⌫') {
+      numpadBuffer = numpadBuffer.length > 1 ? numpadBuffer.slice(0, -1) : '0';
+      if (numpadBuffer === '-') numpadBuffer = '0';
+    } else if (k === '±') {
+      if (numpadBuffer === '0') numpadBuffer = '-';
+      else if (numpadBuffer.startsWith('-')) numpadBuffer = numpadBuffer.slice(1);
+      else numpadBuffer = '-' + numpadBuffer;
+    } else {
+      // digit
+      if (numpadBuffer === '0') numpadBuffer = k;
+      else if (numpadBuffer === '-') numpadBuffer = '-' + k;
+      else numpadBuffer = numpadBuffer + k;
+    }
+    renderSheet();
+  }
+
+  function numpadNav(dir) {
+    // Commit current value
+    const v = parseInt(numpadBuffer, 10);
+    numpadValues[numpadActive] = isNaN(v) ? 0 : v;
+    const next = numpadActive + dir;
+    if (next < 0) return;
+    if (next >= state.players.length) {
+      // Submit
+      state.scores.push(numpadValues.slice());
+      numpadValues = state.players.map(() => 0);
+      numpadActive = 0;
+      numpadBuffer = '0';
+      closeSheet();
+      save();
+      render();
+      return;
+    }
+    numpadActive = next;
+    numpadBuffer = String(numpadValues[numpadActive] ?? 0);
+    renderSheet();
+  }
+
+  function setEntryStyle(style) {
+    state.entryStyle = style;
+    save();
+    renderSheet();
+  }
+
+  // ===== History screen =====
+  function renderHistory() {
     const head = document.getElementById('historyHead');
     const colHeaders = state.gameMode === 'kout'
-      ? [0, 1].map(ti => ({ name: teamName(ti), color: tcolor(ti) }))
-      : state.players.map((name, i) => ({ name, color: pcolor(i) }));
-
+      ? [0, 1].map(ti => ({ name: teamName(ti) }))
+      : state.players.map((name) => ({ name }));
     head.innerHTML = `<th>${escapeHtml(t('thRound'))}</th>` +
-      colHeaders.map(c => `<th style="border-top:3px solid ${c.color};">${escapeHtml(c.name)}</th>`).join('') +
+      colHeaders.map(c => `<th>${escapeHtml(c.name)}</th>`).join('') +
       (state.gameMode === 'kout' ? '' : `<th>${escapeHtml(t('thDealerAfter'))}</th>`) +
       `<th>${escapeHtml(t('thActions'))}</th>`;
-
     const hbody = document.getElementById('historyBody');
     hbody.innerHTML = '';
     const colCount = colHeaders.length;
@@ -893,57 +2920,72 @@
         const lastIdx = colCount - 1;
         const inputs = [];
         for (let i = 0; i < colCount; i++) {
-          inputs.push(`<td><input type="number" inputmode="numeric" id="editScore_${ri}_${i}" value="${round[i] || 0}" style="width:80px;text-align:center;" onfocus="this.select()" onkeydown="handleEditKey(event, ${ri}, ${i}, ${lastIdx})" /></td>`);
+          inputs.push(`<td><input type="number" inputmode="numeric" id="editScore_${ri}_${i}" value="${round[i] || 0}" onfocus="this.select()" onkeydown="handleEditKey(event, ${ri}, ${i}, ${lastIdx})" /></td>`);
         }
         tr.innerHTML = `<td><strong>${ri+1}</strong></td>` +
           inputs.join('') +
           (state.gameMode === 'kout' ? '' : `<td>—</td>`) +
           `<td>
-            <button onclick="saveEditedRound(${ri})" style="padding:6px 10px;font-size:12px;">${escapeHtml(t('saveBtn'))}</button>
-            <button class="secondary" onclick="cancelEditRound()" style="padding:6px 10px;font-size:12px;margin-inline-start:4px;">${escapeHtml(t('cancelBtn'))}</button>
+            <button onclick="saveEditedRound(${ri})">${escapeHtml(t('saveBtn'))}</button>
+            <button class="secondary" onclick="cancelEditRound()" style="margin-inline-start:4px;">${escapeHtml(t('cancelBtn'))}</button>
           </td>`;
       } else {
         const cells = [];
         for (let i = 0; i < colCount; i++) {
-          cells.push(`<td>${round[i] || 0}<br><span style="color:#64748b;font-size:11px;">(${runningTotals[i]})</span></td>`);
+          cells.push(`<td><span class="num">${round[i] || 0}</span><span class="running">${runningTotals[i]}</span></td>`);
         }
         const dealerCell = state.gameMode === 'kout' ? '' : `<td>${dIdx >= 0 ? escapeHtml(state.players[dIdx]) : '—'}</td>`;
         tr.innerHTML = `<td><strong>${ri+1}</strong></td>` +
           cells.join('') +
           dealerCell +
           `<td>
-            <button class="secondary" onclick="startEditRound(${ri})" style="padding:6px 10px;font-size:12px;">${escapeHtml(t('editBtn'))}</button>
-            <button class="danger" onclick="deleteRound(${ri})" style="padding:6px 10px;font-size:12px;margin-inline-start:4px;">${escapeHtml(t('deleteBtn'))}</button>
+            <button class="secondary" onclick="startEditRound(${ri})">${escapeHtml(t('editBtn'))}</button>
+            <button class="danger" onclick="deleteRound(${ri})" style="margin-inline-start:4px;">${escapeHtml(t('deleteBtn'))}</button>
           </td>`;
       }
       hbody.appendChild(tr);
     });
+  }
 
-    // ---- Winner banner ----
-    const banner = document.getElementById('winnerBanner');
-    const roundEntry = document.getElementById('roundEntry');
-    if (winner !== null) {
-      if (winner.type === 'player') {
-        banner.textContent = t('winnerBanner')(state.players[winner.idx], totalsArr[winner.idx]);
-      } else {
-        banner.textContent = t('teamWinnerBanner')(teamName(winner.idx));
-      }
-      banner.classList.remove('hidden');
-      roundEntry.style.opacity = '0.5';
+  // ===== Winner screen =====
+  function renderWinner(totalsArr, winner) {
+    if (!winner) return;
+    let name, score;
+    if (winner.type === 'player') {
+      name = state.players[winner.idx];
+      score = totalsArr[winner.idx];
     } else {
-      banner.classList.add('hidden');
-      roundEntry.style.opacity = '1';
+      name = teamName(winner.idx);
+      score = state.gameMode === 'kout'
+        ? `${totalsArr[winner.idx]}–${totalsArr[1 - winner.idx]}`
+        : '';
     }
+    document.getElementById('winnerName').textContent = name;
+    document.getElementById('winnerScore').textContent = String(score);
+    const meta = `${t('roundsPlayed')(state.scores.length)}`;
+    document.getElementById('winnerMeta').textContent = meta;
   }
 
   function submitRound() {
-    const n = state.gameMode === 'kout' ? 2 : state.players.length;
-    const round = [];
-    for (let i = 0; i < n; i++) {
-      const v = parseInt(document.getElementById('roundScore' + i).value);
-      round.push(isNaN(v) ? 0 : v);
+    let round;
+    if (state.gameMode === 'kout' && state.koutEntryMode === 'contract') {
+      // Validate contract is complete
+      if (koutContract.caller === null || !koutContract.level || !koutContract.outcome) {
+        alert(t('contractHint'));
+        return;
+      }
+      round = computeContractScore(koutContract.caller, koutContract.level, koutContract.outcome);
+      resetContract();
+    } else {
+      const n = state.gameMode === 'kout' ? 2 : state.players.length;
+      round = [];
+      for (let i = 0; i < n; i++) {
+        const v = parseInt(document.getElementById('roundScore' + i).value);
+        round.push(isNaN(v) ? 0 : v);
+      }
     }
     state.scores.push(round);
+    closeSheet();
     save();
     render();
   }
@@ -1022,23 +3064,31 @@
     // Keep players, threshold, winRule, lang. Just wipe scores & end-of-game state.
     state.scores = [];
     state.gameOver = false;
+    state.gameLogged = false;
     editingRound = null;
+    resetContract();
     save();
-    render();
+    navigate('play');
   }
 
   function clearPlayers() {
     if (!confirm(t('confirmClearPlayers'))) return;
     const keepLang = state.lang;
+    const keepKoutMode = state.koutEntryMode || 'contract';
+    const keepRecents = state.recentGames || [];
+    const keepEntryStyle = state.entryStyle || 'pm';
     localStorage.removeItem(STORAGE_KEY);
-    state = { gameMode: 'custom', players: [], playerTeam: [], scores: [], threshold: 201, winRule: 'lowest', gameOver: false, lang: keepLang };
+    state = {
+      gameMode: 'sebeeta', players: [], playerTeam: [], teamNames: [], scores: [],
+      threshold: 201, winRule: 'lowest', gameOver: false, gameLogged: false,
+      lang: keepLang, koutEntryMode: keepKoutMode, entryStyle: keepEntryStyle,
+      currentScreen: 'home', recentGames: keepRecents
+    };
     editingRound = null;
-    document.getElementById('game').classList.add('hidden');
-    document.getElementById('setup').classList.remove('hidden');
+    resetContract();
     document.getElementById('playerNameSection').classList.add('hidden');
-    document.getElementById('gameMode').value = 'custom';
-    onGameModeChange();
     applyLang();
+    navigate('home');
   }
 
   function escapeHtml(s) {
@@ -1046,11 +3096,19 @@
   }
 
   // Init
+  applyTheme();
   applyLang();
   if (!load()) {
-    // Fresh session — apply the default game-mode UI (Sebeeta hides threshold/winRule)
-    onGameModeChange();
+    // Fresh session — land on Home screen
+    navigate('home');
   }
+
+  // ESC closes the round sheet
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !document.getElementById('sheet').classList.contains('hidden')) {
+      closeSheet();
+    }
+  });
 </script>
 </body>
 </html>
