@@ -4,9 +4,10 @@ import {
   loadState,
   saveState,
   type PersistedState,
-  type Screen,
 } from './state/persistedState';
 import type { Lang } from './i18n/strings';
+import { GameProvider, useGame } from './state/GameContext';
+import { ToastProvider } from './components/Toast';
 import { HomeScreen } from './screens/HomeScreen';
 import { SetupScreen } from './screens/SetupScreen';
 import { PlayScreen } from './screens/PlayScreen';
@@ -17,7 +18,7 @@ export function App() {
   const [state, setState] = useState<PersistedState>(() => loadState());
 
   // Persist on change. Skip the initial mount — the value already came from
-  // localStorage on load.
+  // localStorage on load, so re-writing it would be wasted work.
   const firstRun = useRef(true);
   useEffect(() => {
     if (firstRun.current) {
@@ -27,27 +28,37 @@ export function App() {
     saveState(state);
   }, [state]);
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', state.theme);
-  }, [state.theme]);
-
   const setLang = useCallback((lang: Lang) => {
     setState((s) => ({ ...s, lang }));
   }, []);
 
-  const navigate = useCallback((screen: Screen) => {
-    setState((s) => ({ ...s, currentScreen: screen }));
-  }, []);
-
   return (
     <LangProvider lang={state.lang} setLang={setLang}>
-      <div className="container">
-        {state.currentScreen === 'home' && <HomeScreen navigate={navigate} />}
-        {state.currentScreen === 'setup' && <SetupScreen navigate={navigate} />}
-        {state.currentScreen === 'play' && <PlayScreen navigate={navigate} />}
-        {state.currentScreen === 'history' && <HistoryScreen navigate={navigate} />}
-        {state.currentScreen === 'winner' && <WinnerScreen navigate={navigate} />}
-      </div>
+      <ToastProvider>
+        <GameProvider state={state} setState={setState}>
+          <AppShell />
+        </GameProvider>
+      </ToastProvider>
     </LangProvider>
+  );
+}
+
+function AppShell() {
+  const { state } = useGame();
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', state.theme);
+  }, [state.theme]);
+
+  const screen = state.currentScreen;
+
+  return (
+    <div className="container">
+      {screen === 'home' && <HomeScreen />}
+      {screen === 'setup' && <SetupScreen />}
+      {screen === 'play' && <PlayScreen />}
+      {screen === 'history' && <HistoryScreen />}
+      {screen === 'winner' && <WinnerScreen />}
+    </div>
   );
 }

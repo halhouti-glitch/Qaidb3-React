@@ -1,20 +1,132 @@
+import { useMemo } from 'react';
 import { useLang } from '../i18n/LangContext';
-import type { ScreenProps } from './types';
+import { useGame } from '../state/GameContext';
+import { Header } from '../components/Header';
+import { Icon } from '../components/Icon';
+import { checkWinner, totals as computeTotals } from '../engine/scoring';
 
-export function WinnerScreen({ navigate }: ScreenProps) {
+export function WinnerScreen() {
   const { t } = useLang();
+  const { state, actions } = useGame();
+
+  const totalsArr = useMemo(() => computeTotals(state), [state]);
+  const winner = useMemo(() => checkWinner(state, totalsArr), [state, totalsArr]);
+
+  const isKout = state.gameMode === 'kout';
+  const isSebeeta = state.gameMode === 'sebeeta';
+  const lowestWins = state.winRule === 'lowest';
+
+  const teamLabel = (idx: 0 | 1): string =>
+    state.teamNames[idx]?.trim() ||
+    (idx === 0 ? t('teamAFull') : t('teamBFull'));
+
+  let winnerName = '—';
+  let winnerScore: string | number = '—';
+  let rivalScore = 0;
+  let winnerSide: '0' | '1' | null = null;
+  let won = 0;
+
+  if (winner) {
+    if (winner.type === 'player') {
+      winnerName = state.players[winner.idx] ?? '—';
+      won = totalsArr[winner.idx] ?? 0;
+      winnerScore = won;
+      const others = totalsArr.filter((_, i) => i !== winner.idx);
+      rivalScore = lowestWins
+        ? Math.max(...others)
+        : Math.min(...others);
+    } else {
+      winnerName = teamLabel(winner.idx);
+      winnerSide = winner.idx === 0 ? '0' : '1';
+      if (isKout) {
+        won = totalsArr[winner.idx] ?? 0;
+        winnerScore = `${totalsArr[winner.idx]}–${totalsArr[1 - winner.idx]}`;
+        rivalScore = totalsArr[1 - winner.idx] ?? 0;
+      } else {
+        won = totalsArr[winner.idx] ?? 0;
+        winnerScore = totalsArr[winner.idx] ?? 0;
+        rivalScore = totalsArr[1 - winner.idx] ?? 0;
+      }
+    }
+  }
+
+  const eyebrow = isKout
+    ? t('winnerWonBy')
+    : isSebeeta
+      ? t('winnerLowestWins')
+      : lowestWins
+        ? t('winnerLowestWins')
+        : t('winnerFirstToFinish');
+
+  const subtext = isKout
+    ? t('winnerSubKout')(typeof winnerScore === 'number' ? winnerScore : won)
+    : isSebeeta && winner?.type === 'team'
+      ? t('winnerSubSebeetaTeam')(state.threshold)
+      : lowestWins
+        ? t('winnerSubLowest')(typeof winnerScore === 'number' ? winnerScore : won)
+        : t('winnerSubFirst')(state.threshold);
+
+  const teamsMode = winner?.type === 'team';
+
   return (
-    <div className="screen winner-screen">
-      <div className="winner-eyebrow">{t('matchComplete')}</div>
-      <div className="winner-name">—</div>
-      <div className="winner-sub">Phase 3 will fill this in with the celebration card.</div>
-      <div className="winner-actions">
-        <button type="button" className="btn btn-primary btn-block" onClick={() => navigate('play')}>
-          {t('newGame')}
-        </button>
-        <button type="button" className="btn btn-ghost btn-block" onClick={() => navigate('home')}>
-          {t('goHome')}
-        </button>
+    <div className="screen">
+      <Header
+        eyebrow={t('winnerComplete')}
+        title=" "
+        left={
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => actions.navigate('home')}
+            aria-label={t('goHome')}
+          >
+            <Icon.Close size={18} />
+          </button>
+        }
+      />
+      <div className="winner-screen">
+        <div className="winner-eyebrow">{eyebrow}</div>
+        <div className="winner-crest">
+          {teamsMode ? (
+            <span>{winnerSide === '0' ? 'A' : 'B'}</span>
+          ) : (
+            <Icon.Crown size={42} />
+          )}
+        </div>
+        <div className="winner-name">{winnerName}</div>
+        <div className="winner-sub">{subtext}</div>
+        <div className="winner-stats">
+          <div className="stat">
+            <div className="label">{t('winnerRounds')}</div>
+            <div className="val">{state.scores.length}</div>
+          </div>
+          <div className="stat">
+            <div className="label">
+              {teamsMode ? t('winnerMargin') : t('winnerSpread')}
+            </div>
+            <div className="val">{Math.abs(won - rivalScore)}</div>
+          </div>
+          <div className="stat">
+            <div className="label">{t('winnerTarget')}</div>
+            <div className="val">{state.threshold}</div>
+          </div>
+        </div>
+        <div className="winner-actions">
+          <button
+            type="button"
+            className="btn btn-primary btn-block"
+            onClick={() => actions.resetGame()}
+          >
+            {t('winnerRematch')}
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-block"
+            onClick={() => actions.navigate('home')}
+          >
+            {t('winnerBack')}
+          </button>
+        </div>
       </div>
     </div>
   );
