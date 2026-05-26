@@ -1,3 +1,26 @@
-design/
-_journey-*.html
-_journey-*.jsx
+node_modules
+dist
+dist-ssr
+*.local
+.vite
+
+# TypeScript incremental cache
+*.tsbuildinfo
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Test
+coverage
+
+# Claude — per-user local settings (launch.json is committed)
+.claude/settings.local.json
