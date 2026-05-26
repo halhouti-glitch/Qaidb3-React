@@ -116,6 +116,46 @@
   .hidden { display: none; }
   .threshold-info { color: #94a3b8; font-size: 13px; margin-top: 8px; margin-bottom: 12px; }
 
+  /* Team chip used in setup and standings */
+  .team-chip {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    color: #0f172a;
+    margin-inline-start: 6px;
+  }
+  .team-chip.team-a { background: #06b6d4; }
+  .team-chip.team-b { background: #ec4899; }
+  /* Team selector (radio-like toggle) shown next to player name inputs */
+  .team-toggle { display: inline-flex; gap: 4px; margin-inline-start: 8px; }
+  .team-toggle button {
+    background: #334155;
+    color: #e2e8f0;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 6px;
+    border: 2px solid transparent;
+  }
+  .team-toggle button.active.team-a { background: #06b6d4; color: #0f172a; border-color: #06b6d4; }
+  .team-toggle button.active.team-b { background: #ec4899; color: #0f172a; border-color: #ec4899; }
+  .team-toggle button:hover { filter: brightness(1.1); }
+  .player-input-row { display: flex; align-items: end; gap: 8px; }
+  .player-input-row > input { flex: 1; }
+  /* Team-totals summary block (Sebeeta) */
+  .team-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .team-summary-card {
+    padding: 12px;
+    border-radius: 8px;
+    background: #0b1224;
+    border-inline-start: 4px solid var(--tcolor, #475569);
+  }
+  .team-summary-card .label { font-size: 12px; color: #94a3b8; }
+  .team-summary-card .value { font-size: 24px; font-weight: 700; color: #fbbf24; margin-top: 4px; }
+  .team-summary-card .members { font-size: 12px; color: #cbd5e1; margin-top: 4px; }
+
   /* Player color dot */
   .pdot {
     display: inline-block;
@@ -213,14 +253,22 @@
     <h2 data-t="gameSetup"></h2>
     <div class="row">
       <div>
+        <label data-t="gameType"></label>
+        <select id="gameMode" onchange="onGameModeChange()">
+          <option value="custom" data-t="gameCustom"></option>
+          <option value="sebeeta" data-t="gameSebeeta"></option>
+          <option value="kout" data-t="gameKout"></option>
+        </select>
+      </div>
+      <div id="numPlayersWrap">
         <label data-t="numPlayersLabel"></label>
         <input type="number" id="numPlayers" min="2" max="6" value="6" />
       </div>
-      <div>
+      <div id="thresholdWrap">
         <label data-t="thresholdLabel"></label>
         <input type="number" id="threshold" value="201" />
       </div>
-      <div>
+      <div id="winRuleWrap">
         <label data-t="winCondLabel"></label>
         <select id="winRule">
           <option value="lowest" data-t="lowestWins"></option>
@@ -233,6 +281,7 @@
     </div>
     <div id="playerNameSection" class="hidden">
       <h2 style="margin-top:24px;" data-t="playerNames"></h2>
+      <div id="setupHint" class="threshold-info"></div>
       <div id="playerInputs" class="player-inputs"></div>
       <button onclick="startGame()" data-t="startGame"></button>
     </div>
@@ -246,6 +295,7 @@
       <div class="card">
         <h2 data-t="standings"></h2>
         <div class="threshold-info" id="thresholdInfo"></div>
+        <div id="teamSummary" class="team-summary hidden"></div>
         <table id="standingsTable">
           <thead>
             <tr>
@@ -328,6 +378,21 @@
       minusBtn: 'Minus (−10)',
       clearPlayers: 'New Game',
       confirmClearPlayers: 'Start a new game with new players? This ends the current game.',
+      gameType: 'Game',
+      gameCustom: 'Custom',
+      gameSebeeta: 'Sebeeta',
+      gameKout: 'Kout',
+      teamA: 'A',
+      teamB: 'B',
+      teamAFull: 'Team A',
+      teamBFull: 'Team B',
+      teamLabel: 'Team',
+      thTeam: 'Team',
+      teamTotal: 'Team Total',
+      teamUneven: (a, b) => `Each team must have 3 players (currently ${a} / ${b}).`,
+      teamWinnerBanner: (n) => `🏆 ${n} wins!`,
+      sebeetaHint: 'Sebeeta: 6 players in 2 teams of 3. Any individual score reaching 201 ends the game — the opposing team wins.',
+      koutHint: 'Kout: 6 players in 2 teams of 3. Scores are entered per team. First team to 101 wins.',
     },
     ar: {
       title: 'قيد بلوك 3',
@@ -372,12 +437,29 @@
       minusBtn: 'ماينس (−10)',
       clearPlayers: 'قيم جديد',
       confirmClearPlayers: 'بدء قيم جديد بلاعبين جدد؟ سيتم إنهاء اللعبة الحالية.',
+      gameType: 'اللعبة',
+      gameCustom: 'مخصص',
+      gameSebeeta: 'سبيتي',
+      gameKout: 'كوت',
+      teamA: 'أ',
+      teamB: 'ب',
+      teamAFull: 'فريق أ',
+      teamBFull: 'فريق ب',
+      teamLabel: 'الفريق',
+      thTeam: 'الفريق',
+      teamTotal: 'مجموع الفريق',
+      teamUneven: (a, b) => `كل فريق يجب أن يحتوي على 3 لاعبين (حالياً ${a} / ${b}).`,
+      teamWinnerBanner: (n) => `🏆 فاز ${n}!`,
+      sebeetaHint: 'سبيتي: 6 لاعبين في فريقين كل فريق 3. عند وصول أي لاعب إلى 201 تنتهي اللعبة ويفوز الفريق الآخر.',
+      koutHint: 'كوت: 6 لاعبين في فريقين كل فريق 3. النقاط تُدخل لكل فريق. أول فريق يصل إلى 101 يفوز.',
     }
   };
 
   let state = {
+    gameMode: 'custom',  // 'custom' | 'sebeeta' | 'kout'
     players: [],
-    scores: [],
+    playerTeam: [],      // team index (0 or 1) per player; used in sebeeta + kout
+    scores: [],          // custom/sebeeta: per-player arrays; kout: per-team [a,b] arrays
     threshold: 201,
     winRule: 'lowest',
     gameOver: false,
@@ -389,6 +471,16 @@
   const PLAYER_COLORS = ['#ec4899', '#06b6d4', '#facc15', '#a855f7', '#f97316', '#84cc16'];
   function pcolor(i) { return PLAYER_COLORS[i % PLAYER_COLORS.length]; }
   function pdot(i) { return `<span class="pdot" style="background:${pcolor(i)}"></span>`; }
+
+  // Team colors (used in sebeeta + kout)
+  const TEAM_COLORS = ['#06b6d4', '#ec4899'];
+  function tcolor(i) { return TEAM_COLORS[i] || '#475569'; }
+  function tdot(i) { return `<span class="pdot" style="background:${tcolor(i)}"></span>`; }
+  function teamName(i) { return i === 0 ? t('teamAFull') : t('teamBFull'); }
+  function isTeamMode() { return state.gameMode === 'sebeeta' || state.gameMode === 'kout'; }
+
+  // Per-entity color (player color for player rows, team color for team rows / kout)
+  function eColor(i) { return state.gameMode === 'kout' ? tcolor(i) : pcolor(i); }
 
   const STORAGE_KEY = 'cardScoreTracker_v1';
 
@@ -432,55 +524,153 @@
     });
   }
 
+  function onGameModeChange() {
+    const mode = document.getElementById('gameMode').value;
+    const isTeam = (mode === 'sebeeta' || mode === 'kout');
+    // Hide threshold/winRule for team modes (presets), lock players to 6
+    document.getElementById('thresholdWrap').style.display = isTeam ? 'none' : '';
+    document.getElementById('winRuleWrap').style.display = isTeam ? 'none' : '';
+    if (isTeam) {
+      const np = document.getElementById('numPlayers');
+      np.value = 6;
+      np.disabled = true;
+    } else {
+      document.getElementById('numPlayers').disabled = false;
+    }
+    // Reset the player-name section so user re-clicks "Done" after changing mode
+    document.getElementById('playerNameSection').classList.add('hidden');
+  }
+
+  // Tracks team selection per player slot during setup (UI-only state)
+  let setupTeams = [];
+
+  function setSetupTeam(i, team) {
+    setupTeams[i] = team;
+    // Update visual state of the two toggle buttons
+    const aBtn = document.getElementById(`teamBtn_${i}_a`);
+    const bBtn = document.getElementById(`teamBtn_${i}_b`);
+    if (aBtn && bBtn) {
+      aBtn.classList.toggle('active', team === 0);
+      bBtn.classList.toggle('active', team === 1);
+    }
+  }
+
   function buildPlayerInputs() {
-    const n = Math.max(2, Math.min(6, parseInt(document.getElementById('numPlayers').value) || 2));
+    const mode = document.getElementById('gameMode').value;
+    const isTeam = (mode === 'sebeeta' || mode === 'kout');
+    const n = isTeam ? 6 : Math.max(2, Math.min(6, parseInt(document.getElementById('numPlayers').value) || 2));
     document.getElementById('numPlayers').value = n;
+
+    // Hint text under "Player Names"
+    const hint = document.getElementById('setupHint');
+    if (mode === 'sebeeta') hint.textContent = t('sebeetaHint');
+    else if (mode === 'kout') hint.textContent = t('koutHint');
+    else hint.textContent = '';
+
+    // Default team assignment: alternating (0,1,0,1,0,1) — easy to change via toggles
+    setupTeams = [];
+    for (let i = 0; i < n; i++) setupTeams.push(isTeam ? (i % 2) : 0);
+
     const container = document.getElementById('playerInputs');
     container.innerHTML = '';
     for (let i = 0; i < n; i++) {
       const div = document.createElement('div');
       const label = document.createElement('label');
       label.textContent = `${t('playerDefault')} ${i+1}`;
+      div.appendChild(label);
+
+      const row = document.createElement('div');
+      row.className = 'player-input-row';
       const input = document.createElement('input');
       input.type = 'text';
       input.id = 'playerName' + i;
       input.value = `${t('playerDefault')} ${i+1}`;
-      div.appendChild(label);
-      div.appendChild(input);
+      row.appendChild(input);
+
+      if (isTeam) {
+        const toggle = document.createElement('div');
+        toggle.className = 'team-toggle';
+        toggle.innerHTML = `
+          <button type="button" id="teamBtn_${i}_a" class="team-a${setupTeams[i] === 0 ? ' active' : ''}" onclick="setSetupTeam(${i}, 0)">${escapeHtml(t('teamA'))}</button>
+          <button type="button" id="teamBtn_${i}_b" class="team-b${setupTeams[i] === 1 ? ' active' : ''}" onclick="setSetupTeam(${i}, 1)">${escapeHtml(t('teamB'))}</button>
+        `;
+        row.appendChild(toggle);
+      }
+      div.appendChild(row);
       container.appendChild(div);
     }
     document.getElementById('playerNameSection').classList.remove('hidden');
   }
 
   function startGame() {
-    const n = parseInt(document.getElementById('numPlayers').value);
+    const mode = document.getElementById('gameMode').value;
+    const isTeam = (mode === 'sebeeta' || mode === 'kout');
+    const n = isTeam ? 6 : parseInt(document.getElementById('numPlayers').value);
+
     const players = [];
     for (let i = 0; i < n; i++) {
       const name = document.getElementById('playerName' + i).value.trim() || `${t('playerDefault')} ${i+1}`;
       players.push(name);
     }
+
+    if (isTeam) {
+      // Validate balanced teams: must be exactly 3 / 3
+      const aCount = setupTeams.filter(x => x === 0).length;
+      const bCount = setupTeams.filter(x => x === 1).length;
+      if (aCount !== 3 || bCount !== 3) {
+        alert(t('teamUneven')(aCount, bCount));
+        return;
+      }
+      state.playerTeam = setupTeams.slice();
+    } else {
+      state.playerTeam = [];
+    }
+
+    state.gameMode = mode;
     state.players = players;
     state.scores = [];
-    state.threshold = parseInt(document.getElementById('threshold').value) || 201;
-    state.winRule = document.getElementById('winRule').value;
     state.gameOver = false;
+
+    if (mode === 'sebeeta') {
+      state.threshold = 201;
+      state.winRule = 'lowest';  // individual lowest wins (anyone hitting 201 = team loses)
+    } else if (mode === 'kout') {
+      state.threshold = 101;
+      state.winRule = 'highest'; // first team to 101 wins
+    } else {
+      state.threshold = parseInt(document.getElementById('threshold').value) || 201;
+      state.winRule = document.getElementById('winRule').value;
+    }
+
     document.getElementById('setup').classList.add('hidden');
     document.getElementById('game').classList.remove('hidden');
     save();
     render();
   }
 
+  // Returns per-entity totals.
+  //   custom/sebeeta: one total per player
+  //   kout: one total per team [A, B]
   function totals() {
-    return state.players.map((_, pi) =>
-      state.scores.reduce((sum, round) => sum + (round[pi] || 0), 0)
-    );
+    const n = state.gameMode === 'kout' ? 2 : state.players.length;
+    const out = new Array(n).fill(0);
+    state.scores.forEach(round => {
+      for (let i = 0; i < n; i++) out[i] += (round[i] || 0);
+    });
+    return out;
   }
 
+  // For sebeeta only: sum per-player totals into per-team totals [A, B]
+  function teamTotalsFromPlayers(pTotals) {
+    const t = [0, 0];
+    state.playerTeam.forEach((tIdx, pIdx) => { t[tIdx] += (pTotals[pIdx] || 0); });
+    return t;
+  }
+
+  // Dealer at the *player* level — same logic as before, only meaningful for
+  // custom + sebeeta (kout has no individual dealer).
   function dealerIndex(totalsArr) {
-    // Dealer is the opposite of the win condition:
-    //   highest-wins → dealer = lowest score
-    //   lowest-wins  → dealer = highest score
-    if (totalsArr.length === 0) return -1;
+    if (state.gameMode === 'kout' || totalsArr.length === 0) return -1;
     if (state.winRule === 'highest') {
       let min = Infinity, idx = 0;
       totalsArr.forEach((v, i) => { if (v < min) { min = v; idx = i; } });
@@ -492,19 +682,41 @@
     }
   }
 
+  // Returns { type: 'player' | 'team', idx } when there's a winner, else null.
+  //   custom: winner is a player (highest or lowest depending on winRule)
+  //   sebeeta: winner is the OPPOSING team of any player who hit threshold
+  //   kout: winner is the team that hit the threshold
   function checkWinner(totalsArr) {
-    if (state.winRule === 'highest') {
+    if (state.gameMode === 'sebeeta') {
+      for (let i = 0; i < totalsArr.length; i++) {
+        if (totalsArr[i] >= state.threshold) {
+          const loserTeam = state.playerTeam[i];
+          return { type: 'team', idx: 1 - loserTeam };
+        }
+      }
+      return null;
+    }
+    if (state.gameMode === 'kout') {
+      // First team to reach threshold; if both crossed in the same round, the higher wins
       const reached = totalsArr.map((v, i) => v >= state.threshold ? i : -1).filter(i => i >= 0);
-      if (reached.length === 0) return -1;
+      if (reached.length === 0) return null;
       let max = -Infinity, idx = -1;
       reached.forEach(i => { if (totalsArr[i] > max) { max = totalsArr[i]; idx = i; } });
-      return idx;
+      return { type: 'team', idx };
+    }
+    // custom
+    if (state.winRule === 'highest') {
+      const reached = totalsArr.map((v, i) => v >= state.threshold ? i : -1).filter(i => i >= 0);
+      if (reached.length === 0) return null;
+      let max = -Infinity, idx = -1;
+      reached.forEach(i => { if (totalsArr[i] > max) { max = totalsArr[i]; idx = i; } });
+      return { type: 'player', idx };
     } else {
       const anyReached = totalsArr.some(v => v >= state.threshold);
-      if (!anyReached) return -1;
+      if (!anyReached) return null;
       let min = Infinity, idx = -1;
       totalsArr.forEach((v, i) => { if (v < min) { min = v; idx = i; } });
-      return idx;
+      return { type: 'player', idx };
     }
   }
 
@@ -512,56 +724,114 @@
     const totalsArr = totals();
     const dealer = dealerIndex(totalsArr);
     const winner = checkWinner(totalsArr);
-    state.gameOver = winner >= 0;
+    state.gameOver = winner !== null;
 
-    // Standings — keep original player order (no sorting)
-    const ranked = state.players.map((name, i) => ({ name, i, total: totalsArr[i] }));
+    // ---- Team summary (sebeeta + kout) ----
+    const teamSummary = document.getElementById('teamSummary');
+    if (state.gameMode === 'sebeeta') {
+      const tTot = teamTotalsFromPlayers(totalsArr);
+      teamSummary.innerHTML = [0, 1].map(ti => {
+        const members = state.players.filter((_, pi) => state.playerTeam[pi] === ti).join(' · ');
+        return `<div class="team-summary-card" style="--tcolor:${tcolor(ti)};">
+          <div class="label">${escapeHtml(teamName(ti))}</div>
+          <div class="value">${tTot[ti]}</div>
+          <div class="members">${escapeHtml(members)}</div>
+        </div>`;
+      }).join('');
+      teamSummary.classList.remove('hidden');
+    } else {
+      teamSummary.classList.add('hidden');
+      teamSummary.innerHTML = '';
+    }
 
+    // ---- Standings table ----
+    const standingsHead = document.querySelector('#standingsTable thead tr');
     const tbody = document.getElementById('standingsBody');
     tbody.innerHTML = '';
-    ranked.forEach(p => {
-      const tr = document.createElement('tr');
-      tr.style.setProperty('--pcolor', pcolor(p.i));
-      const isDealer = p.i === dealer;
-      const isWinner = p.i === winner;
-      const remaining = state.winRule === 'highest'
-        ? Math.max(0, state.threshold - p.total)
-        : state.threshold - p.total;
-      tr.innerHTML = `
-        <td class="player-name">${pdot(p.i)}<span>${escapeHtml(p.name)}</span>${isDealer ? `<span class="dealer-badge">${escapeHtml(t('dealerBadge'))}</span>` : ''}${isWinner ? `<span class="winner-badge">${escapeHtml(t('winnerBadge'))}</span>` : ''}</td>
-        <td class="total">${p.total}</td>
-        <td>${state.scores.length}</td>
-        <td>${remaining}</td>
-      `;
-      tbody.appendChild(tr);
-    });
 
-    document.getElementById('thresholdInfo').textContent =
-      state.winRule === 'highest' ? t('infoHighest')(state.threshold) : t('infoLowest')(state.threshold);
+    if (state.gameMode === 'kout') {
+      // Standings = 2 team rows
+      standingsHead.innerHTML = `
+        <th class="player-name">${escapeHtml(t('thTeam'))}</th>
+        <th>${escapeHtml(t('thTotal'))}</th>
+        <th>${escapeHtml(t('thRoundsPlayed'))}</th>
+        <th>${escapeHtml(t('thToThreshold'))}</th>`;
+      [0, 1].forEach(ti => {
+        const total = totalsArr[ti];
+        const remaining = Math.max(0, state.threshold - total);
+        const isWinner = winner && winner.type === 'team' && winner.idx === ti;
+        const members = state.players.filter((_, pi) => state.playerTeam[pi] === ti).join(' · ');
+        const tr = document.createElement('tr');
+        tr.style.setProperty('--pcolor', tcolor(ti));
+        tr.innerHTML = `
+          <td class="player-name">${tdot(ti)}<span>${escapeHtml(teamName(ti))}</span>${isWinner ? `<span class="winner-badge">${escapeHtml(t('winnerBadge'))}</span>` : ''}<div style="font-size:11px;color:#94a3b8;margin-top:2px;">${escapeHtml(members)}</div></td>
+          <td class="total">${total}</td>
+          <td>${state.scores.length}</td>
+          <td>${remaining}</td>`;
+        tbody.appendChild(tr);
+      });
+    } else {
+      // Custom + Sebeeta: per-player rows
+      standingsHead.innerHTML = `
+        <th class="player-name">${escapeHtml(t('thPlayer'))}</th>
+        <th>${escapeHtml(t('thTotal'))}</th>
+        <th>${escapeHtml(t('thRoundsPlayed'))}</th>
+        <th>${escapeHtml(t('thToThreshold'))}</th>`;
+      state.players.forEach((name, i) => {
+        const total = totalsArr[i];
+        const isDealer = i === dealer;
+        const isWinner = winner && winner.type === 'player' && winner.idx === i;
+        const remaining = state.winRule === 'highest'
+          ? Math.max(0, state.threshold - total)
+          : state.threshold - total;
+        const teamChip = isTeamMode()
+          ? `<span class="team-chip ${state.playerTeam[i] === 0 ? 'team-a' : 'team-b'}">${escapeHtml(state.playerTeam[i] === 0 ? t('teamA') : t('teamB'))}</span>`
+          : '';
+        const tr = document.createElement('tr');
+        tr.style.setProperty('--pcolor', pcolor(i));
+        tr.innerHTML = `
+          <td class="player-name">${pdot(i)}<span>${escapeHtml(name)}</span>${teamChip}${isDealer ? `<span class="dealer-badge">${escapeHtml(t('dealerBadge'))}</span>` : ''}${isWinner ? `<span class="winner-badge">${escapeHtml(t('winnerBadge'))}</span>` : ''}</td>
+          <td class="total">${total}</td>
+          <td>${state.scores.length}</td>
+          <td>${remaining}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
 
-    // Round entry
+    // ---- Threshold info caption ----
+    let infoText;
+    if (state.gameMode === 'sebeeta') infoText = t('sebeetaHint');
+    else if (state.gameMode === 'kout') infoText = t('koutHint');
+    else infoText = state.winRule === 'highest' ? t('infoHighest')(state.threshold) : t('infoLowest')(state.threshold);
+    document.getElementById('thresholdInfo').textContent = infoText;
+
+    // ---- Round entry ----
     document.getElementById('roundNum').textContent = state.scores.length + 1;
     const rin = document.getElementById('roundInputs');
     rin.innerHTML = '';
-    const n = state.players.length;
-    state.players.forEach((name, i) => {
+
+    // Determine what entities to render inputs for
+    const entries = state.gameMode === 'kout'
+      ? [0, 1].map(ti => ({ name: teamName(ti), color: tcolor(ti), idx: ti, teamMode: true }))
+      : state.players.map((name, i) => ({ name, color: pcolor(i), idx: i, teamMode: false }));
+    const n = entries.length;
+
+    entries.forEach((ent, i) => {
       const div = document.createElement('div');
-      div.style.setProperty('--pcolor', pcolor(i));
+      div.style.setProperty('--pcolor', ent.color);
       const label = document.createElement('label');
-      label.innerHTML = `${pdot(i)}<span>${escapeHtml(name)}</span>`;
+      const dotHtml = `<span class="pdot" style="background:${ent.color}"></span>`;
+      label.innerHTML = `${dotHtml}<span>${escapeHtml(ent.name)}</span>`;
       const input = document.createElement('input');
       input.type = 'number';
       input.inputMode = 'numeric';
       input.id = 'roundScore' + i;
       input.value = '0';
-      // Select-all on focus for fast overwrite
       input.addEventListener('focus', () => input.select());
-      // Clear minus state if user types a different value
       input.addEventListener('input', () => {
         const btn = document.getElementById('minusBtn' + i);
         if (btn && parseInt(input.value) !== -10) btn.classList.remove('active');
       });
-      // Enter: jump to next input; Enter on last: submit round
       input.addEventListener('keydown', (e) => {
         if (e.key !== 'Enter') return;
         e.preventDefault();
@@ -583,41 +853,53 @@
       div.appendChild(btn);
       rin.appendChild(div);
     });
-    // Auto-focus first input if game is still ongoing and not editing a history row
+
     if (!state.gameOver && n > 0 && editingRound === null) {
       const first = document.getElementById('roundScore0');
       if (first) first.focus();
     }
 
-    // History
+    // ---- History ----
     const head = document.getElementById('historyHead');
+    const colHeaders = state.gameMode === 'kout'
+      ? [0, 1].map(ti => ({ name: teamName(ti), color: tcolor(ti) }))
+      : state.players.map((name, i) => ({ name, color: pcolor(i) }));
+
     head.innerHTML = `<th>${escapeHtml(t('thRound'))}</th>` +
-      state.players.map((p, i) => `<th style="border-top:3px solid ${pcolor(i)};">${escapeHtml(p)}</th>`).join('') +
-      `<th>${escapeHtml(t('thDealerAfter'))}</th>` +
+      colHeaders.map(c => `<th style="border-top:3px solid ${c.color};">${escapeHtml(c.name)}</th>`).join('') +
+      (state.gameMode === 'kout' ? '' : `<th>${escapeHtml(t('thDealerAfter'))}</th>`) +
       `<th>${escapeHtml(t('thActions'))}</th>`;
+
     const hbody = document.getElementById('historyBody');
     hbody.innerHTML = '';
-    let runningTotals = state.players.map(() => 0);
+    const colCount = colHeaders.length;
+    let runningTotals = new Array(colCount).fill(0);
     state.scores.forEach((round, ri) => {
       runningTotals = runningTotals.map((v, i) => v + (round[i] || 0));
       const dIdx = dealerIndex(runningTotals);
       const tr = document.createElement('tr');
       if (editingRound === ri) {
-        // Inline edit row
-        const lastIdx = state.players.length - 1;
+        const lastIdx = colCount - 1;
+        const inputs = [];
+        for (let i = 0; i < colCount; i++) {
+          inputs.push(`<td><input type="number" inputmode="numeric" id="editScore_${ri}_${i}" value="${round[i] || 0}" style="width:80px;text-align:center;" onfocus="this.select()" onkeydown="handleEditKey(event, ${ri}, ${i}, ${lastIdx})" /></td>`);
+        }
         tr.innerHTML = `<td><strong>${ri+1}</strong></td>` +
-          round.map((s, i) =>
-            `<td><input type="number" inputmode="numeric" id="editScore_${ri}_${i}" value="${s}" style="width:80px;text-align:center;" onfocus="this.select()" onkeydown="handleEditKey(event, ${ri}, ${i}, ${lastIdx})" /></td>`
-          ).join('') +
-          `<td>—</td>` +
+          inputs.join('') +
+          (state.gameMode === 'kout' ? '' : `<td>—</td>`) +
           `<td>
             <button onclick="saveEditedRound(${ri})" style="padding:6px 10px;font-size:12px;">${escapeHtml(t('saveBtn'))}</button>
             <button class="secondary" onclick="cancelEditRound()" style="padding:6px 10px;font-size:12px;margin-inline-start:4px;">${escapeHtml(t('cancelBtn'))}</button>
           </td>`;
       } else {
+        const cells = [];
+        for (let i = 0; i < colCount; i++) {
+          cells.push(`<td>${round[i] || 0}<br><span style="color:#64748b;font-size:11px;">(${runningTotals[i]})</span></td>`);
+        }
+        const dealerCell = state.gameMode === 'kout' ? '' : `<td>${dIdx >= 0 ? escapeHtml(state.players[dIdx]) : '—'}</td>`;
         tr.innerHTML = `<td><strong>${ri+1}</strong></td>` +
-          round.map((s, i) => `<td>${s}<br><span style="color:#64748b;font-size:11px;">(${runningTotals[i]})</span></td>`).join('') +
-          `<td>${dIdx >= 0 ? escapeHtml(state.players[dIdx]) : '—'}</td>` +
+          cells.join('') +
+          dealerCell +
           `<td>
             <button class="secondary" onclick="startEditRound(${ri})" style="padding:6px 10px;font-size:12px;">${escapeHtml(t('editBtn'))}</button>
             <button class="danger" onclick="deleteRound(${ri})" style="padding:6px 10px;font-size:12px;margin-inline-start:4px;">${escapeHtml(t('deleteBtn'))}</button>
@@ -626,11 +908,15 @@
       hbody.appendChild(tr);
     });
 
-    // Winner banner
+    // ---- Winner banner ----
     const banner = document.getElementById('winnerBanner');
     const roundEntry = document.getElementById('roundEntry');
-    if (winner >= 0) {
-      banner.textContent = t('winnerBanner')(state.players[winner], totalsArr[winner]);
+    if (winner !== null) {
+      if (winner.type === 'player') {
+        banner.textContent = t('winnerBanner')(state.players[winner.idx], totalsArr[winner.idx]);
+      } else {
+        banner.textContent = t('teamWinnerBanner')(teamName(winner.idx));
+      }
       banner.classList.remove('hidden');
       roundEntry.style.opacity = '0.5';
     } else {
@@ -640,10 +926,12 @@
   }
 
   function submitRound() {
-    const round = state.players.map((_, i) => {
+    const n = state.gameMode === 'kout' ? 2 : state.players.length;
+    const round = [];
+    for (let i = 0; i < n; i++) {
       const v = parseInt(document.getElementById('roundScore' + i).value);
-      return isNaN(v) ? 0 : v;
-    });
+      round.push(isNaN(v) ? 0 : v);
+    }
     state.scores.push(round);
     save();
     render();
@@ -689,10 +977,12 @@
   }
 
   function saveEditedRound(ri) {
-    const updated = state.players.map((_, i) => {
+    const n = state.gameMode === 'kout' ? 2 : state.players.length;
+    const updated = [];
+    for (let i = 0; i < n; i++) {
       const v = parseInt(document.getElementById(`editScore_${ri}_${i}`).value);
-      return isNaN(v) ? 0 : v;
-    });
+      updated.push(isNaN(v) ? 0 : v);
+    }
     state.scores[ri] = updated;
     editingRound = null;
     save();
@@ -730,11 +1020,13 @@
     if (!confirm(t('confirmClearPlayers'))) return;
     const keepLang = state.lang;
     localStorage.removeItem(STORAGE_KEY);
-    state = { players: [], scores: [], threshold: 201, winRule: 'lowest', gameOver: false, lang: keepLang };
+    state = { gameMode: 'custom', players: [], playerTeam: [], scores: [], threshold: 201, winRule: 'lowest', gameOver: false, lang: keepLang };
     editingRound = null;
     document.getElementById('game').classList.add('hidden');
     document.getElementById('setup').classList.remove('hidden');
     document.getElementById('playerNameSection').classList.add('hidden');
+    document.getElementById('gameMode').value = 'custom';
+    onGameModeChange();
     applyLang();
   }
 
