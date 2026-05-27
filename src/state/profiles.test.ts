@@ -77,6 +77,24 @@ describe('topTeammates', () => {
     const me = profile({ name: 'Ali', teammates: { ghost: 3 } });
     expect(topTeammates(me, {}, 1)).toEqual([{ name: 'ghost', count: 3 }]);
   });
+
+  it('defaults to limit=2 — Sebeeta/Kout have 2 partners per game (item 4)', () => {
+    const me = profile({
+      name: 'Ali',
+      teammates: { bob: 5, carol: 4, dan: 3, evan: 2 },
+    });
+    const profiles = {
+      bob: profile({ name: 'Bob' }),
+      carol: profile({ name: 'Carol' }),
+      dan: profile({ name: 'Dan' }),
+      evan: profile({ name: 'Evan' }),
+    };
+    // No explicit limit — should return top 2.
+    expect(topTeammates(me, profiles)).toEqual([
+      { name: 'Bob', count: 5 },
+      { name: 'Carol', count: 4 },
+    ]);
+  });
 });
 
 describe('winnerPlayerIndices', () => {
