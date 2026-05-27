@@ -206,7 +206,7 @@ export function SetupScreen() {
           </div>
         )}
 
-        {/* Player count chips */}
+        {/* Player count chips. Team modes show [4, 6]; Custom shows 2–6. */}
         <div className="setup-section">
           <div className="label">{t('setupPlayersLabel')}</div>
           <div className="chip-row">
@@ -223,7 +223,7 @@ export function SetupScreen() {
           </div>
         </div>
 
-        {/* Player names — flat list or team blocks */}
+        {/* Player names — flat list or team blocks. */}
         <div className="setup-section">
           <div className="label">
             {showsAsTeams ? t('setupRosterPartners') : t('playerNames')}

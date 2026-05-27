@@ -421,7 +421,11 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
 /* ============================================================
    Setup
    ============================================================ */
-.setup-body { padding: 4px 22px 88px; flex: 1; }
+/* Body sizes to its content rather than stretching with flex: 1. That
+   removes the dead space that used to sit between the last form section
+   and the (formerly sticky) CTA — and lets the whole stack fit within
+   an iPhone viewport without scrolling. */
+.setup-body { padding: 4px 22px 12px; }
 .setup-section { margin-top: 12px; }
 .setup-section .label {
   font-size: 11px;
@@ -432,9 +436,7 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   font-weight: 600;
 }
 .setup-cta {
-  position: sticky;
-  bottom: 12px;
-  margin: 12px 22px 14px;
+  margin: 8px 22px 14px;
   z-index: 10;
 }
 
@@ -551,19 +553,19 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
-  padding: 8px 12px 10px;
+  padding: 6px 10px 6px;
 }
 .team-block .player-input {
   background: transparent;
   box-shadow: none;
-  padding: 6px 4px;
+  padding: 4px 4px;
   margin-bottom: 0;
   border-top: 1px solid var(--line);
 }
 .team-block .player-input:first-of-type { border-top: 0; }
 .team-block-head {
   display: flex; align-items: center; gap: 10px;
-  padding: 2px 4px 6px;
+  padding: 2px 4px 4px;
 }
 .team-letter {
   width: 26px; height: 26px;
