@@ -14,6 +14,19 @@ import { PlayScreen } from './screens/PlayScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { WinnerScreen } from './screens/WinnerScreen';
 import { useAudio } from './lib/audio';
+import type { Screen } from './state/persistedState';
+
+// Item 8: screen depth lookup. Forward transitions increase depth, back
+// transitions decrease it. Equal-depth jumps default to forward (a tie
+// shouldn't happen with the current state machine, but we keep the table
+// total so future screens can be added without surprise).
+const screenDepth: Record<Screen, number> = {
+  home: 0,
+  setup: 1,
+  play: 2,
+  history: 3,
+  winner: 3,
+};
 
 export function App() {
   const [state, setState] = useState<PersistedState>(() => loadState());
@@ -64,10 +77,35 @@ function AppShell() {
     prevGameOver.current = state.gameOver;
   }, [state.gameOver, fx]);
 
+  // Item 8: derive transition direction *during render* so the
+  // data-direction attribute on .container is in DOM at the moment the
+  // new .screen child mounts. CSS animations run once on element mount;
+  // setting direction in a useEffect would miss the first frame.
+  //
+  // Snapshot is stored in state so the derivation is StrictMode-safe —
+  // a ref mutated during render would get overwritten by StrictMode's
+  // second render pass. The setSnapshot-during-render pattern is
+  // documented React (see "deriving state from props"); React aborts
+  // the in-flight render and restarts with the new state before commit.
+  const [transition, setTransition] = useState<{
+    screen: Screen;
+    direction: 'forward' | 'back';
+  }>({ screen: state.currentScreen, direction: 'forward' });
+  if (transition.screen !== state.currentScreen) {
+    setTransition({
+      screen: state.currentScreen,
+      direction:
+        screenDepth[state.currentScreen] >= screenDepth[transition.screen]
+          ? 'forward'
+          : 'back',
+    });
+  }
+  const direction = transition.direction;
+
   const screen = state.currentScreen;
 
   return (
-    <div className="container">
+    <div className="container" data-direction={direction}>
       {screen === 'home' && <HomeScreen />}
       {screen === 'setup' && <SetupScreen />}
       {screen === 'play' && <PlayScreen />}

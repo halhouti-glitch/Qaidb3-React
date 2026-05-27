@@ -92,6 +92,38 @@ body {
   position: relative;
 }
 
+/* ============================================================
+   Screen transitions (PORT_FROM_VANILLA.md item 8)
+   Direction comes from a data attribute on .container set during
+   render in AppShell. CSS animations run once on .screen mount
+   because React unmounts the previous screen and mounts a fresh one.
+   ============================================================ */
+@keyframes qaid-screen-from-end {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes qaid-screen-from-start {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .container[data-direction='forward'] > .screen {
+    animation: qaid-screen-from-end 200ms ease-out;
+  }
+  .container[data-direction='back'] > .screen {
+    animation: qaid-screen-from-start 200ms ease-out;
+  }
+  /* RTL: "forward" still means "moving deeper into the stack". In an RTL
+     reading flow the next page sits to the inline-end (visually left), so
+     the new screen should enter from the visual left. Flip the keyframes. */
+  html[dir='rtl'] .container[data-direction='forward'] > .screen {
+    animation: qaid-screen-from-start 200ms ease-out;
+  }
+  html[dir='rtl'] .container[data-direction='back'] > .screen {
+    animation: qaid-screen-from-end 200ms ease-out;
+  }
+}
+
 /* Numbers — tabular, mono, always LTR */
 .num {
   font-family: var(--font-num);
