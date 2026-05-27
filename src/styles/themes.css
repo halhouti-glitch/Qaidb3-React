@@ -208,7 +208,7 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
    Header
    ============================================================ */
 .app-header {
-  padding: 14px 22px 12px;
+  padding: 10px 22px 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -242,8 +242,8 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
 /* ============================================================
    Home
    ============================================================ */
-.home-body { padding: 8px 22px 22px; flex: 1; display: flex; flex-direction: column; gap: 14px; }
-.home-hero { padding: 22px 4px 26px; position: relative; }
+.home-body { padding: 4px 22px 14px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.home-hero { padding: 8px 4px 10px; position: relative; }
 .home-hero .eyebrow {
   font-size: 11px;
   letter-spacing: 0.18em;
@@ -252,10 +252,10 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
 }
 .home-hero .heading {
   font-family: var(--font-display);
-  font-size: 36px;
+  font-size: 28px;
   line-height: 1.05;
   color: var(--ink);
-  margin: 10px 0 4px;
+  margin: 6px 0 4px;
   font-weight: 600;
   letter-spacing: -0.03em;
 }
@@ -265,7 +265,7 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   border-bottom: 3px solid var(--gold);
   padding-bottom: 1px;
 }
-.home-hero .sub { font-size: 14px; color: var(--ink-soft); line-height: 1.4; max-width: 320px; }
+.home-hero .sub { font-size: 13px; color: var(--ink-soft); line-height: 1.35; max-width: 320px; }
 
 .game-card {
   position: relative;
@@ -292,7 +292,7 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
 .game-card:hover { box-shadow: var(--shadow-lift); transform: translateY(-1px); }
 .game-card:active { transform: translateY(0); }
 .game-card .gc-art {
-  width: 140px;
+  width: 116px;
   flex-shrink: 0;
   position: relative;
   overflow: hidden;
@@ -307,23 +307,23 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   display: block;
 }
 .game-card .gc-meta {
-  padding: 16px 20px 18px;
+  padding: 12px 16px 12px;
   flex: 1;
   min-width: 0;             /* allow text to shrink under tight widths */
 }
 .game-card .gc-meta .name {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1.05;
   letter-spacing: -0.02em;
   color: var(--ink);
   font-weight: 600;
 }
 .game-card .gc-meta .desc {
-  font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.4;
+  font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.35;
 }
 .game-card .gc-meta .meta-row {
-  display: flex; gap: 12px; margin-top: 12px;
+  display: flex; gap: 12px; margin-top: 8px;
   font-size: 11px; color: var(--ink-soft);
 }
 .game-card .gc-meta .meta-row span { display: inline-flex; align-items: center; gap: 4px; }
@@ -421,29 +421,29 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
 /* ============================================================
    Setup
    ============================================================ */
-.setup-body { padding: 4px 22px 100px; flex: 1; }
-.setup-section { margin-top: 18px; }
+.setup-body { padding: 4px 22px 88px; flex: 1; }
+.setup-section { margin-top: 12px; }
 .setup-section .label {
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   font-weight: 600;
 }
 .setup-cta {
   position: sticky;
-  bottom: 16px;
-  margin: 18px 22px 22px;
+  bottom: 12px;
+  margin: 12px 22px 14px;
   z-index: 10;
 }
 
 .player-input {
   display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px;
+  padding: 8px 14px;
   background: var(--surface);
   border-radius: var(--radius);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   box-shadow: var(--shadow-card);
 }
 .player-input .seat {
@@ -551,19 +551,19 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
-  padding: 10px 12px 12px;
+  padding: 8px 12px 10px;
 }
 .team-block .player-input {
   background: transparent;
   box-shadow: none;
-  padding: 8px 4px;
+  padding: 6px 4px;
   margin-bottom: 0;
   border-top: 1px solid var(--line);
 }
 .team-block .player-input:first-of-type { border-top: 0; }
 .team-block-head {
   display: flex; align-items: center; gap: 10px;
-  padding: 4px 4px 8px;
+  padding: 2px 4px 6px;
 }
 .team-letter {
   width: 26px; height: 26px;
@@ -611,8 +611,8 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
 
 .team-vs {
   display: flex; align-items: center; gap: 10px;
-  padding: 4px 4px;
-  margin: 6px 0;
+  padding: 2px 4px;
+  margin: 2px 0;
 }
 .team-vs .vs-line { flex: 1; height: 1px; background: var(--line-strong); opacity: 0.7; }
 .team-vs .vs-word {
@@ -630,14 +630,14 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 6px 18px 24px;
+  padding: 4px 18px 8px;
   min-height: 0;
 }
 .round-strip {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 4px 16px;
+  padding: 4px 4px 8px;
   flex-shrink: 0;
   gap: 10px;
 }
@@ -680,9 +680,9 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
 .player-tile.leader {
   box-shadow: var(--shadow-lift), inset 0 0 0 2px var(--gold);
 }
-.player-tile.compact { padding: 12px 12px 10px; border-radius: var(--radius); }
-.player-tile.compact .pt-score { font-size: 38px; margin-top: 6px; }
-.player-tile.compact .pt-bar { margin-top: 8px; height: 3px; }
+.player-tile.compact { padding: 8px 10px 8px; border-radius: var(--radius); }
+.player-tile.compact .pt-score { font-size: 32px; margin-top: 4px; }
+.player-tile.compact .pt-bar { margin-top: 6px; height: 3px; }
 .player-tile.compact .pt-name { font-size: 13px; max-width: 100px; }
 .player-tile .pt-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -836,13 +836,13 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
 .team-summary {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 .team-summary-card {
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 12px 14px;
+  padding: 8px 12px;
   box-shadow: var(--shadow-card);
 }
 .team-summary-card .label {
@@ -851,14 +851,14 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   text-transform: uppercase;
   font-weight: 600;
   color: var(--muted);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .team-summary-card .value {
   font-family: var(--font-num);
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.03em;
   color: var(--ink);
@@ -866,7 +866,7 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
 
 /* Bottom action area on play screen */
 .play-actions {
-  padding: 14px 18px 8px;
+  padding: 8px 18px 4px;
   flex-shrink: 0;
   display: flex;
   gap: 10px;
@@ -874,7 +874,7 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
 }
 .play-actions .btn { flex: 1; }
 .play-actions .icon-btn {
-  width: 52px; height: 52px;
+  width: 44px; height: 44px;
   border-radius: var(--radius);
   background: transparent;
   box-shadow: inset 0 0 0 1px var(--line-strong);
@@ -885,11 +885,11 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   display: flex;
   justify-content: center;
   gap: 10px;
-  padding: 8px 18px 18px;
+  padding: 4px 18px 8px;
 }
 .game-meta-actions button {
-  padding: 8px 16px;
-  font-size: 13px;
+  padding: 6px 14px;
+  font-size: 12px;
   font-weight: 600;
   border-radius: 100px;
   border: 0;
@@ -1651,9 +1651,9 @@ button.numpad-input.active {
 .toast-action:active { background: rgba(255,255,255,0.16); }
 
 .app-version {
-  padding: 10px 16px 14px;
+  padding: 6px 16px 10px;
   text-align: center;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--muted);
