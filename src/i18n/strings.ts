@@ -194,6 +194,12 @@ export type Strings = {
   // ── Undo snackbar (PORT_FROM_VANILLA.md item 5) ──────────────
   undoToastMessage: string;
   undoBtn: string;
+
+  // ── Share-as-PNG (PORT_FROM_VANILLA.md item 6) ───────────────
+  shareTitle: string;
+  shareError: string;
+  finalStandings: string;
+  shareBtn: string;
 };
 
 const en: Strings = {
@@ -387,6 +393,11 @@ const en: Strings = {
 
   undoToastMessage: 'Round saved',
   undoBtn: 'Undo',
+
+  shareTitle: 'Qaid game summary',
+  shareError: 'Could not share the image.',
+  finalStandings: 'Final standings',
+  shareBtn: 'Share',
 };
 
 const ar: Strings = {
@@ -580,6 +591,11 @@ const ar: Strings = {
 
   undoToastMessage: 'تم حفظ الجولة',
   undoBtn: 'تراجع',
+
+  shareTitle: 'ملخص لعبة قيد',
+  shareError: 'تعذرت مشاركة الصورة.',
+  finalStandings: 'الترتيب النهائي',
+  shareBtn: 'مشاركة',
 };
 
 export const STRINGS: Record<Lang, Strings> = { en, ar };

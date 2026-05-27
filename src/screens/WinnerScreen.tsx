@@ -1,13 +1,25 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useLang } from '../i18n/LangContext';
 import { useGame } from '../state/GameContext';
 import { Header } from '../components/Header';
 import { Icon } from '../components/Icon';
 import { checkWinner, totals as computeTotals } from '../engine/scoring';
+import { shareGameImage } from '../share';
 
 export function WinnerScreen() {
   const { t } = useLang();
   const { state, actions } = useGame();
+  const [sharing, setSharing] = useState(false);
+
+  const onShare = async () => {
+    if (sharing) return;
+    setSharing(true);
+    try {
+      await shareGameImage(state);
+    } finally {
+      setSharing(false);
+    }
+  };
 
   const totalsArr = useMemo(() => computeTotals(state), [state]);
   const winner = useMemo(() => checkWinner(state, totalsArr), [state, totalsArr]);
@@ -81,6 +93,17 @@ export function WinnerScreen() {
             aria-label={t('goHome')}
           >
             <Icon.Close size={18} />
+          </button>
+        }
+        right={
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={onShare}
+            disabled={sharing}
+            aria-label={t('shareBtn')}
+          >
+            <Icon.Share size={18} />
           </button>
         }
       />

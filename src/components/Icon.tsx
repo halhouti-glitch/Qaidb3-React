@@ -96,4 +96,11 @@ export const Icon = {
       <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" />
     </svg>
   ),
+  Share: ({ size = 18 }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...stroke}>
+      <path d="M4 12v7a2 2 0 002 2h12a2 2 0 002-2v-7" />
+      <path d="M16 6l-4-4-4 4" />
+      <path d="M12 2v14" />
+    </svg>
+  ),
 };
