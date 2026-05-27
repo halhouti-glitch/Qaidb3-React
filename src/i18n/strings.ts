@@ -202,6 +202,10 @@ export type Strings = {
 
   // ── Haptics + sound (PORT_FROM_VANILLA.md item 7) ────────────
   soundToggle: string;
+
+  // ── Sebeeta Play section labels ──────────────────────────────
+  playTargetLabel: string;
+  playTotalScoreLabel: string;
 };
 
 const en: Strings = {
@@ -401,6 +405,9 @@ const en: Strings = {
   shareBtn: 'Share',
 
   soundToggle: 'Sound',
+
+  playTargetLabel: 'Target',
+  playTotalScoreLabel: 'Total score',
 };
 
 const ar: Strings = {
@@ -600,6 +607,9 @@ const ar: Strings = {
   shareBtn: 'مشاركة',
 
   soundToggle: 'الصوت',
+
+  playTargetLabel: 'الهدف',
+  playTotalScoreLabel: 'مجموع النقاط',
 };
 
 export const STRINGS: Record<Lang, Strings> = { en, ar };

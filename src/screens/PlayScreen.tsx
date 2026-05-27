@@ -142,12 +142,16 @@ export function PlayScreen() {
         </div>
 
         {isSebeeta && (
-          <SebeetaTopSummary
-            totals={totalsArr}
-            players={state.players}
-            playerTeam={state.playerTeam}
-            teamLabel={teamLabel}
-          />
+          <>
+            <div className="play-section-label">{t('playTargetLabel')}</div>
+            <SebeetaTopSummary
+              totals={totalsArr}
+              players={state.players}
+              playerTeam={state.playerTeam}
+              teamLabel={teamLabel}
+            />
+            <div className="play-section-label">{t('playTotalScoreLabel')}</div>
+          </>
         )}
 
         {showAsTeams && teamScoreboardTotals ? (

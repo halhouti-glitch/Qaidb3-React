@@ -679,16 +679,16 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   box-shadow: var(--shadow-lift), inset 0 0 0 2px var(--gold);
 }
 .player-tile.compact {
-  padding: 6px 10px 8px;
+  padding: 10px 12px 10px;
   border-radius: var(--radius);
   /* Stack name → score → bar tight to the top so the tile sizes to its
-     content (~75px) instead of stretching with space-between. */
+     content (~88px) instead of stretching with space-between. */
   justify-content: flex-start;
-  gap: 2px;
+  gap: 4px;
 }
-.player-tile.compact .pt-score { font-size: 24px; margin-top: 2px; }
-.player-tile.compact .pt-bar { margin-top: 4px; height: 2px; }
-.player-tile.compact .pt-name { font-size: 13px; max-width: 100px; }
+.player-tile.compact .pt-score { font-size: 32px; margin-top: 4px; }
+.player-tile.compact .pt-bar { margin-top: 6px; height: 3px; }
+.player-tile.compact .pt-name { font-size: 14px; max-width: 100px; }
 .player-tile .pt-head {
   display: flex; align-items: center; justify-content: space-between;
   gap: 8px;
@@ -838,6 +838,17 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
 }
 
 /* Top-scorer summary (Sebeeta) */
+/* Small uppercase eyebrow used above the Sebeeta team-summary and the
+   player grid. Mirrors the section-label pattern used on Setup. */
+.play-section-label {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  margin: 6px 4px 6px;
+}
+
 .team-summary {
   display: grid;
   grid-template-columns: 1fr 1fr;
