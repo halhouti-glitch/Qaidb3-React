@@ -111,7 +111,6 @@ export type Strings = {
   setupPlayToLabel: string;
   setupTargetCustom: string;
   setupPoints: string;
-  setupPartnersHint: string;
   setupRosterPartners: string;
   setupWinConditionLabel: string;
   setupFirstToWins: string;
@@ -315,7 +314,6 @@ const en: Strings = {
   setupPlayToLabel: 'Play to',
   setupTargetCustom: 'Custom',
   setupPoints: 'pts',
-  setupPartnersHint: 'Partners sit across — 1↔2, 3↔4, 5↔6.',
   setupRosterPartners: 'Roster',
   setupWinConditionLabel: 'Win condition',
   setupFirstToWins: 'First to reach the target wins',
@@ -515,7 +513,6 @@ const ar: Strings = {
   setupPlayToLabel: 'حتى',
   setupTargetCustom: 'مخصص',
   setupPoints: 'نقطة',
-  setupPartnersHint: 'الشركاء يجلسون مقابل بعض — 1↔2، 3↔4، 5↔6.',
   setupRosterPartners: 'الفرق',
   setupWinConditionLabel: 'طريقة الفوز',
   setupFirstToWins: 'أول من يصل يفوز',

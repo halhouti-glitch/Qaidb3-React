@@ -609,19 +609,7 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   font-family: var(--font-num);
 }
 
-.team-vs {
-  display: flex; align-items: center; gap: 10px;
-  padding: 2px 4px;
-  margin: 2px 0;
-}
-.team-vs .vs-line { flex: 1; height: 1px; background: var(--line-strong); opacity: 0.7; }
-.team-vs .vs-word {
-  font-family: var(--font-display);
-  font-style: italic;
-  font-size: 14px;
-  color: var(--muted);
-  letter-spacing: 0.05em;
-}
+.team-block + .team-block { margin-top: 8px; }
 
 /* ============================================================
    Play screen

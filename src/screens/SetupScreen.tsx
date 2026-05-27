@@ -254,11 +254,6 @@ export function SetupScreen() {
               </div>
             ))
           )}
-          {showsAsTeams && (
-            <div className="hint" style={{ marginTop: 10 }}>
-              {t('setupPartnersHint')}
-            </div>
-          )}
         </div>
 
         {/* Play to */}
@@ -400,11 +395,6 @@ function TeamRoster({
         teamNamePlaceholder={teamNamePlaceholder}
         playerPlaceholder={playerPlaceholder}
       />
-      <div className="team-vs">
-        <span className="vs-line" />
-        <span className="vs-word">vs</span>
-        <span className="vs-line" />
-      </div>
       <TeamBlock
         letter="B"
         teamName={teamB}
