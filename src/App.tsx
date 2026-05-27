@@ -59,6 +59,9 @@ function AppShell() {
       {screen === 'play' && <PlayScreen />}
       {screen === 'history' && <HistoryScreen />}
       {screen === 'winner' && <WinnerScreen />}
+      <footer className="app-version" aria-label="App version">
+        v{__APP_VERSION__}
+      </footer>
     </div>
   );
 }

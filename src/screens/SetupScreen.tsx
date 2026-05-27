@@ -114,8 +114,20 @@ export function SetupScreen() {
       return;
     }
 
-    // Custom (individual or teams — engine treats both as per-player win
-    // detection for now; team-display in Custom mode is a Phase-4 follow-up).
+    if (format === 'teams') {
+      const playerTeam = resolvedNames.map((_, i) => i % 2);
+      const nameA = teamA.trim() || t('teamAFull');
+      const nameB = teamB.trim() || t('teamBFull');
+      actions.startGame({
+        mode: 'custom',
+        players: resolvedNames,
+        threshold: effectiveTarget,
+        winRule,
+        playerTeam,
+        teamNames: [nameA, nameB],
+      });
+      return;
+    }
     actions.startGame({
       mode: 'custom',
       players: resolvedNames,

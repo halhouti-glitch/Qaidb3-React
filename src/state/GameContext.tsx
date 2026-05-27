@@ -20,7 +20,7 @@ import {
 } from './persistedState';
 import type { Lang } from '../i18n/strings';
 import { useLang } from '../i18n/LangContext';
-import { checkWinner, totals } from '../engine/scoring';
+import { checkWinner, teamTotalsFromPlayers, totals } from '../engine/scoring';
 
 type TeamSetup = {
   players: string[];
@@ -38,6 +38,9 @@ export type StartGameInput =
       players: string[];
       threshold: number;
       winRule: WinRule;
+      /** Optional: when present and length matches players, Custom is played as teams. */
+      playerTeam?: number[];
+      teamNames?: [string, string];
     };
 
 export type GameActions = {
@@ -100,9 +103,15 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
             ? prev.players[winner.idx] ?? ''
             : resolveTeamName(prev, winner.idx);
 
+        const teamScores: [number, number] | null =
+          winner.type === 'team'
+            ? prev.gameMode === 'kout'
+              ? [totalsArr[0] ?? 0, totalsArr[1] ?? 0]
+              : teamTotalsFromPlayers(totalsArr, prev.playerTeam)
+            : null;
         const score =
-          prev.gameMode === 'kout' && winner.type === 'team'
-            ? `${totalsArr[winner.idx]}–${totalsArr[1 - winner.idx]}`
+          teamScores !== null && winner.type === 'team'
+            ? `${teamScores[winner.idx]}–${teamScores[1 - winner.idx]}`
             : winner.type === 'player'
               ? `${totalsArr[winner.idx]}`
               : totalsArr.join(' / ');
@@ -172,10 +181,14 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
             koutEntryMode: 'contract',
           };
         }
+        const hasTeams =
+          !!input.playerTeam &&
+          input.playerTeam.length === input.players.length &&
+          input.players.length > 0;
         return {
           ...base,
-          playerTeam: [],
-          teamNames: [],
+          playerTeam: hasTeams ? input.playerTeam!.slice() : [],
+          teamNames: hasTeams && input.teamNames ? input.teamNames.slice() : [],
           threshold: input.threshold,
           winRule: input.winRule,
         };

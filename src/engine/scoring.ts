@@ -135,7 +135,35 @@ export function checkWinner(state: GameStateSlice, totalsArr: number[]): Winner 
     return { type: 'team', idx };
   }
 
-  // custom
+  // custom + teams: roll per-player totals up to two team totals, then apply
+  // the same win rule at the team level. Detected by playerTeam being sized
+  // to match the roster.
+  const isCustomTeams =
+    state.playerTeam.length === state.players.length && state.players.length > 0;
+  if (isCustomTeams) {
+    const teamTotals = teamTotalsFromPlayers(totalsArr, state.playerTeam);
+    if (state.winRule === 'highest') {
+      const reached: Array<0 | 1> = [];
+      ([0, 1] as const).forEach((i) => {
+        if (teamTotals[i] >= state.threshold) reached.push(i);
+      });
+      if (reached.length === 0) return null;
+      const idx =
+        reached.length === 1
+          ? reached[0]
+          : teamTotals[0] >= teamTotals[1]
+            ? 0
+            : 1;
+      return { type: 'team', idx };
+    }
+    // lowest
+    if (teamTotals[0] < state.threshold && teamTotals[1] < state.threshold) {
+      return null;
+    }
+    return { type: 'team', idx: teamTotals[0] <= teamTotals[1] ? 0 : 1 };
+  }
+
+  // custom + individual + highest
   if (state.winRule === 'highest') {
     const reached: number[] = [];
     totalsArr.forEach((v, i) => {
@@ -153,7 +181,7 @@ export function checkWinner(state: GameStateSlice, totalsArr: number[]): Winner 
     return { type: 'player', idx };
   }
 
-  // custom + lowest
+  // custom + individual + lowest
   const anyReached = totalsArr.some((v) => v >= state.threshold);
   if (!anyReached) return null;
   let min = Infinity;

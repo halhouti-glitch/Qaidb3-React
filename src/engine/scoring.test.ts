@@ -260,6 +260,53 @@ describe('checkWinner — custom + lowest', () => {
   });
 });
 
+describe('checkWinner — custom + teams', () => {
+  it('returns the winning team when the highest team total crosses threshold (highest wins)', () => {
+    // team 0 = p0+p2 = 60+50 = 110, team 1 = p1+p3 = 30+40 = 70
+    const s = customState([[60, 30, 50, 40]], {
+      winRule: 'highest',
+      threshold: 100,
+      playerTeam: [0, 1, 0, 1],
+    });
+    expect(checkWinner(s, totals(s))).toEqual({ type: 'team', idx: 0 });
+  });
+
+  it('on simultaneous crossings (highest), the higher team total wins', () => {
+    // team 0 = 60+45 = 105, team 1 = 60+50 = 110 — both cross 100
+    const s = customState([[60, 60, 45, 50]], {
+      winRule: 'highest',
+      threshold: 100,
+      playerTeam: [0, 1, 0, 1],
+    });
+    expect(checkWinner(s, totals(s))).toEqual({ type: 'team', idx: 1 });
+  });
+
+  it('returns the lower team total once any team crosses threshold (lowest wins)', () => {
+    // team 0 = 70+50 = 120 (crosses), team 1 = 30+40 = 70 — team 1 wins
+    const s = customState([[70, 30, 50, 40]], {
+      winRule: 'lowest',
+      threshold: 100,
+      playerTeam: [0, 1, 0, 1],
+    });
+    expect(checkWinner(s, totals(s))).toEqual({ type: 'team', idx: 1 });
+  });
+
+  it('returns null until any team crosses threshold', () => {
+    const s = customState([[40, 30, 50, 20]], {
+      winRule: 'highest',
+      threshold: 100,
+      playerTeam: [0, 1, 0, 1],
+    });
+    expect(checkWinner(s, totals(s))).toBeNull();
+  });
+
+  it('falls back to per-player detection when playerTeam is empty', () => {
+    // No playerTeam → still individual scoring (regression guard)
+    const s = customState([[101, 50, 30, 80]], { winRule: 'highest', threshold: 100 });
+    expect(checkWinner(s, totals(s))).toEqual({ type: 'player', idx: 0 });
+  });
+});
+
 describe('topScorerPerTeam', () => {
   it('returns the highest individual scorer per team', () => {
     // playerTeam: [0,1,0,1,0,1] → team 0 = p0,p2,p4 ; team 1 = p1,p3,p5

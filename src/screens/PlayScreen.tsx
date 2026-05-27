@@ -4,6 +4,7 @@ import { useGame } from '../state/GameContext';
 import {
   checkWinner,
   dealerIndex,
+  teamTotalsFromPlayers,
   topScorerPerTeam,
   totals as computeTotals,
 } from '../engine/scoring';
@@ -21,15 +22,33 @@ export function PlayScreen() {
 
   const isKout = state.gameMode === 'kout';
   const isSebeeta = state.gameMode === 'sebeeta';
+  const isCustom = state.gameMode === 'custom';
+  const isCustomTeams =
+    isCustom &&
+    state.playerTeam.length === state.players.length &&
+    state.players.length > 0;
 
   // Sebeeta is always shown as individual (engine still computes team winner).
-  const showAsTeams = isKout;
+  const showAsTeams = isKout || isCustomTeams;
 
   const totalsArr = useMemo(() => computeTotals(state), [state]);
   const winner = useMemo(() => checkWinner(state, totalsArr), [state, totalsArr]);
+  // For Custom+teams, the engine emits team winners but `totalsArr` is still
+  // per-player. Roll up to team totals for the team scoreboard + dealer.
+  const teamTotals = useMemo<[number, number] | null>(
+    () => (isCustomTeams ? teamTotalsFromPlayers(totalsArr, state.playerTeam) : null),
+    [isCustomTeams, totalsArr, state.playerTeam],
+  );
+  const teamScoreboardTotals: [number, number] | null = isKout
+    ? (totalsArr as [number, number])
+    : teamTotals;
   const dealer = useMemo(
-    () => dealerIndex(totalsArr, state.winRule),
-    [totalsArr, state.winRule],
+    () =>
+      dealerIndex(
+        teamScoreboardTotals ?? totalsArr,
+        state.winRule,
+      ),
+    [teamScoreboardTotals, totalsArr, state.winRule],
   );
 
   // Show the just-added round's per-player deltas for 2.2s.
@@ -127,16 +146,20 @@ export function PlayScreen() {
           />
         )}
 
-        {showAsTeams ? (
+        {showAsTeams && teamScoreboardTotals ? (
           <TeamsScoreboard
-            totals={totalsArr as [number, number]}
+            totals={teamScoreboardTotals}
             threshold={state.threshold}
             dealer={dealer}
             winnerIdx={winner?.type === 'team' ? winner.idx : null}
             players={state.players}
             playerTeam={state.playerTeam}
             teamLabel={teamLabel}
-            lastDelta={lastDelta}
+            lastDelta={
+              isCustomTeams && lastDelta
+                ? teamTotalsFromPlayers(lastDelta, state.playerTeam)
+                : lastDelta
+            }
           />
         ) : (
           <IndividualScoreboard

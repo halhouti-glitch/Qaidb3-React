@@ -1538,3 +1538,14 @@ button.numpad-input.active {
   box-shadow: 0 10px 30px -10px rgba(0,0,0,0.4);
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.app-version {
+  padding: 10px 16px 14px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
