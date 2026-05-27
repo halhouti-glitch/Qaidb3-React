@@ -82,7 +82,20 @@ export function HomeScreen() {
 
         {recents.length > 0 && (
           <div className="recent-section">
-            <h3>{t('recentGames')}</h3>
+            <div className="recent-head">
+              <h3>{t('recentGames')}</h3>
+              <button
+                type="button"
+                className="clear-link"
+                onClick={() => {
+                  if (window.confirm(t('recentGames') + ' — ' + t('clearAll') + '?')) {
+                    actions.clearAllRecents();
+                  }
+                }}
+              >
+                {t('clearAll')}
+              </button>
+            </div>
             {recents.map((g, i) => (
               <div key={`${g.when}-${i}`} className="recent-row">
                 <div className="left">
@@ -108,6 +121,14 @@ export function HomeScreen() {
                   <div className="winner">{g.winner}</div>
                   <div className="score">{g.score}</div>
                 </div>
+                <button
+                  type="button"
+                  className="recent-remove"
+                  onClick={() => actions.removeRecentGame(i)}
+                  aria-label={t('clearAll')}
+                >
+                  <Icon.Close size={14} />
+                </button>
               </div>
             ))}
           </div>

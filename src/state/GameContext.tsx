@@ -60,6 +60,8 @@ export type GameActions = {
   setEntryStyle: (style: EntryStyle) => void;
   removeProfile: (key: string) => void;
   clearAllProfiles: () => void;
+  removeRecentGame: (idx: number) => void;
+  clearAllRecents: () => void;
 };
 
 type GameContextValue = {
@@ -295,6 +297,23 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
     [setState],
   );
 
+  const removeRecentGame = useCallback(
+    (idx: number) =>
+      setState((s) => {
+        if (idx < 0 || idx >= s.recentGames.length) return s;
+        return {
+          ...s,
+          recentGames: s.recentGames.filter((_, i) => i !== idx),
+        };
+      }),
+    [setState],
+  );
+
+  const clearAllRecents = useCallback(
+    () => setState((s) => ({ ...s, recentGames: [] })),
+    [setState],
+  );
+
   const value = useMemo<GameContextValue>(
     () => ({
       state,
@@ -314,6 +333,8 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
         setEntryStyle,
         removeProfile,
         clearAllProfiles,
+        removeRecentGame,
+        clearAllRecents,
       },
     }),
     [
@@ -333,6 +354,8 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
       setEntryStyle,
       removeProfile,
       clearAllProfiles,
+      removeRecentGame,
+      clearAllRecents,
     ],
   );
 

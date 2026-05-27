@@ -181,6 +181,7 @@ export type Strings = {
 
   // ── Player profiles (PORT_FROM_VANILLA.md item 2) ────────────
   topPlayers: string;
+  clearAll: string;
   profileGamesPlayed: string;
   profileWins: string;
   profileWinRate: string;
@@ -370,6 +371,7 @@ const en: Strings = {
   historyManualTag: 'Manual',
 
   topPlayers: 'Top players',
+  clearAll: 'Clear',
   profileGamesPlayed: 'Games',
   profileWins: 'Wins',
   profileWinRate: 'Win rate',
@@ -559,6 +561,7 @@ const ar: Strings = {
   historyManualTag: 'يدوي',
 
   topPlayers: 'أبرز اللاعبين',
+  clearAll: 'مسح',
   profileGamesPlayed: 'الألعاب',
   profileWins: 'الفوز',
   profileWinRate: 'نسبة الفوز',

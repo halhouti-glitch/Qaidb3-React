@@ -306,9 +306,42 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
-  margin: 0 0 10px;
-  padding: 0 4px;
+  margin: 0;
 }
+.recent-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+  margin-bottom: 10px;
+}
+.clear-link {
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.clear-link:hover { color: var(--ink); }
+.recent-row { position: relative; }
+.recent-remove {
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-inline-start: 6px;
+  border-radius: 8px;
+}
+.recent-remove:hover { color: var(--ink); background: var(--surface-2); }
 .recent-row {
   display: flex;
   justify-content: space-between;
@@ -1554,7 +1587,13 @@ button.numpad-input.active {
    Top players strip (Home) + Profile sheet
    ============================================================ */
 .top-players-section { padding-top: 6px; margin-bottom: 4px; }
-.top-players-head { padding: 0 4px; margin-bottom: 10px; }
+.top-players-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+  margin-bottom: 10px;
+}
 .top-players-head h3 {
   font-family: var(--font-body);
   font-size: 11px;

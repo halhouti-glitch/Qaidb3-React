@@ -15,14 +15,23 @@ type TopPlayersStripProps = {
 // game.
 export function TopPlayersStrip({ onPick }: TopPlayersStripProps) {
   const { t } = useLang();
-  const { state } = useGame();
+  const { state, actions } = useGame();
   const tops = topProfiles(state.playerProfiles, 8);
   if (tops.length === 0) return null;
+
+  const clear = () => {
+    if (window.confirm(t('topPlayers') + ' — ' + t('clearAll') + '?')) {
+      actions.clearAllProfiles();
+    }
+  };
 
   return (
     <div className="top-players-section">
       <div className="top-players-head">
         <h3>{t('topPlayers')}</h3>
+        <button type="button" className="clear-link" onClick={clear}>
+          {t('clearAll')}
+        </button>
       </div>
       <div className="top-players-strip" role="list">
         {tops.map((p) => (
