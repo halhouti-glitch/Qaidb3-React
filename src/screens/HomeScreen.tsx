@@ -4,7 +4,7 @@ import { useGame } from '../state/GameContext';
 import { relativeWhen } from '../lib/relativeWhen';
 import { Header } from '../components/Header';
 import { Icon } from '../components/Icon';
-import { CustomArt, KoutArt, SebeetaArt } from './home/GameArt';
+import { GAME_ORDER, GAMES } from '../games/registry';
 import type { GameMode } from '../state/persistedState';
 import type { Lang } from '../i18n/strings';
 
@@ -46,33 +46,22 @@ export function HomeScreen() {
           <div className="sub">{t('homeSub')}</div>
         </div>
 
-        <GameCardButton
-          mode="sebeeta"
-          name={t('gameSebeeta')}
-          desc={t('gameSebeetaDesc')}
-          meta={t('gameSebeetaMeta')}
-          onPick={() => actions.pickGame('sebeeta')}
-        >
-          <SebeetaArt />
-        </GameCardButton>
-        <GameCardButton
-          mode="kout"
-          name={t('gameKout')}
-          desc={t('gameKoutDesc')}
-          meta={t('gameKoutMeta')}
-          onPick={() => actions.pickGame('kout')}
-        >
-          <KoutArt />
-        </GameCardButton>
-        <GameCardButton
-          mode="custom"
-          name={t('gameCustom')}
-          desc={t('gameCustomDesc')}
-          meta={t('gameCustomMeta')}
-          onPick={() => actions.pickGame('custom')}
-        >
-          <CustomArt />
-        </GameCardButton>
+        {GAME_ORDER.map((key) => {
+          const g = GAMES[key];
+          const Art = g.ArtComponent;
+          return (
+            <GameCardButton
+              key={key}
+              mode={key}
+              name={t(g.i18nKey) as string}
+              desc={t(g.descKey) as string}
+              meta={t(g.metaKey) as string}
+              onPick={() => actions.pickGame(key)}
+            >
+              <Art />
+            </GameCardButton>
+          );
+        })}
 
         {hasActive && (
           <div className="resume-row">

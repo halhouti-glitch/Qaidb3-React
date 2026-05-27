@@ -3,6 +3,7 @@ import { useLang } from '../i18n/LangContext';
 import { useGame } from '../state/GameContext';
 import { Header } from '../components/Header';
 import { Icon } from '../components/Icon';
+import { getGame } from '../games/registry';
 import type { WinRule } from '../state/persistedState';
 
 type IndividualMode = 'individual' | 'teams';
@@ -10,13 +11,14 @@ type IndividualMode = 'individual' | 'teams';
 export function SetupScreen() {
   const { t } = useLang();
   const { state, actions } = useGame();
-  const mode = state.gameMode;
+  const game = getGame(state.gameMode);
+  const mode = game.key;
   const isKout = mode === 'kout';
   const isSebeeta = mode === 'sebeeta';
   const isCustom = mode === 'custom';
-  const isTeam = isKout || isSebeeta;
+  const isTeam = game.isTeamMode;
 
-  const initialCount = isTeam ? 6 : 4;
+  const initialCount = game.numPlayers ?? 4;
   const [count, setCount] = useState<number>(initialCount);
 
   // For Custom only: individual vs teams format
@@ -24,8 +26,8 @@ export function SetupScreen() {
     isTeam ? 'teams' : 'individual',
   );
 
-  // Win condition (Custom only)
-  const [winRule, setWinRule] = useState<WinRule>('highest');
+  // Win condition (Custom only — registry's configurable flag)
+  const [winRule, setWinRule] = useState<WinRule>(game.winRule);
 
   // Player names — sized to `count`. Resize-preserving edits.
   const [playerNames, setPlayerNames] = useState<string[]>(() =>
@@ -59,10 +61,12 @@ export function SetupScreen() {
   const [teamA, setTeamA] = useState<string>(t('teamAFull'));
   const [teamB, setTeamB] = useState<string>(t('teamBFull'));
 
-  // Target (Play to)
-  const initialTarget = isKout ? 101 : isSebeeta ? 201 : 100;
+  // Target (Play to) — registry defines per-mode default
+  const initialTarget = game.defaultThreshold;
   const [target, setTarget] = useState<number>(initialTarget);
-  const [customTargetMode, setCustomTargetMode] = useState<boolean>(isCustom);
+  const [customTargetMode, setCustomTargetMode] = useState<boolean>(
+    game.configurable,
+  );
   const [customTargetStr, setCustomTargetStr] = useState<string>(
     String(initialTarget),
   );
