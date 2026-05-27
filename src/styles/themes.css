@@ -617,7 +617,11 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
    Play screen
    ============================================================ */
 .play-body {
-  flex: 1;
+  /* Sizes to its content so actions sit right after the player grid
+     instead of being pushed to viewport-bottom by stretched flex space.
+     The grid itself decides whether to stretch (4-player) or stay
+     content-sized (6-player compact via .player-grid.six). */
+  flex: 0 1 auto;
   display: flex;
   flex-direction: column;
   padding: 4px 18px 8px;
@@ -651,8 +655,12 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   min-height: 0;
 }
 .player-grid.six {
-  grid-template-rows: repeat(3, minmax(0, 1fr));
+  /* 6-player compact grid: rows size to content rather than stretching to
+     fill the play-body flex space — tiles were ballooning to ~250px each
+     on iPhone 16 and pushing actions off-screen. */
+  grid-template-rows: auto auto auto;
   gap: 8px;
+  flex: 0 0 auto;
 }
 .player-tile {
   background: var(--surface);
@@ -670,9 +678,16 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
 .player-tile.leader {
   box-shadow: var(--shadow-lift), inset 0 0 0 2px var(--gold);
 }
-.player-tile.compact { padding: 8px 10px 8px; border-radius: var(--radius); }
-.player-tile.compact .pt-score { font-size: 32px; margin-top: 4px; }
-.player-tile.compact .pt-bar { margin-top: 6px; height: 3px; }
+.player-tile.compact {
+  padding: 6px 10px 8px;
+  border-radius: var(--radius);
+  /* Stack name → score → bar tight to the top so the tile sizes to its
+     content (~75px) instead of stretching with space-between. */
+  justify-content: flex-start;
+  gap: 2px;
+}
+.player-tile.compact .pt-score { font-size: 24px; margin-top: 2px; }
+.player-tile.compact .pt-bar { margin-top: 4px; height: 2px; }
 .player-tile.compact .pt-name { font-size: 13px; max-width: 100px; }
 .player-tile .pt-head {
   display: flex; align-items: center; justify-content: space-between;
