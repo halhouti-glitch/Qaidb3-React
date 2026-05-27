@@ -1,16 +1,19 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useLang } from '../i18n/LangContext';
 import { useGame } from '../state/GameContext';
 import { relativeWhen } from '../lib/relativeWhen';
 import { Header } from '../components/Header';
 import { Icon } from '../components/Icon';
+import { ProfileSheet } from '../components/ProfileSheet';
 import { GAME_ORDER, GAMES } from '../games/registry';
+import { TopPlayersStrip } from './home/TopPlayersStrip';
 import type { GameMode } from '../state/persistedState';
 import type { Lang } from '../i18n/strings';
 
 export function HomeScreen() {
   const { t, lang } = useLang();
   const { state, actions } = useGame();
+  const [openProfile, setOpenProfile] = useState<string | null>(null);
 
   const hasActive =
     state.players.length > 0 && state.scores.length > 0 && !state.gameOver;
@@ -75,6 +78,8 @@ export function HomeScreen() {
           </div>
         )}
 
+        <TopPlayersStrip onPick={setOpenProfile} />
+
         {recents.length > 0 && (
           <div className="recent-section">
             <h3>{t('recentGames')}</h3>
@@ -108,6 +113,11 @@ export function HomeScreen() {
           </div>
         )}
       </div>
+
+      <ProfileSheet
+        profileKey={openProfile}
+        onClose={() => setOpenProfile(null)}
+      />
     </div>
   );
 }

@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLang } from '../i18n/LangContext';
 import { useGame } from '../state/GameContext';
 import { Header } from '../components/Header';
 import { Icon } from '../components/Icon';
 import { getGame } from '../games/registry';
+import { topProfiles } from '../state/profiles';
 import type { WinRule } from '../state/persistedState';
 
 type IndividualMode = 'individual' | 'teams';
@@ -12,6 +13,14 @@ export function SetupScreen() {
   const { t } = useLang();
   const { state, actions } = useGame();
   const game = getGame(state.gameMode);
+
+  // Typeahead suggestions for player-name inputs. Sorted by games-played
+  // (then last-played) so the most-active names show up first in the
+  // browser's native autocomplete dropdown.
+  const profileSuggestions = useMemo(
+    () => topProfiles(state.playerProfiles, 50).map((p) => p.name),
+    [state.playerProfiles],
+  );
   const mode = game.key;
   const isKout = mode === 'kout';
   const isSebeeta = mode === 'sebeeta';
@@ -142,6 +151,13 @@ export function SetupScreen() {
 
   return (
     <div className="screen">
+      {/* Shared typeahead source — referenced by every player-name input via
+          list="playerProfilesList". Sorted by topProfiles() above. */}
+      <datalist id="playerProfilesList">
+        {profileSuggestions.map((name) => (
+          <option key={name} value={name} />
+        ))}
+      </datalist>
       <Header
         title={titleText}
         left={
@@ -232,6 +248,8 @@ export function SetupScreen() {
                   value={name}
                   onChange={(e) => setName(i, e.target.value)}
                   placeholder={t('setupPlayerPlaceholder')(i + 1)}
+                  list="playerProfilesList"
+                  autoComplete="off"
                 />
               </div>
             ))
@@ -444,6 +462,8 @@ function TeamBlock({
             value={names[i] ?? ''}
             onChange={(e) => setName(i, e.target.value)}
             placeholder={playerPlaceholder(i + 1)}
+            list="playerProfilesList"
+            autoComplete="off"
           />
         </div>
       ))}

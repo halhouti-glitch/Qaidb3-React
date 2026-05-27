@@ -178,6 +178,17 @@ export type Strings = {
   historyMade: string;
   historyFailed: string;
   historyManualTag: string;
+
+  // ── Player profiles (PORT_FROM_VANILLA.md item 2) ────────────
+  topPlayers: string;
+  profileGamesPlayed: string;
+  profileWins: string;
+  profileWinRate: string;
+  profileLastPlayed: string;
+  profileTopTeammate: string;
+  profileTeammateOf: (n: string, c: number) => string;
+  profileNeverPlayed: string;
+  removePlayer: string;
 };
 
 const en: Strings = {
@@ -357,6 +368,16 @@ const en: Strings = {
   historyMade: 'Made',
   historyFailed: 'Failed',
   historyManualTag: 'Manual',
+
+  topPlayers: 'Top players',
+  profileGamesPlayed: 'Games',
+  profileWins: 'Wins',
+  profileWinRate: 'Win rate',
+  profileLastPlayed: 'Last played',
+  profileTopTeammate: 'Top teammates',
+  profileTeammateOf: (n, c) => `${n} · ${c}×`,
+  profileNeverPlayed: 'No games yet',
+  removePlayer: 'Remove player',
 };
 
 const ar: Strings = {
@@ -536,6 +557,16 @@ const ar: Strings = {
   historyMade: 'فاز',
   historyFailed: 'خسر',
   historyManualTag: 'يدوي',
+
+  topPlayers: 'أبرز اللاعبين',
+  profileGamesPlayed: 'الألعاب',
+  profileWins: 'الفوز',
+  profileWinRate: 'نسبة الفوز',
+  profileLastPlayed: 'آخر لعبة',
+  profileTopTeammate: 'الشركاء الأكثر',
+  profileTeammateOf: (n, c) => `${n} · ${c}×`,
+  profileNeverPlayed: 'لا توجد ألعاب بعد',
+  removePlayer: 'حذف اللاعب',
 };
 
 export const STRINGS: Record<Lang, Strings> = { en, ar };

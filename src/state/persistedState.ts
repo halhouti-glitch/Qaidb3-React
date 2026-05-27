@@ -17,6 +17,18 @@ export type RecentGame = {
   score: string;
 };
 
+// Lifetime per-player memory. Keyed by `name.toLowerCase().trim()` so the
+// same person captured under different casings consolidates into one record.
+// `teammates` counts games-together for partner mode (Kout/Sebeeta and
+// Custom+teams).
+export type Profile = {
+  name: string;                          // canonical casing (last seen)
+  gamesPlayed: number;
+  wins: number;
+  lastPlayed: number;                    // epoch ms
+  teammates: Record<string, number>;     // partner key → games-together count
+};
+
 // Shape persisted under cardScoreTracker_v1 in localStorage. Mirrors the
 // legacy single-file build (legacy.html ~line 1922) — DO NOT change keys
 // or value shapes without a migration.
@@ -38,6 +50,9 @@ export type PersistedState = {
   currentScreen: Screen;
   recentGames: RecentGame[];
   theme: Theme;
+  // Lifetime player memory — see Profile. Survives across games via the same
+  // localStorage key; older fork installs spread-merge an empty record.
+  playerProfiles: Record<string, Profile>;
 };
 
 export const STORAGE_KEY = 'cardScoreTracker_v1';
@@ -58,6 +73,7 @@ export const DEFAULT_STATE: PersistedState = {
   currentScreen: 'home',
   recentGames: [],
   theme: 'light',
+  playerProfiles: {},
 };
 
 export function loadState(): PersistedState {

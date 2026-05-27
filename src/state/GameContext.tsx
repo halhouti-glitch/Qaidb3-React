@@ -21,6 +21,7 @@ import {
 import type { Lang } from '../i18n/strings';
 import { useLang } from '../i18n/LangContext';
 import { checkWinner, teamTotalsFromPlayers, totals } from '../engine/scoring';
+import { upsertProfiles, winnerPlayerIndices } from './profiles';
 
 type TeamSetup = {
   players: string[];
@@ -57,6 +58,8 @@ export type GameActions = {
   setLang: (lang: Lang) => void;
   setKoutEntryMode: (mode: KoutEntryMode) => void;
   setEntryStyle: (style: EntryStyle) => void;
+  removeProfile: (key: string) => void;
+  clearAllProfiles: () => void;
 };
 
 type GameContextValue = {
@@ -126,10 +129,17 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
           score,
         };
 
+        // Lifetime profile log — see src/state/profiles.ts. Winners are the
+        // set of player indices that share the winning side: a single index
+        // for individual Custom, every player on the winning team otherwise.
+        const winnerIdxSet = winnerPlayerIndices(prev, winner);
+        const playerProfiles = upsertProfiles(prev, winnerIdxSet);
+
         next = {
           ...next,
           gameLogged: true,
           recentGames: [recent, ...prev.recentGames].slice(0, 10),
+          playerProfiles,
           currentScreen: 'winner',
         };
       }
@@ -270,6 +280,21 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
     [setState],
   );
 
+  const removeProfile = useCallback(
+    (key: string) =>
+      setState((s) => {
+        if (!(key in s.playerProfiles)) return s;
+        const { [key]: _drop, ...rest } = s.playerProfiles;
+        return { ...s, playerProfiles: rest };
+      }),
+    [setState],
+  );
+
+  const clearAllProfiles = useCallback(
+    () => setState((s) => ({ ...s, playerProfiles: {} })),
+    [setState],
+  );
+
   const value = useMemo<GameContextValue>(
     () => ({
       state,
@@ -287,6 +312,8 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
         setLang,
         setKoutEntryMode,
         setEntryStyle,
+        removeProfile,
+        clearAllProfiles,
       },
     }),
     [
@@ -304,6 +331,8 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
       setLang,
       setKoutEntryMode,
       setEntryStyle,
+      removeProfile,
+      clearAllProfiles,
     ],
   );
 
