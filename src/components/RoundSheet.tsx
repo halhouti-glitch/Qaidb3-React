@@ -465,6 +465,7 @@ function NumpadEntry({ onSubmit, onClose }: EntryProps) {
   const { t, lang } = useLang();
   const { state, actions } = useGame();
   const isCustom = state.gameMode === 'custom';
+  const isSebeeta = state.gameMode === 'sebeeta';
   const n = state.players.length;
   const compact = n >= 5;
 
@@ -473,13 +474,20 @@ function NumpadEntry({ onSubmit, onClose }: EntryProps) {
 
   const totalsArr = useMemo(() => computeTotals(state), [state]);
 
-  const tap = (key: number | 'del' | 'clr') => {
+  const tap = (key: number | 'del' | 'clr' | 'm10') => {
     setVals((arr) =>
       arr.map((v, ix) => {
         if (ix !== focusIdx) return v;
         if (key === 'clr') return 0;
         if (key === 'del') return Math.floor(v / 10);
-        const next = v * 10 + key;
+        // Sebeeta-only shortcut: replaces the focused entry with -10 (the
+        // legacy bonus that pushes the player away from the lose-threshold).
+        if (key === 'm10') return -10;
+        // If the current value is negative (came from m10), the next digit
+        // overwrites — typing a fresh number after a shortcut should reset
+        // rather than continue building (e.g. -10 → tap 5 should yield 5,
+        // not -95).
+        const next = v < 0 ? key : v * 10 + key;
         return next > 9999 ? v : next;
       }),
     );
@@ -547,9 +555,22 @@ function NumpadEntry({ onSubmit, onClose }: EntryProps) {
         <button type="button" onClick={() => tap(0)}>
           0
         </button>
-        <button type="button" className="special" onClick={() => tap('del')}>
-          ⌫
-        </button>
+        {isSebeeta ? (
+          // Sebeeta-only: −10 shortcut replaces the standard backspace key
+          // (the −10 bonus is a common Sebeeta move; typing it on the
+          // numpad would otherwise need 3 taps).
+          <button
+            type="button"
+            className="special m10"
+            onClick={() => tap('m10')}
+          >
+            −10
+          </button>
+        ) : (
+          <button type="button" className="special" onClick={() => tap('del')}>
+            ⌫
+          </button>
+        )}
         <button
           type="button"
           className={focusIdx === n - 1 ? 'wide confirm' : 'wide next'}
