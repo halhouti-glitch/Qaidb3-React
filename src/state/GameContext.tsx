@@ -62,6 +62,7 @@ export type GameActions = {
   clearAllProfiles: () => void;
   removeRecentGame: (idx: number) => void;
   clearAllRecents: () => void;
+  setSound: (sound: boolean) => void;
 };
 
 type GameContextValue = {
@@ -314,6 +315,11 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
     [setState],
   );
 
+  const setSound = useCallback(
+    (sound: boolean) => setState((s) => ({ ...s, sound })),
+    [setState],
+  );
+
   const value = useMemo<GameContextValue>(
     () => ({
       state,
@@ -335,6 +341,7 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
         clearAllProfiles,
         removeRecentGame,
         clearAllRecents,
+        setSound,
       },
     }),
     [
@@ -356,6 +363,7 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
       clearAllProfiles,
       removeRecentGame,
       clearAllRecents,
+      setSound,
     ],
   );
 

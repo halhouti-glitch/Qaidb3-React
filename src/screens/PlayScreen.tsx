@@ -12,11 +12,13 @@ import { Header } from '../components/Header';
 import { Icon } from '../components/Icon';
 import { useToast } from '../components/Toast';
 import { RoundSheet } from '../components/RoundSheet';
+import { useAudio } from '../lib/audio';
 
 export function PlayScreen() {
   const { t } = useLang();
   const { state, actions } = useGame();
   const toast = useToast();
+  const fx = useAudio();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [lastDelta, setLastDelta] = useState<number[] | null>(null);
 
@@ -83,6 +85,7 @@ export function PlayScreen() {
     // round commit IS the primary confirm flow, per PORT_FROM_VANILLA.md
     // item 5). This path stays for users who scroll past the snackbar.
     if (state.scores.length === 0) return;
+    fx.undo();
     actions.undoRound();
     toast.show(t('undoRound'));
   };

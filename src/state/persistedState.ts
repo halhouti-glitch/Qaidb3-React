@@ -53,6 +53,8 @@ export type PersistedState = {
   // Lifetime player memory — see Profile. Survives across games via the same
   // localStorage key; older fork installs spread-merge an empty record.
   playerProfiles: Record<string, Profile>;
+  // PORT_FROM_VANILLA.md item 7. When false, vibrate + audio calls no-op.
+  sound: boolean;
 };
 
 export const STORAGE_KEY = 'cardScoreTracker_v1';
@@ -74,6 +76,7 @@ export const DEFAULT_STATE: PersistedState = {
   recentGames: [],
   theme: 'light',
   playerProfiles: {},
+  sound: true,
 };
 
 export function loadState(): PersistedState {

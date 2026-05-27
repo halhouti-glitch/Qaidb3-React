@@ -13,6 +13,7 @@ import { SetupScreen } from './screens/SetupScreen';
 import { PlayScreen } from './screens/PlayScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { WinnerScreen } from './screens/WinnerScreen';
+import { useAudio } from './lib/audio';
 
 export function App() {
   const [state, setState] = useState<PersistedState>(() => loadState());
@@ -45,10 +46,23 @@ export function App() {
 
 function AppShell() {
   const { state } = useGame();
+  const fx = useAudio();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', state.theme);
   }, [state.theme]);
+
+  // Game-over fx — fire the major-triad arpeggio + multi-pulse vibration
+  // exactly once when gameOver flips false → true. Tracked via ref so a
+  // page reload with a finished game (gameOver already true at mount)
+  // doesn't re-trigger. Item 7.
+  const prevGameOver = useRef(state.gameOver);
+  useEffect(() => {
+    if (!prevGameOver.current && state.gameOver) {
+      fx.gameOver();
+    }
+    prevGameOver.current = state.gameOver;
+  }, [state.gameOver, fx]);
 
   const screen = state.currentScreen;
 

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLang } from '../i18n/LangContext';
 import { useGame } from '../state/GameContext';
+import { useAudio } from '../lib/audio';
 import { useToast } from './Toast';
 import { Icon } from './Icon';
 import {
@@ -25,6 +26,7 @@ export function RoundSheet({ open, onClose }: RoundSheetProps) {
   const { t } = useLang();
   const { state, actions } = useGame();
   const toast = useToast();
+  const fx = useAudio();
 
   // Lock body scroll + ESC closes while open
   useEffect(() => {
@@ -47,8 +49,16 @@ export function RoundSheet({ open, onClose }: RoundSheetProps) {
     // passive "Saved · Round N" toast + the window.confirm on the Undo
     // button — the snackbar IS the confirm.
     actions.addRound(round);
+    fx.roundCommit();
     toast.show(t('undoToastMessage'), {
-      action: { label: t('undoBtn'), onClick: actions.undoRound },
+      action: {
+        label: t('undoBtn'),
+        onClick: () => {
+          // Item 7: snackbar Undo path also fires the undo haptic + tone.
+          fx.undo();
+          actions.undoRound();
+        },
+      },
     });
     onClose();
   };

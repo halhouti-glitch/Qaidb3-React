@@ -103,4 +103,17 @@ export const Icon = {
       <path d="M12 2v14" />
     </svg>
   ),
+  SoundOn: ({ size = 18 }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...stroke}>
+      <path d="M11 5L6 9H3v6h3l5 4V5z" />
+      <path d="M15.5 8.5a5 5 0 010 7" />
+      <path d="M18.5 5.5a9 9 0 010 13" />
+    </svg>
+  ),
+  SoundOff: ({ size = 18 }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...stroke}>
+      <path d="M11 5L6 9H3v6h3l5 4V5z" />
+      <path d="M23 9l-6 6M17 9l6 6" />
+    </svg>
+  ),
 };

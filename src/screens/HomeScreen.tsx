@@ -25,16 +25,27 @@ export function HomeScreen() {
         eyebrow="QAID"
         title={t('title')}
         left={
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={() =>
-              actions.setTheme(state.theme === 'dark' ? 'light' : 'dark')
-            }
-            aria-label={t('themeToggle')}
-          >
-            {state.theme === 'dark' ? <Icon.Sun /> : <Icon.Moon />}
-          </button>
+          <>
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() =>
+                actions.setTheme(state.theme === 'dark' ? 'light' : 'dark')
+              }
+              aria-label={t('themeToggle')}
+            >
+              {state.theme === 'dark' ? <Icon.Sun /> : <Icon.Moon />}
+            </button>
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={() => actions.setSound(!state.sound)}
+              aria-label={t('soundToggle')}
+              aria-pressed={state.sound}
+            >
+              {state.sound ? <Icon.SoundOn /> : <Icon.SoundOff />}
+            </button>
+          </>
         }
         right={<LangPicker lang={state.lang} setLang={actions.setLang} label={t('language')} />}
       />

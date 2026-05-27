@@ -200,6 +200,9 @@ export type Strings = {
   shareError: string;
   finalStandings: string;
   shareBtn: string;
+
+  // ── Haptics + sound (PORT_FROM_VANILLA.md item 7) ────────────
+  soundToggle: string;
 };
 
 const en: Strings = {
@@ -398,6 +401,8 @@ const en: Strings = {
   shareError: 'Could not share the image.',
   finalStandings: 'Final standings',
   shareBtn: 'Share',
+
+  soundToggle: 'Sound',
 };
 
 const ar: Strings = {
@@ -596,6 +601,8 @@ const ar: Strings = {
   shareError: 'تعذرت مشاركة الصورة.',
   finalStandings: 'الترتيب النهائي',
   shareBtn: 'مشاركة',
+
+  soundToggle: 'الصوت',
 };
 
 export const STRINGS: Record<Lang, Strings> = { en, ar };
