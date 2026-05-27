@@ -275,7 +275,12 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   box-shadow: var(--shadow-card);
   cursor: pointer;
   display: flex;
-  flex-direction: column;
+  /* Side-by-side layout: art sits at the inline-start, text fills the rest.
+     In RTL (Arabic) that puts the art on the visual right + text on the
+     visual left, mirroring the page's reading direction. In LTR it's the
+     opposite — also natural for left-to-right reading. */
+  flex-direction: row;
+  align-items: stretch;
   overflow: hidden;
   transition: transform 120ms ease, box-shadow 120ms ease;
   text-align: start;
@@ -287,11 +292,11 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
 .game-card:hover { box-shadow: var(--shadow-lift); transform: translateY(-1px); }
 .game-card:active { transform: translateY(0); }
 .game-card .gc-art {
-  width: 100%;
-  height: 140px;
+  width: 140px;
+  flex-shrink: 0;
   position: relative;
   overflow: hidden;
-  border-bottom: 1px solid var(--line);
+  border-inline-end: 1px solid var(--line);
   /* Lock to LTR so SVG coords + text anchoring render identically in both languages */
   direction: ltr;
   unicode-bidi: isolate;
@@ -301,7 +306,11 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   height: 100%;
   display: block;
 }
-.game-card .gc-meta { padding: 16px 20px 18px; }
+.game-card .gc-meta {
+  padding: 16px 20px 18px;
+  flex: 1;
+  min-width: 0;             /* allow text to shrink under tight widths */
+}
 .game-card .gc-meta .name {
   font-family: var(--font-display);
   font-size: 22px;
@@ -320,13 +329,14 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
 .game-card .gc-meta .meta-row span { display: inline-flex; align-items: center; gap: 4px; }
 .game-card .gc-meta .meta-row .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); }
 
-/* Per-mode art-tile background (pastel under light, muted under dark) */
-.gc-art[data-game="sebeeta"] { background: linear-gradient(180deg, #fdf3f0, #f3d9d3); }
-.gc-art[data-game="kout"]    { background: linear-gradient(180deg, #f0f4ee, #d8e6d7); }
-.gc-art[data-game="custom"]  { background: linear-gradient(180deg, #eef0f5, #d4d9e3); }
-[data-theme="dark"] .gc-art[data-game="sebeeta"] { background: linear-gradient(180deg, #2a1d1c, #1a1212); }
-[data-theme="dark"] .gc-art[data-game="kout"]    { background: linear-gradient(180deg, #15201b, #0d1612); }
-[data-theme="dark"] .gc-art[data-game="custom"]  { background: linear-gradient(180deg, #1c1d22, #131418); }
+/* Per-mode art-tile background (pastel under light, muted under dark).
+   Now a horizontal sweep since the art is a vertical inline-start column. */
+.gc-art[data-game="sebeeta"] { background: linear-gradient(135deg, #fdf3f0, #f3d9d3); }
+.gc-art[data-game="kout"]    { background: linear-gradient(135deg, #f0f4ee, #d8e6d7); }
+.gc-art[data-game="custom"]  { background: linear-gradient(135deg, #eef0f5, #d4d9e3); }
+[data-theme="dark"] .gc-art[data-game="sebeeta"] { background: linear-gradient(135deg, #2a1d1c, #1a1212); }
+[data-theme="dark"] .gc-art[data-game="kout"]    { background: linear-gradient(135deg, #15201b, #0d1612); }
+[data-theme="dark"] .gc-art[data-game="custom"]  { background: linear-gradient(135deg, #1c1d22, #131418); }
 
 .resume-row .btn { width: 100%; }
 
@@ -1070,6 +1080,21 @@ button.numpad-input.active {
 }
 .numpad button:active { background: var(--accent-soft); }
 .numpad button.special { background: transparent; color: var(--muted); font-size: 14px; font-weight: 500; font-family: var(--font-body); }
+/* Sebeeta-only −10 shortcut (replaces backspace). Tinted red so the
+   negative-bonus action reads as a distinct, intentional tap. */
+.numpad button.special.m10 {
+  color: #c1432f;
+  background: rgba(193, 67, 47, 0.08);
+  font-family: var(--font-num);
+  font-size: 18px;
+  font-weight: 700;
+}
+.numpad button.special.m10:active { background: rgba(193, 67, 47, 0.20); }
+[data-theme="dark"] .numpad button.special.m10 {
+  color: #ef6f5a;
+  background: rgba(239, 111, 90, 0.10);
+}
+[data-theme="dark"] .numpad button.special.m10:active { background: rgba(239, 111, 90, 0.22); }
 .numpad button.confirm { background: var(--ink); color: var(--bg); }
 .numpad button.next {
   background: var(--ink);
