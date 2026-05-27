@@ -1046,8 +1046,10 @@ html[dir="rtl"] .kf-bidder-card .kf-running { right: auto; left: 12px; }
   color: var(--ink);
   flex-shrink: 0;
 }
-.entry-row .who {
+.entry-row-who {
   flex: 1; min-width: 0;
+}
+.entry-row .who {
   font-size: 15px; font-weight: 500; color: var(--ink);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
@@ -1465,10 +1467,10 @@ button.numpad-input.active {
   font-size: 11px;
   color: rgba(244,244,242,0.6);
   margin-bottom: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   max-width: 100%;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  min-height: calc(2 * 1.15em);
 }
 .history-totals-card .htc-val {
   font-family: var(--font-num);
@@ -1563,9 +1565,9 @@ button.numpad-input.active {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  min-height: calc(2 * 1.2em);
 }
 .history-card .hc-score .hc-val {
   font-family: var(--font-num);

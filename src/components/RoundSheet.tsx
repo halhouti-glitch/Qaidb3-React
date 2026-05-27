@@ -438,7 +438,7 @@ function BulkEntry({ onSubmit, onClose }: EntryProps) {
               <div className="who">{name}</div>
               <div className="running">{t('sheetRunning')(totalsArr[i] ?? 0)}</div>
             </div>
-            <div className="pmcontrol" style={{ marginInlineStart: 'auto' }}>
+            <div className="pmcontrol">
               <button
                 type="button"
                 onClick={() => bump(i, -1)}
@@ -536,7 +536,6 @@ function NumpadEntry({ onSubmit, onClose }: EntryProps) {
                 e.stopPropagation();
                 setFocusIdx(i);
               }}
-              style={{ marginInlineStart: 'auto' }}
             >
               {vals[i] ?? 0}
             </button>

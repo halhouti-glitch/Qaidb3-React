@@ -37,7 +37,7 @@ export function HistoryScreen() {
       ];
     }
     return state.players.map((name, i) => ({
-      short: (name || `P${i + 1}`).split(' ')[0]?.slice(0, 10) ?? `P${i + 1}`,
+      short: name || `P${i + 1}`,
       full: name,
       idxs: [i],
     }));
