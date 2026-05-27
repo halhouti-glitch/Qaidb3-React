@@ -79,11 +79,12 @@ export function PlayScreen() {
     (idx === 0 ? t('teamAFull') : t('teamBFull'));
 
   const onUndo = () => {
+    // Dedicated Undo button — no confirm dialog (the snackbar after each
+    // round commit IS the primary confirm flow, per PORT_FROM_VANILLA.md
+    // item 5). This path stays for users who scroll past the snackbar.
     if (state.scores.length === 0) return;
-    if (window.confirm(t('confirmUndo'))) {
-      actions.undoRound();
-      toast.show(t('undoRound'));
-    }
+    actions.undoRound();
+    toast.show(t('undoRound'));
   };
   const onReset = () => {
     if (window.confirm(t('confirmReset'))) actions.resetGame();

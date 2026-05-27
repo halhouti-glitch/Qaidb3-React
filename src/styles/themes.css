@@ -1569,8 +1569,29 @@ button.numpad-input.active {
   transition: opacity 200ms, transform 200ms;
   z-index: 200;
   box-shadow: 0 10px 30px -10px rgba(0,0,0,0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
 }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.toast-message { display: inline-block; }
+.toast-action {
+  background: transparent;
+  border: 0;
+  color: #ffd34a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  margin-inline-start: 2px;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.toast-action:hover { background: rgba(255,255,255,0.08); }
+.toast-action:active { background: rgba(255,255,255,0.16); }
 
 .app-version {
   padding: 10px 16px 14px;

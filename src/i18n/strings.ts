@@ -190,6 +190,10 @@ export type Strings = {
   profileTeammateOf: (n: string, c: number) => string;
   profileNeverPlayed: string;
   removePlayer: string;
+
+  // ── Undo snackbar (PORT_FROM_VANILLA.md item 5) ──────────────
+  undoToastMessage: string;
+  undoBtn: string;
 };
 
 const en: Strings = {
@@ -380,6 +384,9 @@ const en: Strings = {
   profileTeammateOf: (n, c) => `${n} · ${c}×`,
   profileNeverPlayed: 'No games yet',
   removePlayer: 'Remove player',
+
+  undoToastMessage: 'Round saved',
+  undoBtn: 'Undo',
 };
 
 const ar: Strings = {
@@ -570,6 +577,9 @@ const ar: Strings = {
   profileTeammateOf: (n, c) => `${n} · ${c}×`,
   profileNeverPlayed: 'لا توجد ألعاب بعد',
   removePlayer: 'حذف اللاعب',
+
+  undoToastMessage: 'تم حفظ الجولة',
+  undoBtn: 'تراجع',
 };
 
 export const STRINGS: Record<Lang, Strings> = { en, ar };

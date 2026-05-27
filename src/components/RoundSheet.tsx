@@ -42,9 +42,14 @@ export function RoundSheet({ open, onClose }: RoundSheetProps) {
   }, [open, onClose]);
 
   const submit = (round: number[]) => {
-    const roundNum = state.scores.length + 1;
+    // Vanilla flow (PORT_FROM_VANILLA.md item 5): commit, then surface a
+    // non-blocking snackbar with an Undo action button. Replaces the old
+    // passive "Saved · Round N" toast + the window.confirm on the Undo
+    // button — the snackbar IS the confirm.
     actions.addRound(round);
-    toast.show(`${t('sheetSave')} · ${t('roundLabel')} ${roundNum}`);
+    toast.show(t('undoToastMessage'), {
+      action: { label: t('undoBtn'), onClick: actions.undoRound },
+    });
     onClose();
   };
 
