@@ -3,6 +3,7 @@ import { render } from '@testing-library/react';
 import { LangProvider } from '../i18n/LangContext';
 import type { Lang } from '../i18n/strings';
 import { ToastProvider } from '../components/Toast';
+import { ConfirmProvider } from '../components/ConfirmSheet';
 import {
   GameProvider,
   useGame,
@@ -30,9 +31,11 @@ function TestProviders({
   return (
     <LangProvider lang={state.lang} setLang={setLang}>
       <ToastProvider>
-        <GameProvider state={state} setState={setState}>
-          {children}
-        </GameProvider>
+        <ConfirmProvider>
+          <GameProvider state={state} setState={setState}>
+            {children}
+          </GameProvider>
+        </ConfirmProvider>
       </ToastProvider>
     </LangProvider>
   );

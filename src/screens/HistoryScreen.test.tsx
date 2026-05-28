@@ -1,5 +1,5 @@
 import { act, fireEvent } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { HistoryScreen } from './HistoryScreen';
 import { renderWithGame } from '../test/harness';
 import { upsertProfiles, winnerPlayerIndices } from '../state/profiles';
@@ -93,34 +93,40 @@ describe('HistoryScreen — basic rendering and editing', () => {
     expect(api.state.scores[0][0]).toBe(42);
   });
 
-  it('deleting a round (via window.confirm) removes it from state.scores', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
-    const { api, getAllByLabelText } = renderWithGame(<HistoryScreen />, {
+  it('deleting a round opens the confirm sheet and removes it on confirm', () => {
+    const { api, getAllByLabelText, getAllByText } = renderWithGame(<HistoryScreen />, {
       initial: sebeetaInProgress,
     });
     act(() => {
       fireEvent.click(getAllByLabelText('Delete')[1]); // delete second round
     });
-    expect(confirmSpy).toHaveBeenCalled();
+    // ConfirmSheet's confirm button reuses the 'Delete' label.
+    const deleteButtons = getAllByText('Delete');
+    act(() => {
+      fireEvent.click(deleteButtons[deleteButtons.length - 1]);
+    });
     expect(api.state.scores).toHaveLength(1);
     expect(api.state.scores[0]).toEqual([10, 5, 0, 0, 0, 0]);
-    confirmSpy.mockRestore();
   });
 });
 
 describe('HistoryScreen — reverse-log integration (the bug fix)', () => {
   it('deleting the round that pushed past threshold un-wins the game and clears the log', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
-    const { api, getAllByLabelText } = renderWithGame(<HistoryScreen />, {
+    const { api, getAllByLabelText, getAllByText } = renderWithGame(<HistoryScreen />, {
       initial: loggedSebeetaState(),
     });
     expect(api.state.gameOver).toBe(true);
     expect(api.state.gameLogged).toBe(true);
     expect(api.state.recentGames).toHaveLength(1);
 
-    // Delete round 2 (idx 1) — the one that put p0 past 201.
+    // Click the trash icon on round 2 (idx 1) — the one that put p0 past 201.
     act(() => {
       fireEvent.click(getAllByLabelText('Delete')[1]);
+    });
+    // Confirm via the sheet's Delete button.
+    const deleteButtons = getAllByText('Delete');
+    act(() => {
+      fireEvent.click(deleteButtons[deleteButtons.length - 1]);
     });
     expect(api.state.gameOver).toBe(false);
     expect(api.state.gameLogged).toBe(false);
@@ -128,7 +134,6 @@ describe('HistoryScreen — reverse-log integration (the bug fix)', () => {
     expect(Object.keys(api.state.playerProfiles)).toEqual([]);
     // currentScreen stays 'history' — user wasn't on the winner screen, no bounce.
     expect(api.state.currentScreen).toBe('history');
-    confirmSpy.mockRestore();
   });
 
   it('editing a still-winning round re-logs without yanking off the History screen', () => {

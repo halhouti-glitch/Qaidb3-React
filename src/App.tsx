@@ -8,6 +8,7 @@ import {
 import type { Lang } from './i18n/strings';
 import { GameProvider, useGame } from './state/GameContext';
 import { ToastProvider } from './components/Toast';
+import { ConfirmProvider } from './components/ConfirmSheet';
 import { HomeScreen } from './screens/HomeScreen';
 import { SetupScreen } from './screens/SetupScreen';
 import { PlayScreen } from './screens/PlayScreen';
@@ -49,9 +50,11 @@ export function App() {
   return (
     <LangProvider lang={state.lang} setLang={setLang}>
       <ToastProvider>
-        <GameProvider state={state} setState={setState}>
-          <AppShell />
-        </GameProvider>
+        <ConfirmProvider>
+          <GameProvider state={state} setState={setState}>
+            <AppShell />
+          </GameProvider>
+        </ConfirmProvider>
       </ToastProvider>
     </LangProvider>
   );

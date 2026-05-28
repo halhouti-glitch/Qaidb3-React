@@ -5,6 +5,7 @@ import { relativeWhen } from '../lib/relativeWhen';
 import { Header } from '../components/Header';
 import { Icon } from '../components/Icon';
 import { ProfileSheet } from '../components/ProfileSheet';
+import { useConfirm } from '../components/ConfirmSheet';
 import { GAME_ORDER, GAMES } from '../games/registry';
 import { TopPlayersStrip } from './home/TopPlayersStrip';
 import type { GameMode } from '../state/persistedState';
@@ -13,6 +14,7 @@ import type { Lang } from '../i18n/strings';
 export function HomeScreen() {
   const { t, lang } = useLang();
   const { state, actions } = useGame();
+  const { confirm } = useConfirm();
   const [openProfile, setOpenProfile] = useState<string | null>(null);
 
   const hasActive =
@@ -98,11 +100,14 @@ export function HomeScreen() {
               <button
                 type="button"
                 className="clear-link"
-                onClick={() => {
-                  if (window.confirm(t('recentGames') + ' — ' + t('clearAll') + '?')) {
-                    actions.clearAllRecents();
-                  }
-                }}
+                onClick={() =>
+                  confirm({
+                    title: `${t('recentGames')} — ${t('clearAll')}?`,
+                    confirmLabel: t('clearAll'),
+                    destructive: true,
+                    onConfirm: () => actions.clearAllRecents(),
+                  })
+                }
               >
                 {t('clearAll')}
               </button>

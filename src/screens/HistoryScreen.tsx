@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useLang } from '../i18n/LangContext';
 import { useGame } from '../state/GameContext';
 import { useToast } from '../components/Toast';
+import { useConfirm } from '../components/ConfirmSheet';
 import { Header } from '../components/Header';
 import { Icon } from '../components/Icon';
 import { dealerIndex } from '../engine/scoring';
@@ -16,6 +17,7 @@ export function HistoryScreen() {
   const { t } = useLang();
   const { state, actions } = useGame();
   const toast = useToast();
+  const { confirm } = useConfirm();
   const [editingRound, setEditingRound] = useState<number | null>(null);
 
   const isKout = state.gameMode === 'kout';
@@ -68,11 +70,17 @@ export function HistoryScreen() {
   };
 
   const onDelete = (idx: number) => {
-    if (!window.confirm(t('confirmDelete')(idx + 1))) return;
-    actions.deleteRound(idx);
-    if (editingRound === idx) setEditingRound(null);
-    else if (editingRound !== null && editingRound > idx) setEditingRound(editingRound - 1);
-    toast.show(t('deleteBtn'));
+    confirm({
+      title: t('confirmDelete')(idx + 1),
+      confirmLabel: t('deleteBtn'),
+      destructive: true,
+      onConfirm: () => {
+        actions.deleteRound(idx);
+        if (editingRound === idx) setEditingRound(null);
+        else if (editingRound !== null && editingRound > idx) setEditingRound(editingRound - 1);
+        toast.show(t('deleteBtn'));
+      },
+    });
   };
 
   const roundCount = state.scores.length;

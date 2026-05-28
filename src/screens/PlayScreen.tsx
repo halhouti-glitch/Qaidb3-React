@@ -11,6 +11,7 @@ import {
 import { Header } from '../components/Header';
 import { Icon } from '../components/Icon';
 import { useToast } from '../components/Toast';
+import { useConfirm } from '../components/ConfirmSheet';
 import { RoundSheet } from '../components/RoundSheet';
 import { useAudio } from '../lib/audio';
 
@@ -18,6 +19,7 @@ export function PlayScreen() {
   const { t } = useLang();
   const { state, actions } = useGame();
   const toast = useToast();
+  const { confirm } = useConfirm();
   const fx = useAudio();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [lastDelta, setLastDelta] = useState<number[] | null>(null);
@@ -90,10 +92,20 @@ export function PlayScreen() {
     toast.show(t('undoRound'));
   };
   const onReset = () => {
-    if (window.confirm(t('confirmReset'))) actions.resetGame();
+    confirm({
+      title: t('confirmReset'),
+      confirmLabel: t('resetGame'),
+      destructive: true,
+      onConfirm: () => actions.resetGame(),
+    });
   };
   const onNewGame = () => {
-    if (window.confirm(t('confirmClearPlayers'))) actions.clearPlayers();
+    confirm({
+      title: t('confirmClearPlayers'),
+      confirmLabel: t('clearPlayers'),
+      destructive: true,
+      onConfirm: () => actions.clearPlayers(),
+    });
   };
 
   return (

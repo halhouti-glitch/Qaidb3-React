@@ -1,5 +1,6 @@
 import { useLang } from '../../i18n/LangContext';
 import { useGame } from '../../state/GameContext';
+import { useConfirm } from '../../components/ConfirmSheet';
 import { topProfiles, profileKey } from '../../state/profiles';
 import { initials } from '../../lib/initials';
 
@@ -16,13 +17,17 @@ type TopPlayersStripProps = {
 export function TopPlayersStrip({ onPick }: TopPlayersStripProps) {
   const { t } = useLang();
   const { state, actions } = useGame();
+  const { confirm } = useConfirm();
   const tops = topProfiles(state.playerProfiles, 8);
   if (tops.length === 0) return null;
 
   const clear = () => {
-    if (window.confirm(t('topPlayers') + ' — ' + t('clearAll') + '?')) {
-      actions.clearAllProfiles();
-    }
+    confirm({
+      title: `${t('topPlayers')} — ${t('clearAll')}?`,
+      confirmLabel: t('clearAll'),
+      destructive: true,
+      onConfirm: () => actions.clearAllProfiles(),
+    });
   };
 
   return (

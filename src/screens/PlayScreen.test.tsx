@@ -1,5 +1,5 @@
 import { act, fireEvent } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { PlayScreen } from './PlayScreen';
 import { renderWithGame } from '../test/harness';
 
@@ -42,16 +42,34 @@ describe('PlayScreen', () => {
     expect(api.state.scores).toEqual([]);
   });
 
-  it('Reset button confirms via window.confirm and clears scores', () => {
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('Reset opens the confirm sheet and clears scores when confirmed', () => {
+    const { api, getByText, getAllByText } = renderWithGame(<PlayScreen />, {
+      initial: { ...sebeetaInit, scores: [[10, 0, 0, 0, 0, 0]] },
+    });
+    // Reset bar button at the bottom of the screen.
+    act(() => {
+      fireEvent.click(getByText('Reset Game'));
+    });
+    // ConfirmSheet now rendered; the confirm button reuses the same label.
+    // Pick the second "Reset Game" — the one inside the sheet.
+    const buttons = getAllByText('Reset Game');
+    expect(buttons.length).toBeGreaterThan(1);
+    act(() => {
+      fireEvent.click(buttons[buttons.length - 1]);
+    });
+    expect(api.state.scores).toEqual([]);
+  });
+
+  it('Reset can be cancelled — scores remain intact', () => {
     const { api, getByText } = renderWithGame(<PlayScreen />, {
       initial: { ...sebeetaInit, scores: [[10, 0, 0, 0, 0, 0]] },
     });
     act(() => {
       fireEvent.click(getByText('Reset Game'));
     });
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(api.state.scores).toEqual([]);
-    confirmSpy.mockRestore();
+    act(() => {
+      fireEvent.click(getByText('Cancel'));
+    });
+    expect(api.state.scores).toEqual([[10, 0, 0, 0, 0, 0]]);
   });
 });
