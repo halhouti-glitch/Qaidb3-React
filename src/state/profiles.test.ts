@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   profileKey,
+  revertProfiles,
   topProfiles,
   topTeammates,
   upsertProfiles,
@@ -198,5 +199,85 @@ describe('upsertProfiles', () => {
     });
     const next = upsertProfiles(s, new Set([0]));
     expect(Object.keys(next).sort()).toEqual(['ali', 'bob']);
+  });
+});
+
+describe('revertProfiles', () => {
+  const players = ['Ahmed', 'Bilal', 'Carlos', 'Dawood', 'Esa', 'Faisal'];
+
+  it('is the pure inverse of upsertProfiles for individual mode', () => {
+    const s = state({ players, playerTeam: [], gameMode: 'custom' });
+    const upserted = upsertProfiles(s, new Set([2]));
+    const reverted = revertProfiles({ ...s, playerProfiles: upserted }, new Set([2]));
+    expect(reverted).toEqual(s.playerProfiles);
+  });
+
+  it('is the pure inverse of upsertProfiles for team mode (teammates included)', () => {
+    const s = state({
+      players,
+      playerTeam: [0, 1, 0, 1, 0, 1],
+      gameMode: 'kout',
+      playerProfiles: {
+        ahmed: profile({ name: 'Ahmed', gamesPlayed: 3, wins: 1, teammates: { carlos: 2, esa: 2 } }),
+      },
+    });
+    const upserted = upsertProfiles(s, new Set([0, 2, 4]));
+    const reverted = revertProfiles({ ...s, playerProfiles: upserted }, new Set([0, 2, 4]));
+    // lastPlayed doesn't round-trip (intentional — can't recover prior value)
+    expect(reverted.ahmed.gamesPlayed).toBe(3);
+    expect(reverted.ahmed.wins).toBe(1);
+    expect(reverted.ahmed.teammates).toEqual({ carlos: 2, esa: 2 });
+    expect(reverted.bilal).toBeUndefined(); // had no prior profile, now zeroed → dropped
+  });
+
+  it('drops a profile when all counters zero out', () => {
+    const s = state({
+      players: ['Solo'],
+      playerTeam: [],
+      gameMode: 'custom',
+      playerProfiles: { solo: profile({ name: 'Solo', gamesPlayed: 1, wins: 1 }) },
+    });
+    const next = revertProfiles(s, new Set([0]));
+    expect(next.solo).toBeUndefined();
+  });
+
+  it('keeps profile when residual counters remain', () => {
+    const s = state({
+      players: ['Ali'],
+      playerTeam: [],
+      gameMode: 'custom',
+      playerProfiles: { ali: profile({ name: 'Ali', gamesPlayed: 5, wins: 3 }) },
+    });
+    const next = revertProfiles(s, new Set([0]));
+    expect(next.ali).toEqual({
+      name: 'Ali',
+      gamesPlayed: 4,
+      wins: 2,
+      lastPlayed: 0,
+      teammates: {},
+    });
+  });
+
+  it('clamps at 0 if asked to decrement below zero', () => {
+    const s = state({
+      players: ['Ali'],
+      playerTeam: [],
+      gameMode: 'custom',
+      playerProfiles: { ali: profile({ name: 'Ali', gamesPlayed: 0, wins: 0 }) },
+    });
+    const next = revertProfiles(s, new Set([0]));
+    expect(next.ali).toBeUndefined();
+  });
+
+  it('skips players with no existing profile', () => {
+    const s = state({
+      players: ['Ali', 'Bob'],
+      playerTeam: [],
+      gameMode: 'custom',
+      playerProfiles: { ali: profile({ name: 'Ali', gamesPlayed: 2, wins: 1 }) },
+    });
+    const next = revertProfiles(s, new Set([0]));
+    expect(next.ali?.gamesPlayed).toBe(1);
+    expect(next.bob).toBeUndefined();
   });
 });

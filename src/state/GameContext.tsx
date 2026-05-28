@@ -22,6 +22,7 @@ import type { Lang } from '../i18n/strings';
 import { useLang } from '../i18n/LangContext';
 import { checkWinner, teamTotalsFromPlayers, totals } from '../engine/scoring';
 import { upsertProfiles, winnerPlayerIndices } from './profiles';
+import { reverseGameLog } from './gameLog';
 
 type TeamSetup = {
   players: string[];
@@ -92,28 +93,43 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
     [t],
   );
 
-  // Centralised score-update path: after any change to `scores`, recompute
-  // winner / gameOver and log the finished game once (legacy.html:2479).
+  // Centralised score-update path. Two phases:
+  //   (A) If the previous state had a logged game, reverse it — pop the
+  //       orphan recentGames entry, decrement profile counters, clear the
+  //       gameLogged flag. This keeps undo/edit/delete on a finished game
+  //       symmetric with the forward path (legacy.html:2479 was forward-only).
+  //   (B) Run the forward log on the new scores: detect winner, prepend to
+  //       recentGames, upsert profiles, mark gameLogged.
+  //
+  // currentScreen handling:
+  //   - Fresh transition (wasn't logged → now won): navigate to 'winner'.
+  //   - Re-log (was logged → still won): preserve current screen so an edit
+  //     from History doesn't yank the user to the Winner screen.
+  //   - Un-win (was logged → no longer won): bounce off the now-stale Winner
+  //     screen back to 'play'; otherwise leave screen alone.
   const applyScoresUpdate = useCallback(
     (prev: PersistedState, nextScores: number[][]): PersistedState => {
-      const probe = { ...prev, scores: nextScores };
+      const wasLogged = prev.gameLogged;
+      const baseline = wasLogged ? reverseGameLog(prev) : prev;
+
+      const probe = { ...baseline, scores: nextScores };
       const totalsArr = totals(probe);
       const winner = checkWinner(probe, totalsArr);
       const gameOver = winner !== null;
 
       let next: PersistedState = { ...probe, gameOver };
 
-      if (winner !== null && !prev.gameLogged && prev.players.length > 0) {
+      if (winner !== null && baseline.players.length > 0) {
         const winnerName =
           winner.type === 'player'
-            ? prev.players[winner.idx] ?? ''
-            : resolveTeamName(prev, winner.idx);
+            ? baseline.players[winner.idx] ?? ''
+            : resolveTeamName(baseline, winner.idx);
 
         const teamScores: [number, number] | null =
           winner.type === 'team'
-            ? prev.gameMode === 'kout'
+            ? baseline.gameMode === 'kout'
               ? [totalsArr[0] ?? 0, totalsArr[1] ?? 0]
-              : teamTotalsFromPlayers(totalsArr, prev.playerTeam)
+              : teamTotalsFromPlayers(totalsArr, baseline.playerTeam)
             : null;
         const score =
           teamScores !== null && winner.type === 'team'
@@ -123,28 +139,27 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
               : totalsArr.join(' / ');
 
         const recent: RecentGame = {
-          kind: prev.gameMode,
-          players: prev.players.slice(),
-          teamNames: prev.teamNames.slice(),
+          kind: baseline.gameMode,
+          players: baseline.players.slice(),
+          teamNames: baseline.teamNames.slice(),
           when: Date.now(),
           roundCount: nextScores.length,
           winner: winnerName,
           score,
         };
 
-        // Lifetime profile log — see src/state/profiles.ts. Winners are the
-        // set of player indices that share the winning side: a single index
-        // for individual Custom, every player on the winning team otherwise.
-        const winnerIdxSet = winnerPlayerIndices(prev, winner);
-        const playerProfiles = upsertProfiles(prev, winnerIdxSet);
+        const winnerIdxSet = winnerPlayerIndices(baseline, winner);
+        const playerProfiles = upsertProfiles(baseline, winnerIdxSet);
 
         next = {
           ...next,
           gameLogged: true,
-          recentGames: [recent, ...prev.recentGames].slice(0, 10),
+          recentGames: [recent, ...baseline.recentGames].slice(0, 10),
           playerProfiles,
-          currentScreen: 'winner',
+          currentScreen: wasLogged ? prev.currentScreen : 'winner',
         };
+      } else if (wasLogged && prev.currentScreen === 'winner') {
+        next = { ...next, currentScreen: 'play' };
       }
 
       return next;

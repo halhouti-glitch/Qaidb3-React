@@ -54,6 +54,51 @@ export function winnerPlayerIndices(
   return out;
 }
 
+// Pure inverse of `upsertProfiles` — undoes the per-player gamesPlayed/wins/
+// teammate increments made when a finished game was logged. Used when an
+// undo/edit/delete takes the active game back below the win threshold so
+// lifetime stats don't drift on each toggle. `lastPlayed` is not restored
+// (the prior value isn't recoverable from state); the next finished game
+// will overwrite it. Profiles whose counters fully zero out are dropped.
+export function revertProfiles(
+  state: PersistedState,
+  winnerIdxSet: Set<number>,
+): Record<string, Profile> {
+  const next: Record<string, Profile> = { ...state.playerProfiles };
+  const teamMode =
+    state.playerTeam.length === state.players.length &&
+    state.players.length > 0;
+
+  state.players.forEach((rawName, pIdx) => {
+    const name = (rawName || '').trim();
+    if (!name) return;
+    const key = profileKey(name);
+    const prev = next[key];
+    if (!prev) return;
+    const gamesPlayed = Math.max(0, prev.gamesPlayed - 1);
+    const wins = Math.max(0, prev.wins - (winnerIdxSet.has(pIdx) ? 1 : 0));
+    const teammates = { ...prev.teammates };
+    if (teamMode) {
+      const myTeam = state.playerTeam[pIdx];
+      state.players.forEach((other, oIdx) => {
+        if (oIdx === pIdx) return;
+        if (state.playerTeam[oIdx] !== myTeam) return;
+        const otherKey = profileKey(other || '');
+        if (!otherKey) return;
+        const cur = teammates[otherKey] ?? 0;
+        if (cur <= 1) delete teammates[otherKey];
+        else teammates[otherKey] = cur - 1;
+      });
+    }
+    if (gamesPlayed === 0 && wins === 0 && Object.keys(teammates).length === 0) {
+      delete next[key];
+    } else {
+      next[key] = { ...prev, gamesPlayed, wins, teammates };
+    }
+  });
+  return next;
+}
+
 // Pure: returns a new playerProfiles record with one game logged for every
 // player in `state.players`. `winnerIdxSet` (typically from
 // winnerPlayerIndices) determines who gets a win credit. Teammate counts
