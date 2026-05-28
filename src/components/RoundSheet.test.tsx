@@ -275,13 +275,98 @@ describe('RoundSheet — Sebeeta numpad', () => {
 
 describe('RoundSheet — Escape closes', () => {
   it('Escape key fires onClose', () => {
-    // Use the SheetHost which tracks open state — after Escape, the sheet
-    // should be unmounted.
     const { container } = renderWithGame(<SheetHost />, { initial: customInit });
     expect(container.querySelector('.sheet.open')).not.toBeNull();
     act(() => {
       fireEvent.keyDown(document, { key: 'Escape' });
     });
     expect(container.querySelector('.sheet.open')).toBeNull();
+  });
+});
+
+describe('RoundSheet — Custom numpad edge cases', () => {
+  const customNumpadInit = {
+    ...customInit,
+    entryStyle: 'numpad' as const,
+  };
+
+  it('⌫ backspace divides the current value by 10 (drops a digit)', () => {
+    const { container } = renderWithGame(<SheetHost />, {
+      initial: customNumpadInit,
+    });
+    const key = (label: string) =>
+      Array.from(container.querySelectorAll('.numpad button')).find(
+        (b) => b.textContent === label,
+      ) as HTMLButtonElement;
+    act(() => {
+      fireEvent.click(key('1'));
+      fireEvent.click(key('2'));
+      fireEvent.click(key('3'));
+    });
+    let display = container.querySelector(
+      '.entry-row.focused .numpad-input',
+    ) as HTMLButtonElement;
+    expect(display.textContent).toBe('123');
+    act(() => {
+      fireEvent.click(key('⌫'));
+    });
+    display = container.querySelector(
+      '.entry-row.focused .numpad-input',
+    ) as HTMLButtonElement;
+    expect(display.textContent).toBe('12');
+    act(() => {
+      fireEvent.click(key('⌫'));
+      fireEvent.click(key('⌫'));
+    });
+    display = container.querySelector(
+      '.entry-row.focused .numpad-input',
+    ) as HTMLButtonElement;
+    // 12 → 1 → 0 (Math.floor(0/10) === 0). Subsequent ⌫ is a no-op.
+    expect(display.textContent).toBe('0');
+  });
+
+  it('overflow guard: 5-digit input is clamped — last tap is ignored once > 9999', () => {
+    const { container } = renderWithGame(<SheetHost />, {
+      initial: customNumpadInit,
+    });
+    const key = (label: string) =>
+      Array.from(container.querySelectorAll('.numpad button')).find(
+        (b) => b.textContent === label,
+      ) as HTMLButtonElement;
+    // 9 → 99 → 999 → 9999 → 99990 (would be > 9999 cap, so the last tap is dropped)
+    act(() => {
+      for (let i = 0; i < 5; i++) fireEvent.click(key('9'));
+    });
+    const display = container.querySelector(
+      '.entry-row.focused .numpad-input',
+    ) as HTMLButtonElement;
+    expect(display.textContent).toBe('9999');
+  });
+
+  it('Save label appears on last seat and commits on click', () => {
+    const { api, container } = renderWithGame(<SheetHost />, {
+      initial: customNumpadInit,
+    });
+    // 3-player Custom — advance twice to reach the last seat.
+    const advance = () => {
+      const next = container.querySelector(
+        '.numpad .numpad-nav button.next, .numpad .numpad-nav button.confirm',
+      ) as HTMLButtonElement;
+      fireEvent.click(next);
+    };
+    act(() => {
+      advance();
+      advance();
+    });
+    // Right button is now .confirm (Save label) — clicking it commits.
+    const confirm = container.querySelector(
+      '.numpad .numpad-nav button.confirm',
+    ) as HTMLButtonElement;
+    expect(confirm).not.toBeNull();
+    expect(confirm.textContent).toContain('Save');
+    act(() => {
+      fireEvent.click(confirm);
+    });
+    expect(api.state.scores).toEqual([[0, 0, 0]]);
   });
 });

@@ -1,7 +1,10 @@
 import { act, fireEvent } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { WinnerScreen } from './WinnerScreen';
 import { renderWithGame } from '../test/harness';
+import * as shareModule from '../share';
+
+vi.mock('../share', () => ({ shareGameImage: vi.fn() }));
 
 const ROSTER = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3'];
 const TEAM = [0, 0, 0, 1, 1, 1];
@@ -47,5 +50,69 @@ describe('WinnerScreen', () => {
     expect(api.state.gameLogged).toBe(false);
     expect(api.state.players).toEqual(ROSTER); // roster preserved
     expect(api.state.currentScreen).toBe('play');
+  });
+});
+
+describe('WinnerScreen — share button state', () => {
+  it('share button is enabled by default and disabled while sharing is in flight', async () => {
+    // Hold the share promise open so we can observe the disabled state.
+    let resolveShare: (() => void) | null = null;
+    const sharePromise = new Promise<void>((res) => {
+      resolveShare = res;
+    });
+    (shareModule.shareGameImage as ReturnType<typeof vi.fn>).mockReturnValue(
+      sharePromise,
+    );
+
+    const { getByLabelText } = renderWithGame(<WinnerScreen />, {
+      initial: sebeetaWon,
+    });
+    const shareBtn = getByLabelText('Share') as HTMLButtonElement;
+    expect(shareBtn.disabled).toBe(false);
+
+    act(() => {
+      fireEvent.click(shareBtn);
+    });
+    expect(shareBtn.disabled).toBe(true);
+    expect(shareModule.shareGameImage).toHaveBeenCalledOnce();
+
+    // Resolve the in-flight share and let the finally block re-enable the button.
+    await act(async () => {
+      resolveShare!();
+      await sharePromise;
+    });
+    expect(shareBtn.disabled).toBe(false);
+  });
+
+  it('clicking share while already sharing is a no-op (no double invocation)', async () => {
+    let resolveShare: (() => void) | null = null;
+    const sharePromise = new Promise<void>((res) => {
+      resolveShare = res;
+    });
+    (shareModule.shareGameImage as ReturnType<typeof vi.fn>)
+      .mockReset()
+      .mockReturnValue(sharePromise);
+
+    const { getByLabelText } = renderWithGame(<WinnerScreen />, {
+      initial: sebeetaWon,
+    });
+    const shareBtn = getByLabelText('Share') as HTMLButtonElement;
+    // Separate act() per click so React commits the disabled state between them
+    // — otherwise all clicks land on the same render with the same closure.
+    act(() => {
+      fireEvent.click(shareBtn);
+    });
+    expect(shareBtn.disabled).toBe(true);
+    act(() => {
+      fireEvent.click(shareBtn);
+    });
+    act(() => {
+      fireEvent.click(shareBtn);
+    });
+    expect(shareModule.shareGameImage).toHaveBeenCalledOnce();
+    await act(async () => {
+      resolveShare!();
+      await sharePromise;
+    });
   });
 });
