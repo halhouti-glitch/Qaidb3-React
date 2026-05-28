@@ -104,15 +104,6 @@ fd6aea6  Phase 2: Pure scoring engine + 31 Vitest cases
 2ba8484  (legacy single-file build — for historical reference)
 ```
 
-## Pending parity with vanilla `main`
-
-See [`PORT_FROM_VANILLA.md`](./PORT_FROM_VANILLA.md) — vanilla shipped
-several features after this fork was branched (game registry, player
-profiles, history-clear UI, top-2 teammates, undo snackbar, share-as-PNG,
-haptics, screen transitions). The file is the ordered porting spec with
-state-shape changes, action signatures, i18n keys, and absolute paths to
-vanilla reference code at `C:\Users\halho\Desktop\Qaid`.
-
 ## Open follow-ups (acknowledged but not done)
 
 - **Deploy host** — not picked. `dist/` is static; Cloudflare Pages / Netlify / Vercel all work zero-config with `npm run build` + output `dist`.
