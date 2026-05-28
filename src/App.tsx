@@ -9,6 +9,7 @@ import type { Lang } from './i18n/strings';
 import { GameProvider, useGame } from './state/GameContext';
 import { ToastProvider } from './components/Toast';
 import { ConfirmProvider } from './components/ConfirmSheet';
+import { UpdatePrompt } from './components/UpdatePrompt';
 import { HomeScreen } from './screens/HomeScreen';
 import { SetupScreen } from './screens/SetupScreen';
 import { PlayScreen } from './screens/PlayScreen';
@@ -53,6 +54,7 @@ export function App() {
         <ConfirmProvider>
           <GameProvider state={state} setState={setState}>
             <AppShell />
+            <UpdatePrompt />
           </GameProvider>
         </ConfirmProvider>
       </ToastProvider>

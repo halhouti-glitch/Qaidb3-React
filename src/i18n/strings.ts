@@ -206,6 +206,11 @@ export type Strings = {
   // ── Sebeeta Play section labels ──────────────────────────────
   playTargetLabel: string;
   playTotalScoreLabel: string;
+
+  // ── PWA update prompt ────────────────────────────────────────
+  updateAvailable: string;
+  updateReload: string;
+  updateLater: string;
 };
 
 const en: Strings = {
@@ -408,6 +413,10 @@ const en: Strings = {
 
   playTargetLabel: 'Target',
   playTotalScoreLabel: 'Total score',
+
+  updateAvailable: 'A new version is available.',
+  updateReload: 'Update',
+  updateLater: 'Later',
 };
 
 const ar: Strings = {
@@ -610,6 +619,10 @@ const ar: Strings = {
 
   playTargetLabel: 'الهدف',
   playTotalScoreLabel: 'مجموع النقاط',
+
+  updateAvailable: 'يتوفر إصدار جديد.',
+  updateReload: 'تحديث',
+  updateLater: 'لاحقاً',
 };
 
 export const STRINGS: Record<Lang, Strings> = { en, ar };

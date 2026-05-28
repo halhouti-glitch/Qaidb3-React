@@ -1771,6 +1771,23 @@ button.numpad-input.active {
 .toast-action:hover { background: rgba(255,255,255,0.08); }
 .toast-action:active { background: rgba(255,255,255,0.16); }
 
+/* PWA update prompt — a persistent toast (it stays until the user acts) that
+   carries a message plus two actions, so it wraps instead of forcing a single
+   no-wrap line and caps its width on narrow phones. */
+.update-prompt {
+  white-space: normal;
+  flex-wrap: wrap;
+  justify-content: center;
+  text-align: center;
+  gap: 6px 10px;
+  max-width: min(420px, calc(100vw - 32px));
+}
+.update-prompt .toast-message { flex: 1 1 100%; }
+.toast-action--ghost {
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 600;
+}
+
 .app-version {
   padding: 6px 16px 10px;
   text-align: center;

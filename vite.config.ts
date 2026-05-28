@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -15,7 +16,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' (not 'autoUpdate'): a freshly-built worker installs but waits,
+      // letting <UpdatePrompt> ask the user before reloading onto the new build.
+      registerType: 'prompt',
       includeAssets: [
         'icon.svg',
         'icon-maskable.svg',
@@ -88,5 +91,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    alias: {
+      // The 'virtual:pwa-register/react' module is injected by vite-plugin-pwa
+      // only at build/preview time, so stub it for the Vitest run.
+      'virtual:pwa-register/react': fileURLToPath(
+        new URL('./src/test/pwa-register-mock.ts', import.meta.url),
+      ),
+    },
   },
 });
