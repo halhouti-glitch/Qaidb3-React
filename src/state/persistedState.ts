@@ -79,13 +79,118 @@ export const DEFAULT_STATE: PersistedState = {
   sound: true,
 };
 
+// Per-field validators. Each returns the default when the input doesn't
+// match the contract — keeps `cardScoreTracker_v1` legacy-compat (no schema
+// version bump, no key rename) while protecting against forward-version
+// payloads or corrupted localStorage.
+const isObject = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null && !Array.isArray(v);
+
+const oneOf =
+  <T extends string>(...allowed: T[]) =>
+  (v: unknown, fallback: T): T =>
+    typeof v === 'string' && (allowed as string[]).includes(v)
+      ? (v as T)
+      : fallback;
+
+const stringArray = (v: unknown): string[] =>
+  Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+
+const finiteNumber = (v: unknown, fallback: number): number =>
+  typeof v === 'number' && Number.isFinite(v) ? v : fallback;
+
+const positiveInt = (v: unknown, fallback: number): number => {
+  const n = finiteNumber(v, fallback);
+  return n > 0 ? Math.floor(n) : fallback;
+};
+
+const numberArray = (v: unknown): number[] =>
+  Array.isArray(v)
+    ? v.map((x) => (typeof x === 'number' && Number.isFinite(x) ? x : 0))
+    : [];
+
+const scoresMatrix = (v: unknown): number[][] =>
+  Array.isArray(v) ? v.map(numberArray) : [];
+
+const sanitizeRecentGame = (v: unknown): RecentGame | null => {
+  if (!isObject(v)) return null;
+  const kind = oneOf('sebeeta', 'kout', 'custom')(v.kind, 'custom');
+  return {
+    kind,
+    players: stringArray(v.players),
+    teamNames: stringArray(v.teamNames),
+    when: finiteNumber(v.when, 0),
+    roundCount: positiveInt(v.roundCount, 0),
+    winner: typeof v.winner === 'string' ? v.winner : '',
+    score: typeof v.score === 'string' ? v.score : '',
+  };
+};
+
+const sanitizeProfile = (v: unknown): Profile | null => {
+  if (!isObject(v) || typeof v.name !== 'string') return null;
+  const teammates: Record<string, number> = {};
+  if (isObject(v.teammates)) {
+    for (const [k, n] of Object.entries(v.teammates)) {
+      if (typeof n === 'number' && Number.isFinite(n) && n > 0) teammates[k] = n;
+    }
+  }
+  return {
+    name: v.name,
+    gamesPlayed: Math.max(0, positiveInt(v.gamesPlayed, 0)),
+    wins: Math.max(0, positiveInt(v.wins, 0)),
+    lastPlayed: finiteNumber(v.lastPlayed, 0),
+    teammates,
+  };
+};
+
+const sanitizeProfiles = (v: unknown): Record<string, Profile> => {
+  if (!isObject(v)) return {};
+  const out: Record<string, Profile> = {};
+  for (const [k, raw] of Object.entries(v)) {
+    const p = sanitizeProfile(raw);
+    if (p) out[k] = p;
+  }
+  return out;
+};
+
+export function sanitizeState(raw: unknown): PersistedState {
+  if (!isObject(raw)) return { ...DEFAULT_STATE };
+  const recent = Array.isArray(raw.recentGames)
+    ? (raw.recentGames
+        .map(sanitizeRecentGame)
+        .filter((r): r is RecentGame => r !== null)
+        .slice(0, 10))
+    : [];
+  return {
+    gameMode: oneOf('sebeeta', 'kout', 'custom')(raw.gameMode, DEFAULT_STATE.gameMode),
+    players: stringArray(raw.players),
+    playerTeam: numberArray(raw.playerTeam),
+    teamNames: stringArray(raw.teamNames),
+    scores: scoresMatrix(raw.scores),
+    threshold: positiveInt(raw.threshold, DEFAULT_STATE.threshold),
+    winRule: oneOf('lowest', 'highest')(raw.winRule, DEFAULT_STATE.winRule),
+    gameOver: typeof raw.gameOver === 'boolean' ? raw.gameOver : false,
+    gameLogged: typeof raw.gameLogged === 'boolean' ? raw.gameLogged : false,
+    lang: oneOf('en', 'ar')(raw.lang, DEFAULT_STATE.lang),
+    koutEntryMode: oneOf('contract', 'manual')(raw.koutEntryMode, DEFAULT_STATE.koutEntryMode),
+    entryStyle: oneOf('pm', 'numpad')(raw.entryStyle, DEFAULT_STATE.entryStyle),
+    currentScreen: oneOf('home', 'setup', 'play', 'history', 'winner')(
+      raw.currentScreen,
+      DEFAULT_STATE.currentScreen,
+    ),
+    recentGames: recent,
+    theme: oneOf('light', 'dark')(raw.theme, DEFAULT_STATE.theme),
+    playerProfiles: sanitizeProfiles(raw.playerProfiles),
+    sound: typeof raw.sound === 'boolean' ? raw.sound : DEFAULT_STATE.sound,
+  };
+}
+
 export function loadState(): PersistedState {
   if (typeof localStorage === 'undefined') return { ...DEFAULT_STATE };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { ...DEFAULT_STATE };
-    const parsed = JSON.parse(raw) as Partial<PersistedState>;
-    return { ...DEFAULT_STATE, ...parsed };
+    return sanitizeState(JSON.parse(raw));
   } catch {
     return { ...DEFAULT_STATE };
   }
