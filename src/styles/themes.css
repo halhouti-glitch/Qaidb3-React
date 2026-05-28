@@ -1192,8 +1192,37 @@ button.numpad-input.active {
   letter-spacing: -0.01em;
 }
 .numpad button.wide { grid-column: span 3; }
+/* Bottom row split into Previous + Next/Save. The wrapper spans the full
+   3 columns and hosts a flex row so the two buttons share the width
+   evenly without fighting the grid. */
+.numpad .numpad-nav {
+  grid-column: span 3;
+  display: flex;
+  gap: 6px;
+}
+.numpad .numpad-nav button {
+  flex: 1;
+  height: 52px;
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.numpad .numpad-nav button.prev {
+  background: var(--bg);
+  color: var(--ink);
+}
+.numpad .numpad-nav button.prev:active { background: var(--accent-soft); }
 .numpad.compact { margin-top: 10px; gap: 4px; }
 .numpad.compact button { height: 40px; font-size: 18px; border-radius: var(--radius-s); }
+.numpad.compact .numpad-nav button { height: 40px; font-size: 13px; border-radius: var(--radius-s); }
 
 /* ============================================================
    Kout round entry

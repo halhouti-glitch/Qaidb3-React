@@ -494,8 +494,10 @@ function NumpadEntry({ onSubmit, onClose }: EntryProps) {
   };
 
   const advance = () => setFocusIdx((i) => (i + 1) % n);
+  const regress = () => setFocusIdx((i) => (i - 1 + n) % n);
   const submit = () => onSubmit(vals.slice());
-  const arrow = lang === 'ar' ? '←' : '→';
+  const arrowNext = lang === 'ar' ? '←' : '→';
+  const arrowPrev = lang === 'ar' ? '→' : '←';
 
   return (
     <>
@@ -548,16 +550,10 @@ function NumpadEntry({ onSubmit, onClose }: EntryProps) {
             {k}
           </button>
         ))}
-        <button type="button" className="special" onClick={() => tap('clr')}>
-          {t('sheetClear')}
-        </button>
-        <button type="button" onClick={() => tap(0)}>
-          0
-        </button>
+        {/* Sebeeta swaps the bottom-row corners so the −10 shortcut lives on
+            the left and CLR on the right — keeps CLR thumb-reachable beside
+            the larger Next button without burying the −10 special-case. */}
         {isSebeeta ? (
-          // Sebeeta-only: −10 shortcut replaces the standard backspace key
-          // (the −10 bonus is a common Sebeeta move; typing it on the
-          // numpad would otherwise need 3 taps).
           <button
             type="button"
             className="special m10"
@@ -566,25 +562,47 @@ function NumpadEntry({ onSubmit, onClose }: EntryProps) {
             −10
           </button>
         ) : (
+          <button type="button" className="special" onClick={() => tap('clr')}>
+            {t('sheetClear')}
+          </button>
+        )}
+        <button type="button" onClick={() => tap(0)}>
+          0
+        </button>
+        {isSebeeta ? (
+          <button type="button" className="special" onClick={() => tap('clr')}>
+            {t('sheetClear')}
+          </button>
+        ) : (
           <button type="button" className="special" onClick={() => tap('del')}>
             ⌫
           </button>
         )}
-        <button
-          type="button"
-          className={focusIdx === n - 1 ? 'wide confirm' : 'wide next'}
-          onClick={focusIdx === n - 1 ? submit : advance}
-        >
-          {focusIdx === n - 1 ? (
-            <>
-              <Icon.Check size={14} /> {t('sheetSave')}
-            </>
-          ) : (
-            <>
-              {t('sheetNext')} {arrow}
-            </>
-          )}
-        </button>
+        <div className="numpad-nav">
+          <button
+            type="button"
+            className="prev"
+            onClick={regress}
+            aria-label={t('prevPlayer')}
+          >
+            {arrowPrev} {t('prevPlayer')}
+          </button>
+          <button
+            type="button"
+            className={focusIdx === n - 1 ? 'confirm' : 'next'}
+            onClick={focusIdx === n - 1 ? submit : advance}
+          >
+            {focusIdx === n - 1 ? (
+              <>
+                <Icon.Check size={14} /> {t('sheetSave')}
+              </>
+            ) : (
+              <>
+                {t('nextPlayer')} {arrowNext}
+              </>
+            )}
+          </button>
+        </div>
       </div>
       <SheetFooter onSubmit={submit} onClose={onClose} disabled={false} />
     </>

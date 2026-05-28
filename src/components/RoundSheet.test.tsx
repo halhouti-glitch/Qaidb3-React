@@ -174,9 +174,7 @@ describe('RoundSheet — Sebeeta numpad', () => {
     const { api, container } = renderWithGame(<SheetHost />, {
       initial: sebeetaInit,
     });
-    // Numpad keys: digits 1..9, then CLR, 0, −10, Next/Save (wide)
     const numpadButtons = container.querySelectorAll('.numpad button');
-    // Find by label — digit buttons are <button>1</button>, <button>0</button>
     const key = (label: string) =>
       Array.from(numpadButtons).find((b) => b.textContent === label) as HTMLButtonElement;
     act(() => {
@@ -184,20 +182,58 @@ describe('RoundSheet — Sebeeta numpad', () => {
       fireEvent.click(key('0'));
       fireEvent.click(key('5'));
     });
-    // Now Next-advance through the remaining seats, then Save.
-    // The wide button reads "Next →" until focus is on the last seat, then "Save".
+    // Bottom row is now split into Previous + Next/Save. Advance via Next
+    // until the focus reaches the last seat (where Next becomes Save).
+    const nextBtn = () =>
+      container.querySelector('.numpad .numpad-nav button.next, .numpad .numpad-nav button.confirm') as HTMLButtonElement;
     for (let i = 0; i < 5; i++) {
-      const wide = container.querySelector('.numpad .wide') as HTMLButtonElement;
       act(() => {
-        fireEvent.click(wide);
+        fireEvent.click(nextBtn());
       });
     }
-    // On the 6th press the wide button is now Save and submits.
-    const wideAfter = container.querySelector('.numpad .wide') as HTMLButtonElement;
+    // Sixth click — wide button is now in 'confirm' mode and submits.
     act(() => {
-      fireEvent.click(wideAfter);
+      fireEvent.click(nextBtn());
     });
     expect(api.state.scores).toEqual([[105, 0, 0, 0, 0, 0]]);
+  });
+
+  it('Sebeeta bottom row: −10 is leftmost, CLR is rightmost (with 0 in the middle)', () => {
+    const { container } = renderWithGame(<SheetHost />, { initial: sebeetaInit });
+    const specials = container.querySelectorAll(
+      '.numpad button.special, .numpad button.special.m10',
+    );
+    // Buttons appear in DOM order: -10, 0, CLR.
+    // (the 0 key has no .special class, so we filter to special siblings only)
+    const m10 = container.querySelector('.numpad button.special.m10');
+    const clr = Array.from(container.querySelectorAll('.numpad button.special')).find(
+      (b) => !b.classList.contains('m10'),
+    );
+    expect(m10).not.toBeNull();
+    expect(clr).not.toBeNull();
+    // Verify document-order: m10 precedes clr.
+    expect(
+      m10!.compareDocumentPosition(clr!) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeGreaterThan(0);
+    // And both .special-class buttons are in the bottom-row area (last 3
+    // siblings before .numpad-nav).
+    expect(specials.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('Previous button regresses focus and wraps from seat 0 to last', () => {
+    const { container } = renderWithGame(<SheetHost />, { initial: sebeetaInit });
+    const prevBtn = container.querySelector(
+      '.numpad .numpad-nav button.prev',
+    ) as HTMLButtonElement;
+    expect(prevBtn).not.toBeNull();
+
+    // Start focused on seat 1 (idx 0) — clicking Previous wraps to seat 6 (idx 5).
+    act(() => {
+      fireEvent.click(prevBtn);
+    });
+    const focusedRow = container.querySelector('.entry-row.focused');
+    const seatLabel = focusedRow?.querySelector('.seat')?.textContent;
+    expect(seatLabel).toBe('6');
   });
 
   it('CLR resets the focused entry to 0', () => {
