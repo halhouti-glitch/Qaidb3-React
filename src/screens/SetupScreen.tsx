@@ -5,7 +5,6 @@ import { Header } from '../components/Header';
 import { Icon } from '../components/Icon';
 import { getGame } from '../games/registry';
 import { topProfiles } from '../state/profiles';
-import { shuffle } from '../lib/shuffle';
 import { QuickFill } from './setup/QuickFill';
 import type { WinRule } from '../state/persistedState';
 
@@ -116,14 +115,6 @@ export function SetupScreen() {
       if (idx === -1) return prev;
       return prev.map((n, i) => (i === idx ? name : n));
     });
-
-  // Recent line-up: replace the roster wholesale (templates are pre-filtered
-  // to the current player count).
-  const applyTemplate = (names: string[]) =>
-    setPlayerNames(() => names.slice(0, count));
-
-  // Shuffle seat order — randomises partners for team formats.
-  const shuffleNames = () => setPlayerNames((prev) => shuffle(prev));
 
   const canStart =
     playerNames.every((n) => n.trim().length > 0) &&
@@ -248,15 +239,8 @@ export function SetupScreen() {
           </div>
         </div>
 
-        {/* Quick-fill helpers: top players, recent line-ups, shuffle. */}
-        <QuickFill
-          mode={mode}
-          count={count}
-          showShuffle={showsAsTeams}
-          onPick={fillNextSeat}
-          onApplyTemplate={applyTemplate}
-          onShuffle={shuffleNames}
-        />
+        {/* Quick-add: tap a saved top player into the next open seat. */}
+        <QuickFill onPick={fillNextSeat} />
 
         {/* Player names — flat list or team blocks. */}
         <div className="setup-section">

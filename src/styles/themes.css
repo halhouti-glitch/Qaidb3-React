@@ -1973,25 +1973,38 @@ button.numpad-input.active {
 .backup-actions { display: flex; gap: 10px; }
 .backup-actions .btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 
-/* --- Setup quick-fill --- */
-.quickfill .label { margin-top: 4px; }
+/* --- Setup quick-add --- */
+.quickfill-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+.quickfill-head .label { margin: 0; }
 .qf-pills {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding: 8px 0 6px;
   scrollbar-width: none;
 }
 .qf-pills::-webkit-scrollbar { display: none; }
+.qf-pill-wrap {
+  display: inline-flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 100px;
+  overflow: hidden;
+}
 .qf-pill {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
-  padding: 6px 12px 6px 6px;
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: 100px;
+  padding: 6px 8px 6px 6px;
+  background: transparent;
+  border: 0;
   cursor: pointer;
   color: var(--ink);
   font: inherit;
@@ -2010,25 +2023,17 @@ button.numpad-input.active {
   font-weight: 700;
   flex-shrink: 0;
 }
-.qf-templates { display: flex; flex-direction: column; gap: 8px; }
-.qf-template {
-  text-align: start;
-  padding: 10px 14px;
-  background: var(--surface);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-s);
-  cursor: pointer;
-  color: var(--ink-soft);
-  font: inherit;
-  font-size: 13px;
-}
-.qf-template:hover { background: var(--surface-2); color: var(--ink); }
-.qf-shuffle-row { display: flex; }
-.qf-shuffle {
+.qf-remove {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  padding: 0 10px 0 4px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--muted);
 }
+.qf-remove:hover { color: var(--ink); background: var(--surface-2); }
 
 /* --- Recent-game detail sheet --- */
 .recent-sheet, .share-sheet { padding: 12px 22px 22px; }

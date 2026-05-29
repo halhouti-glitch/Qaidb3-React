@@ -2,71 +2,48 @@ import { describe, it, expect, vi } from 'vitest';
 import { fireEvent } from '@testing-library/react';
 import { renderWithGame } from '../../test/harness';
 import { QuickFill } from './QuickFill';
-import type { Profile, RecentGame } from '../../state/persistedState';
+import type { Profile } from '../../state/persistedState';
+
+const profiles = (): Record<string, Profile> => ({
+  sam: { name: 'Sam', gamesPlayed: 3, wins: 1, lastPlayed: 0, teammates: {} },
+  lee: { name: 'Lee', gamesPlayed: 2, wins: 2, lastPlayed: 0, teammates: {} },
+});
 
 describe('QuickFill', () => {
-  it('renders top players and fires onPick', () => {
+  it('renders top players and fires onPick when a pill is tapped', () => {
     const onPick = vi.fn();
-    const profiles: Record<string, Profile> = {
-      sam: { name: 'Sam', gamesPlayed: 3, wins: 1, lastPlayed: 0, teammates: {} },
-    };
-    const { getByText } = renderWithGame(
-      <QuickFill
-        mode="custom"
-        count={2}
-        showShuffle
-        onPick={onPick}
-        onApplyTemplate={() => {}}
-        onShuffle={() => {}}
-      />,
-      { initial: { playerProfiles: profiles } },
-    );
+    const { getByText } = renderWithGame(<QuickFill onPick={onPick} />, {
+      initial: { playerProfiles: profiles() },
+    });
     fireEvent.click(getByText('Sam'));
     expect(onPick).toHaveBeenCalledWith('Sam');
   });
 
-  it('offers matching recent line-ups and fires onApplyTemplate', () => {
-    const onApply = vi.fn();
-    const recents: RecentGame[] = [
-      {
-        kind: 'custom',
-        players: ['A', 'B'],
-        teamNames: [],
-        when: 1,
-        roundCount: 1,
-        winner: 'A',
-        score: '1',
-      },
-    ];
-    const { getByText } = renderWithGame(
-      <QuickFill
-        mode="custom"
-        count={2}
-        showShuffle={false}
-        onPick={() => {}}
-        onApplyTemplate={onApply}
-        onShuffle={() => {}}
-      />,
-      { initial: { recentGames: recents } },
-    );
-    fireEvent.click(getByText('A · B'));
-    expect(onApply).toHaveBeenCalledWith(['A', 'B']);
+  it('renders nothing when there are no saved players', () => {
+    const { container } = renderWithGame(<QuickFill onPick={() => {}} />);
+    expect(container.querySelector('.quickfill')).toBeNull();
   });
 
-  it('fires onShuffle when shuffle is shown', () => {
-    const onShuffle = vi.fn();
-    const { getByText } = renderWithGame(
-      <QuickFill
-        mode="sebeeta"
-        count={6}
-        showShuffle
-        onPick={() => {}}
-        onApplyTemplate={() => {}}
-        onShuffle={onShuffle}
-      />,
-      { initial: {} },
+  it('removes a single quick-add player via its ×', () => {
+    const { getByLabelText, api } = renderWithGame(<QuickFill onPick={() => {}} />, {
+      initial: { playerProfiles: profiles() },
+    });
+    fireEvent.click(getByLabelText('Remove player — Sam'));
+    expect(api.state.playerProfiles.sam).toBeUndefined();
+    expect(api.state.playerProfiles.lee).toBeDefined();
+  });
+
+  it('clears all quick-add players after confirming', () => {
+    const { getByText, container, api } = renderWithGame(
+      <QuickFill onPick={() => {}} />,
+      { initial: { playerProfiles: profiles() } },
     );
-    fireEvent.click(getByText('Shuffle'));
-    expect(onShuffle).toHaveBeenCalled();
+    // The section's Clear-all link (the only "Clear" before the sheet opens).
+    fireEvent.click(getByText('Clear'));
+    const confirmBtn = container.querySelector(
+      '.confirm-sheet .btn-danger',
+    ) as HTMLButtonElement;
+    fireEvent.click(confirmBtn);
+    expect(Object.keys(api.state.playerProfiles)).toHaveLength(0);
   });
 });

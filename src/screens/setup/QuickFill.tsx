@@ -1,109 +1,73 @@
-import { useMemo } from 'react';
 import { useLang } from '../../i18n/LangContext';
 import { useGame } from '../../state/GameContext';
-import { topProfiles } from '../../state/profiles';
+import { useConfirm } from '../../components/ConfirmSheet';
+import { useToast } from '../../components/Toast';
+import { topProfiles, profileKey } from '../../state/profiles';
 import { initials } from '../../lib/initials';
 import { Icon } from '../../components/Icon';
-import type { GameMode } from '../../state/persistedState';
 
 type Props = {
-  mode: GameMode;
-  count: number;
-  showShuffle: boolean;
   onPick: (name: string) => void;
-  onApplyTemplate: (names: string[]) => void;
-  onShuffle: () => void;
 };
 
-// Setup-screen helpers that speed up filling the roster:
-//  - Quick add: tap a top player to drop them into the next open seat.
-//  - Recent line-ups: re-use the exact roster from a recent game of the
-//    same mode + player count.
-//  - Shuffle: randomise seat order (i.e. partners) for team formats.
-export function QuickFill({
-  mode,
-  count,
-  showShuffle,
-  onPick,
-  onApplyTemplate,
-  onShuffle,
-}: Props) {
+// Setup-screen quick-add: tap a saved top player to drop them into the next
+// open seat. Each pill carries an × to forget that one player, and the section
+// header has a Clear-all link — both delete the underlying profile (same
+// semantics as the Home Top Players strip and the Profile sheet).
+export function QuickFill({ onPick }: Props) {
   const { t } = useLang();
-  const { state } = useGame();
+  const { state, actions } = useGame();
+  const { confirm } = useConfirm();
+  const toast = useToast();
 
-  const tops = useMemo(
-    () => topProfiles(state.playerProfiles, 8),
-    [state.playerProfiles],
-  );
+  const tops = topProfiles(state.playerProfiles, 8);
+  if (tops.length === 0) return null;
 
-  const templates = useMemo(() => {
-    const seen = new Set<string>();
-    const out: string[][] = [];
-    for (const g of state.recentGames) {
-      if (g.kind !== mode || g.players.length !== count) continue;
-      const key = g.players.join('|').toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push(g.players.slice());
-      if (out.length >= 3) break;
-    }
-    return out;
-  }, [state.recentGames, mode, count]);
+  const clearAll = () =>
+    confirm({
+      title: `${t('setupQuickAdd')} — ${t('clearAll')}?`,
+      confirmLabel: t('clearAll'),
+      destructive: true,
+      onConfirm: () => actions.clearAllProfiles(),
+    });
 
-  if (tops.length === 0 && templates.length === 0 && !showShuffle) return null;
+  const removeOne = (name: string) => {
+    actions.removeProfile(profileKey(name));
+    toast.show(t('removePlayer'));
+  };
 
   return (
     <div className="setup-section quickfill">
-      {tops.length > 0 && (
-        <>
-          <div className="label">{t('setupQuickAdd')}</div>
-          <div className="qf-pills">
-            {tops.map((p) => (
-              <button
-                key={p.name}
-                type="button"
-                className="qf-pill"
-                onClick={() => onPick(p.name)}
-              >
-                <span className="qf-avatar" aria-hidden="true">
-                  {initials(p.name)}
-                </span>
-                <span className="qf-name">{p.name}</span>
-              </button>
-            ))}
+      <div className="quickfill-head">
+        <div className="label">{t('setupQuickAdd')}</div>
+        <button type="button" className="clear-link" onClick={clearAll}>
+          {t('clearAll')}
+        </button>
+      </div>
+      <div className="qf-pills">
+        {tops.map((p) => (
+          <div key={p.name} className="qf-pill-wrap">
+            <button
+              type="button"
+              className="qf-pill"
+              onClick={() => onPick(p.name)}
+            >
+              <span className="qf-avatar" aria-hidden="true">
+                {initials(p.name)}
+              </span>
+              <span className="qf-name">{p.name}</span>
+            </button>
+            <button
+              type="button"
+              className="qf-remove"
+              onClick={() => removeOne(p.name)}
+              aria-label={`${t('removePlayer')} — ${p.name}`}
+            >
+              <Icon.Close size={12} />
+            </button>
           </div>
-        </>
-      )}
-
-      {templates.length > 0 && (
-        <>
-          <div className="label">{t('setupRecentLineups')}</div>
-          <div className="qf-templates">
-            {templates.map((names, i) => (
-              <button
-                key={i}
-                type="button"
-                className="qf-template"
-                onClick={() => onApplyTemplate(names)}
-              >
-                {names.join(' · ')}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-
-      {showShuffle && (
-        <div className="qf-shuffle-row">
-          <button
-            type="button"
-            className="btn btn-ghost qf-shuffle"
-            onClick={onShuffle}
-          >
-            <Icon.Shuffle size={16} /> {t('setupShuffleTeams')}
-          </button>
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   );
 }
