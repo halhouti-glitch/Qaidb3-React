@@ -35,14 +35,25 @@ export function trixKingIdx(kingFirst: number, kingdom: number): number {
   return (((kingFirst - kingdom) % TRIX_KINGDOMS) + TRIX_KINGDOMS) % TRIX_KINGDOMS;
 }
 
+// Contracts that can be declared/doubled (score ×2). King of Hearts and
+// Queens only — per the locked rules.
+export const TRIX_DOUBLABLE: readonly TrixPenalty[] = ['kingOfHearts', 'queens'];
+
 // Canonical total a deal's per-player deltas should sum to. Penalty deal =
-// sum of its included contracts; Trix deal = −500 (−700 with naghil). The
-// declared/doubled adjustments (King +75 / Queen +25 each) are P3 — `doubled`
-// is intentionally not yet folded in here.
+// sum of its included contracts, with declared/doubled contracts counted ×2
+// (King of Hearts 75→150, Queens 100→200). Trix deal = −500 (−700 naghil).
 export function trixExpectedDealTotal(deal: TrixDeal): number {
   if (deal.kind === 'trix') return deal.naghil ? TRIX_NAGHIL - 300 : -500;
   let total = 0;
   for (const c of deal.contracts) total += TRIX_CONTRACT_SCORES[c];
+  // A doubled contract scores twice → add its base once more.
+  if (deal.doubled) {
+    for (const c of deal.doubled) {
+      if (TRIX_DOUBLABLE.includes(c) && deal.contracts.includes(c)) {
+        total += TRIX_CONTRACT_SCORES[c];
+      }
+    }
+  }
   return total;
 }
 

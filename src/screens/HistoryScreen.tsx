@@ -38,7 +38,9 @@ export function HistoryScreen() {
   const dealLabel = (meta: TrixRoundMeta | undefined): string | null => {
     if (!meta) return null;
     if (meta.kind === 'trix') return meta.naghil ? `${t('trixTrix')} · ${t('trixNaghil')}` : t('trixTrix');
-    return meta.contracts.map(contractName).join(' + ');
+    return meta.contracts
+      .map((c) => (meta.doubled?.includes(c) ? `${contractName(c)} ×2` : contractName(c)))
+      .join(' + ');
   };
 
   const teamLabel = (idx: 0 | 1): string =>
