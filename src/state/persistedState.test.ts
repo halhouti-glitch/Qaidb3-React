@@ -23,7 +23,7 @@ describe('sanitizeState — guards against bad localStorage payloads', () => {
   it('defaults unknown enums while keeping the surrounding fields', () => {
     const bad = {
       ...DEFAULT_STATE,
-      gameMode: 'trix', // future / unknown value
+      gameMode: 'poker', // future / unknown value
       lang: 'fr', // unsupported
       currentScreen: 'lobby', // unknown screen
       theme: 'rainbow',
@@ -116,5 +116,76 @@ describe('sanitizeState — guards against bad localStorage payloads', () => {
     expect(next.gameOver).toBe(false);
     expect(next.gameLogged).toBe(false);
     expect(next.sound).toBe(DEFAULT_STATE.sound); // default true
+  });
+});
+
+describe('sanitizeState — trix', () => {
+  const validTrix = {
+    ...DEFAULT_STATE,
+    gameMode: 'trix' as const,
+    players: ['A', 'B', 'C', 'D'],
+    scores: [
+      [75, 100, 130, 195],
+      [-200, -150, -100, -50],
+    ],
+    trixMatch: {
+      partnership: false,
+      kingFirst: 2,
+      rounds: [
+        {
+          kind: 'penalty' as const,
+          contracts: ['kingOfHearts', 'queens', 'diamonds', 'tricks'],
+          kingdom: 0,
+          kingIdx: 2,
+        },
+        { kind: 'trix' as const, kingdom: 0, kingIdx: 2 },
+      ],
+    },
+  };
+
+  it('accepts trix gameMode and preserves a valid trixMatch', () => {
+    const next = sanitizeState(validTrix);
+    expect(next.gameMode).toBe('trix');
+    expect(next.trixMatch).toEqual(validTrix.trixMatch);
+  });
+
+  it('omits trixMatch entirely for non-trix states (stays lean)', () => {
+    const next = sanitizeState({ ...DEFAULT_STATE });
+    expect('trixMatch' in next).toBe(false);
+  });
+
+  it('drops a malformed trixMatch (missing rounds / kingFirst)', () => {
+    expect(sanitizeState({ ...validTrix, trixMatch: { partnership: true } }).trixMatch).toBeUndefined();
+    expect(sanitizeState({ ...validTrix, trixMatch: 'nope' }).trixMatch).toBeUndefined();
+  });
+
+  it('filters out malformed rounds but keeps the valid ones', () => {
+    const next = sanitizeState({
+      ...validTrix,
+      trixMatch: {
+        partnership: false,
+        kingFirst: 0,
+        rounds: [
+          { kind: 'penalty', contracts: ['queens'], kingdom: 0, kingIdx: 0 },
+          { kind: 'penalty', contracts: ['bogus'], kingdom: 0, kingIdx: 0 }, // no valid contracts → dropped
+          { kind: 'spades', kingdom: 0, kingIdx: 0 }, // unknown kind → dropped
+          { kind: 'trix', kingdom: 0, kingIdx: 0, naghil: true },
+        ],
+      },
+    });
+    expect(next.trixMatch?.rounds).toEqual([
+      { kind: 'penalty', contracts: ['queens'], kingdom: 0, kingIdx: 0 },
+      { kind: 'trix', kingdom: 0, kingIdx: 0, naghil: true },
+    ]);
+  });
+
+  it('accepts trix as a recentGames kind', () => {
+    const next = sanitizeState({
+      ...DEFAULT_STATE,
+      recentGames: [
+        { kind: 'trix', players: ['A', 'B', 'C', 'D'], teamNames: [], when: 1, roundCount: 8, winner: 'A', score: '-300' },
+      ],
+    });
+    expect(next.recentGames[0]?.kind).toBe('trix');
   });
 });

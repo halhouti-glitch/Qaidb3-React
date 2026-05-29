@@ -6,6 +6,7 @@ import type {
   KoutOutcome,
   Winner,
 } from './types';
+import { trixGameOver } from './trix';
 
 // Kout contract scoring table — per legacy.html:1946.
 // Each level has a 'made' value (paid to the caller) and a 'failed' value
@@ -115,6 +116,22 @@ export function checkWinner(state: GameStateSlice, totalsArr: number[]): Winner 
       }
     }
     return null;
+  }
+
+  if (state.gameMode === 'trix') {
+    // Threshold is unused — the game ends when all 4 kingdoms are complete.
+    if (!state.trixMatch || !trixGameOver(state.trixMatch)) return null;
+    // Individual, lowest total wins. Partnership rollup is P2.
+    let min = Infinity;
+    let idx = -1;
+    totalsArr.forEach((v, i) => {
+      if (v < min) {
+        min = v;
+        idx = i;
+      }
+    });
+    if (idx < 0) return null;
+    return { type: 'player', idx };
   }
 
   if (state.gameMode === 'kout') {

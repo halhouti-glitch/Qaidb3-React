@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { serializeBackup, parseBackup } from './backup';
-import { DEFAULT_STATE } from './persistedState';
+import { DEFAULT_STATE, type PersistedState } from './persistedState';
 
 describe('backup serialize/parse', () => {
   it('round-trips a state through serialize → parse', () => {
@@ -14,6 +14,30 @@ describe('backup serialize/parse', () => {
     expect(back?.players).toEqual(['A', 'B']);
     expect(back?.threshold).toBe(151);
     expect(back?.lang).toBe('en');
+  });
+
+  it('round-trips a trix match through serialize → parse', () => {
+    const state: PersistedState = {
+      ...DEFAULT_STATE,
+      gameMode: 'trix',
+      players: ['A', 'B', 'C', 'D'],
+      scores: [[75, 100, 130, 195]],
+      trixMatch: {
+        partnership: false,
+        kingFirst: 1,
+        rounds: [
+          {
+            kind: 'penalty' as const,
+            contracts: ['kingOfHearts', 'queens', 'diamonds', 'tricks'],
+            kingdom: 0,
+            kingIdx: 1,
+          },
+        ],
+      },
+    };
+    const back = parseBackup(serializeBackup(state, 123));
+    expect(back?.gameMode).toBe('trix');
+    expect(back?.trixMatch).toEqual(state.trixMatch);
   });
 
   it('wraps the state in a versioned envelope', () => {

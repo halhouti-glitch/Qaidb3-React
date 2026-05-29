@@ -307,6 +307,66 @@ describe('checkWinner — custom + teams', () => {
   });
 });
 
+describe('checkWinner — trix', () => {
+  const players = ['P1', 'P2', 'P3', 'P4'];
+  function fullRounds() {
+    const rounds = [] as import('../state/persistedState').TrixRoundMeta[];
+    for (let k = 0; k < 4; k++) {
+      rounds.push({
+        kind: 'penalty',
+        contracts: ['kingOfHearts', 'queens', 'diamonds', 'tricks'],
+        kingdom: k,
+        kingIdx: k,
+      });
+      rounds.push({ kind: 'trix', kingdom: k, kingIdx: k });
+    }
+    return rounds;
+  }
+
+  it('returns null until all 4 kingdoms are complete', () => {
+    const rounds = fullRounds().filter((r) => !(r.kingdom === 3 && r.kind === 'trix'));
+    const s: GameStateSlice = {
+      gameMode: 'trix',
+      winRule: 'lowest',
+      threshold: 0,
+      players,
+      playerTeam: [],
+      scores: rounds.map(() => [0, 0, 0, 0]),
+      trixMatch: { partnership: false, kingFirst: 0, rounds },
+    };
+    expect(checkWinner(s, totals(s))).toBeNull();
+  });
+
+  it('returns the lowest-total player once all kingdoms complete', () => {
+    const rounds = fullRounds();
+    // Give player 2 the lowest net total via the ladder.
+    const scores = rounds.map((r) => (r.kind === 'trix' ? [-50, -100, -200, -150] : [125, 125, 125, 125]));
+    const s: GameStateSlice = {
+      gameMode: 'trix',
+      winRule: 'lowest',
+      threshold: 0,
+      players,
+      playerTeam: [],
+      scores,
+      trixMatch: { partnership: false, kingFirst: 0, rounds },
+    };
+    // player 2 gets -200 four times from trix, +125*4 penalty = (500-800)=-300 net; others higher
+    expect(checkWinner(s, totals(s))).toEqual({ type: 'player', idx: 2 });
+  });
+
+  it('returns null when trixMatch is missing', () => {
+    const s: GameStateSlice = {
+      gameMode: 'trix',
+      winRule: 'lowest',
+      threshold: 0,
+      players,
+      playerTeam: [],
+      scores: [],
+    };
+    expect(checkWinner(s, totals(s))).toBeNull();
+  });
+});
+
 describe('topScorerPerTeam', () => {
   it('returns the highest individual scorer per team', () => {
     // playerTeam: [0,1,0,1,0,1] → team 0 = p0,p2,p4 ; team 1 = p1,p3,p5

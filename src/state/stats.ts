@@ -15,7 +15,7 @@ export type LeaderRow = {
 export type StreakRow = { name: string; streak: number };
 
 export function gamesByMode(recents: RecentGame[]): Record<GameMode, number> {
-  const out: Record<GameMode, number> = { sebeeta: 0, kout: 0, custom: 0 };
+  const out: Record<GameMode, number> = { sebeeta: 0, kout: 0, custom: 0, trix: 0 };
   for (const g of recents) out[g.kind] += 1;
   return out;
 }

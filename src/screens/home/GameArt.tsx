@@ -168,6 +168,83 @@ export function KoutArt() {
   );
 }
 
+export function TrixArt() {
+  // 7♥ (the King-decider) + the three penalty face/suit cards: K♥, Q♠, 10♦.
+  const heart = (cx: number, cy: number, s = 1) => (
+    <path
+      className="ta-red"
+      transform={`translate(${cx},${cy}) scale(${s})`}
+      d="M 0 9 L -10 -3 Q -13 -8 -9 -11 Q -4 -13 0 -7 Q 4 -13 9 -11 Q 13 -8 10 -3 Z"
+    />
+  );
+  return (
+    <svg viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Trix">
+      <defs>
+        <style>{`
+          .ta-bg{fill:#FFFFFF;stroke:#0F1A2E;stroke-width:2}
+          .ta-shadow{fill:#0F1A2E;opacity:0.15}
+          .ta-red{fill:#D72638}.ta-dark{fill:#0F1A2E}
+          .ta-corner{font-family:Helvetica,Arial,sans-serif;font-weight:800}
+        `}</style>
+      </defs>
+      {/* 7♥ — the King decider */}
+      <g transform="translate(225,50) rotate(-22)">
+        <rect className="ta-shadow" x="3" y="4" width="110" height="155" rx="12" />
+        <rect className="ta-bg" x="0" y="0" width="110" height="155" rx="12" />
+        <text className="ta-corner ta-red" x="12" y="26" fontSize="20">7</text>
+        {heart(28, 88, 1.4)}
+        {heart(82, 88, 1.4)}
+        {heart(28, 52, 1.4)}
+        {heart(82, 52, 1.4)}
+        {heart(28, 124, 1.4)}
+        {heart(82, 124, 1.4)}
+        {heart(55, 88, 1.4)}
+        <g transform="translate(98,145) rotate(180)">
+          <text className="ta-corner ta-red" x="0" y="0" fontSize="20">7</text>
+        </g>
+      </g>
+      {/* K♥ — King of Hearts (the +75 penalty) */}
+      <g transform="translate(285,35) rotate(-8)">
+        <rect className="ta-shadow" x="3" y="4" width="110" height="155" rx="12" />
+        <rect className="ta-bg" x="0" y="0" width="110" height="155" rx="12" />
+        <text className="ta-corner ta-red" x="12" y="26" fontSize="20">K</text>
+        <g transform="translate(55,84)">
+          <path className="ta-red" d="M -22 14 L -22 -14 L -12 -2 L 0 -18 L 12 -2 L 22 -14 L 22 14 Z" />
+          <rect className="ta-red" x="-22" y="16" width="44" height="6" />
+        </g>
+        {heart(55, 122, 1.2)}
+        <g transform="translate(98,145) rotate(180)">
+          <text className="ta-corner ta-red" x="0" y="0" fontSize="20">K</text>
+        </g>
+      </g>
+      {/* Q♠ — Queens (+25 each) */}
+      <g transform="translate(345,35) rotate(8)">
+        <rect className="ta-shadow" x="3" y="4" width="110" height="155" rx="12" />
+        <rect className="ta-bg" x="0" y="0" width="110" height="155" rx="12" />
+        <text className="ta-corner ta-dark" x="12" y="26" fontSize="20">Q</text>
+        <g transform="translate(55,84)">
+          <path className="ta-dark" d="M 0 -26 Q -22 -6 -22 7 Q -22 19 -10 19 Q -4 19 -2 14 L -6 28 L 6 28 L 2 14 Q 4 19 10 19 Q 22 19 22 7 Q 22 -6 0 -26 Z" />
+        </g>
+        <g transform="translate(98,145) rotate(180)">
+          <text className="ta-corner ta-dark" x="0" y="0" fontSize="20">Q</text>
+        </g>
+      </g>
+      {/* 10♦ — Diamonds (+10 each) */}
+      <g transform="translate(405,50) rotate(22)">
+        <rect className="ta-shadow" x="3" y="4" width="110" height="155" rx="12" />
+        <rect className="ta-bg" x="0" y="0" width="110" height="155" rx="12" />
+        <text className="ta-corner ta-red" x="10" y="26" fontSize="20">10</text>
+        <g transform="translate(55,84)">
+          <polygon className="ta-red" points="0,-30 22,0 0,30 -22,0" />
+        </g>
+        <g transform="translate(100,145) rotate(180)">
+          <text className="ta-corner ta-red" x="0" y="0" fontSize="20">10</text>
+        </g>
+      </g>
+    </svg>
+  );
+}
+
 export function CustomArt() {
   // Four red card-backs with gold Q seal — "open scorepad"
   return (

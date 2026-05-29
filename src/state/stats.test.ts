@@ -28,7 +28,7 @@ const rg = (p: Partial<RecentGame> & { kind: GameMode }): RecentGame => ({
 describe('stats', () => {
   it('gamesByMode counts each kind', () => {
     const recents = [rg({ kind: 'kout' }), rg({ kind: 'kout' }), rg({ kind: 'custom' })];
-    expect(gamesByMode(recents)).toEqual({ sebeeta: 0, kout: 2, custom: 1 });
+    expect(gamesByMode(recents)).toEqual({ sebeeta: 0, kout: 2, custom: 1, trix: 0 });
   });
 
   it('leaderboard ranks by wins, then win-rate, and drops 0-game profiles', () => {

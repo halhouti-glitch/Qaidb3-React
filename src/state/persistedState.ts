@@ -1,7 +1,31 @@
 import type { Lang } from '../i18n/strings';
 
-export type GameMode = 'sebeeta' | 'kout' | 'custom';
+export type GameMode = 'sebeeta' | 'kout' | 'custom' | 'trix';
 export type WinRule = 'lowest' | 'highest';
+
+// --- Trix ---------------------------------------------------------------
+// Trix is a kingdom-based trick game. The numeric source of truth stays
+// `scores: number[][]` (per-player deltas per deal); `trixMatch` carries the
+// per-deal metadata, index-aligned with `scores`. See project-trix-spec.
+export type TrixPenalty = 'kingOfHearts' | 'queens' | 'diamonds' | 'tricks';
+
+// A deal is either one of the (1–4 merged) penalty contracts, or the solo
+// Trix ladder. `doubled` (declared/doubled King or Queens) is P3 — carried in
+// the type now so the data model is stable, ignored by P1 scoring.
+export type TrixDeal =
+  | { kind: 'penalty'; contracts: TrixPenalty[]; doubled?: TrixPenalty[] }
+  | { kind: 'trix'; naghil?: boolean };
+
+export type TrixRoundMeta = TrixDeal & {
+  kingdom: number; // 0..3
+  kingIdx: number; // player who is King this kingdom
+};
+
+export type TrixMatch = {
+  partnership: boolean; // true = 2v2 rollup (P2; P1 ships individual-only)
+  kingFirst: number;    // 7♥ holder = kingdom 0's King
+  rounds: TrixRoundMeta[]; // length === scores.length
+};
 export type Theme = 'light' | 'dark';
 export type EntryStyle = 'pm' | 'numpad';
 export type KoutEntryMode = 'contract' | 'manual';
@@ -69,6 +93,10 @@ export type PersistedState = {
   playerProfiles: Record<string, Profile>;
   // PORT_FROM_VANILLA.md item 7. When false, vibrate + audio calls no-op.
   sound: boolean;
+  // Trix-only per-deal metadata, index-aligned with `scores`. Absent for all
+  // other modes and for states saved by pre-Trix builds — optional so the
+  // legacy-compatible storage shape is unchanged.
+  trixMatch?: TrixMatch;
 };
 
 export const STORAGE_KEY = 'cardScoreTracker_v1';
@@ -126,9 +154,54 @@ const numberArray = (v: unknown): number[] =>
 const scoresMatrix = (v: unknown): number[][] =>
   Array.isArray(v) ? v.map(numberArray) : [];
 
+// --- Trix sanitization --------------------------------------------------
+// The allowlist sanitizer DROPS unknown fields, so trixMatch must be parsed
+// explicitly or it would vanish on every load/backup round-trip. Reject (→
+// undefined) anything malformed rather than fabricating a partial match.
+const TRIX_PENALTY_VALUES: TrixPenalty[] = ['kingOfHearts', 'queens', 'diamonds', 'tricks'];
+
+const trixPenaltyArray = (v: unknown): TrixPenalty[] =>
+  Array.isArray(v)
+    ? v.filter((x): x is TrixPenalty => TRIX_PENALTY_VALUES.includes(x as TrixPenalty))
+    : [];
+
+const sanitizeTrixRound = (v: unknown): TrixRoundMeta | null => {
+  if (!isObject(v)) return null;
+  if (typeof v.kingdom !== 'number' || typeof v.kingIdx !== 'number') return null;
+  const kingdom = Math.floor(v.kingdom);
+  const kingIdx = Math.floor(v.kingIdx);
+  if (v.kind === 'trix') {
+    const round: TrixRoundMeta = { kind: 'trix', kingdom, kingIdx };
+    if (v.naghil === true) round.naghil = true;
+    return round;
+  }
+  if (v.kind === 'penalty') {
+    const contracts = trixPenaltyArray(v.contracts);
+    if (contracts.length === 0) return null;
+    const round: TrixRoundMeta = { kind: 'penalty', contracts, kingdom, kingIdx };
+    const doubled = trixPenaltyArray(v.doubled);
+    if (doubled.length > 0) round.doubled = doubled;
+    return round;
+  }
+  return null;
+};
+
+const sanitizeTrixMatch = (v: unknown): TrixMatch | undefined => {
+  if (!isObject(v)) return undefined;
+  if (typeof v.kingFirst !== 'number' || !Array.isArray(v.rounds)) return undefined;
+  const rounds = v.rounds
+    .map(sanitizeTrixRound)
+    .filter((r): r is TrixRoundMeta => r !== null);
+  return {
+    partnership: v.partnership === true,
+    kingFirst: Math.floor(v.kingFirst),
+    rounds,
+  };
+};
+
 const sanitizeRecentGame = (v: unknown): RecentGame | null => {
   if (!isObject(v)) return null;
-  const kind = oneOf('sebeeta', 'kout', 'custom')(v.kind, 'custom');
+  const kind = oneOf('sebeeta', 'kout', 'custom', 'trix')(v.kind, 'custom');
   const out: RecentGame = {
     kind,
     players: stringArray(v.players),
@@ -187,8 +260,9 @@ export function sanitizeState(raw: unknown): PersistedState {
         .filter((r): r is RecentGame => r !== null)
         .slice(0, 10))
     : [];
+  const trixMatch = sanitizeTrixMatch(raw.trixMatch);
   return {
-    gameMode: oneOf('sebeeta', 'kout', 'custom')(raw.gameMode, DEFAULT_STATE.gameMode),
+    gameMode: oneOf('sebeeta', 'kout', 'custom', 'trix')(raw.gameMode, DEFAULT_STATE.gameMode),
     players: stringArray(raw.players),
     playerTeam: numberArray(raw.playerTeam),
     teamNames: stringArray(raw.teamNames),
@@ -208,6 +282,9 @@ export function sanitizeState(raw: unknown): PersistedState {
     theme: oneOf('light', 'dark')(raw.theme, DEFAULT_STATE.theme),
     playerProfiles: sanitizeProfiles(raw.playerProfiles),
     sound: typeof raw.sound === 'boolean' ? raw.sound : DEFAULT_STATE.sound,
+    // Only attach when a valid trix match parsed — keeps non-trix states lean
+    // and the optional field truly absent.
+    ...(trixMatch ? { trixMatch } : {}),
   };
 }
 

@@ -14,10 +14,11 @@ import {
 } from '../state/stats';
 import type { GameMode } from '../state/persistedState';
 
-const MODE_KEY: Record<GameMode, 'gameSebeeta' | 'gameKout' | 'gameCustom'> = {
+const MODE_KEY: Record<GameMode, 'gameSebeeta' | 'gameKout' | 'gameCustom' | 'gameTrix'> = {
   sebeeta: 'gameSebeeta',
   kout: 'gameKout',
   custom: 'gameCustom',
+  trix: 'gameTrix',
 };
 
 export function StatsScreen() {

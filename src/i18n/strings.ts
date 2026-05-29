@@ -262,6 +262,41 @@ export type Strings = {
 
   // ── Generic a11y ─────────────────────────────────────────────
   closeLabel: string;
+
+  // ── Trix (project-trix-spec) ─────────────────────────────────
+  gameTrix: string;
+  gameTrixDesc: string;
+  gameTrixMeta: string;
+  trixHint: string;
+  // contract / deal names
+  trixKingOfHearts: string;
+  trixQueens: string;
+  trixDiamonds: string;
+  trixTricks: string;
+  trixTrix: string;
+  // King pick + kingdom progress
+  trixPickKingTitle: string;
+  trixPickKingHint: string;
+  trixKingdomLabel: (n: number) => string;
+  trixKingLabel: string;
+  trixCurrentKing: (name: string) => string;
+  trixRemainingLabel: string;
+  trixKingdomComplete: string;
+  // deal entry
+  trixDealTypeLabel: string;
+  trixPenaltyDeal: string;
+  trixLadderDeal: string;
+  trixSelectContracts: string;
+  trixCapturerLabel: string;
+  trixCountFor: (contract: string) => string;
+  trixCountRemaining: (n: number) => string;
+  trixFinishOrderLabel: string;
+  trixFinishPos: (n: number) => string;
+  trixNaghil: string;
+  trixNaghilHint: string;
+  trixDeclare: string;
+  trixChecksumWarn: (expected: number, actual: number) => string;
+  trixDealLabel: (contracts: string) => string;
 };
 
 const en: Strings = {
@@ -513,6 +548,39 @@ const en: Strings = {
   shareTextError: "Couldn't share.",
 
   closeLabel: 'Close',
+
+  // ── Trix ─────────────────────────────────────────────────────
+  gameTrix: 'Trix',
+  gameTrixDesc: 'Kingdoms of contracts. Lowest total wins — penalties add, the Trix ladder subtracts.',
+  gameTrixMeta: '4 players · 4 kingdoms',
+  trixHint: 'Trix: 4 players, 4 kingdoms. Each King plays the 5 contracts once. Lowest total wins.',
+  trixKingOfHearts: 'King of Hearts',
+  trixQueens: 'Queens',
+  trixDiamonds: 'Diamonds',
+  trixTricks: 'Tricks',
+  trixTrix: 'Trix',
+  trixPickKingTitle: 'Who starts as King?',
+  trixPickKingHint: 'The player holding the 7♥ is King of the first kingdom.',
+  trixKingdomLabel: (n) => `Kingdom ${n} of 4`,
+  trixKingLabel: 'King',
+  trixCurrentKing: (name) => `${name} is King`,
+  trixRemainingLabel: 'Remaining this kingdom',
+  trixKingdomComplete: 'Kingdom complete',
+  trixDealTypeLabel: 'Deal type',
+  trixPenaltyDeal: 'Penalties',
+  trixLadderDeal: 'Trix ladder',
+  trixSelectContracts: 'Which contracts? (played together)',
+  trixCapturerLabel: 'Who took the King of Hearts?',
+  trixCountFor: (contract) => `${contract} per player`,
+  trixCountRemaining: (n) => `${n} left to assign`,
+  trixFinishOrderLabel: 'Finish order (1st out → last)',
+  trixFinishPos: (n) => (n === 1 ? '1st' : n === 2 ? '2nd' : n === 3 ? '3rd' : `${n}th`),
+  trixNaghil: 'Naghil',
+  trixNaghilHint: 'First out scores −400 instead of −200',
+  trixDeclare: 'Declared (×2)',
+  trixChecksumWarn: (expected, actual) =>
+    `Totals sum to ${actual}, expected ${expected}.`,
+  trixDealLabel: (contracts) => contracts,
 };
 
 const ar: Strings = {
@@ -764,6 +832,38 @@ const ar: Strings = {
   shareTextError: 'تعذرت المشاركة.',
 
   closeLabel: 'إغلاق',
+
+  // ── ترِكس ────────────────────────────────────────────────────
+  gameTrix: 'ترِكس',
+  gameTrixDesc: 'ممالك من العقود. الأقل نقاطًا يفوز — العقوبات تُضيف وسلّم الترِكس يخصم.',
+  gameTrixMeta: '٤ لاعبين · ٤ ممالك',
+  trixHint: 'ترِكس: ٤ لاعبين، ٤ ممالك. كل ملك يلعب العقود الخمسة مرة. الأقل نقاطًا يفوز.',
+  trixKingOfHearts: 'شايب كبة',
+  trixQueens: 'البنات',
+  trixDiamonds: 'الديناري',
+  trixTricks: 'اللطوش',
+  trixTrix: 'ترِكس',
+  trixPickKingTitle: 'من يبدأ ملكًا؟',
+  trixPickKingHint: 'حامل ٧ كبة هو ملك المملكة الأولى.',
+  trixKingdomLabel: (n) => `المملكة ${n} من ٤`,
+  trixKingLabel: 'الملك',
+  trixCurrentKing: (name) => `${name} هو الملك`,
+  trixRemainingLabel: 'المتبقي في هذه المملكة',
+  trixKingdomComplete: 'اكتملت المملكة',
+  trixDealTypeLabel: 'نوع اللعبة',
+  trixPenaltyDeal: 'العقوبات',
+  trixLadderDeal: 'سلّم الترِكس',
+  trixSelectContracts: 'أي العقود؟ (تُلعب معًا)',
+  trixCapturerLabel: 'من أخذ شايب الكبة؟',
+  trixCountFor: (contract) => `${contract} لكل لاعب`,
+  trixCountRemaining: (n) => `بقي ${n} للتوزيع`,
+  trixFinishOrderLabel: 'ترتيب الخروج (الأول → الأخير)',
+  trixFinishPos: (n) => (n === 1 ? 'الأول' : n === 2 ? 'الثاني' : n === 3 ? 'الثالث' : 'الرابع'),
+  trixNaghil: 'نغل',
+  trixNaghilHint: 'الأول خروجًا يحصل على −٤٠٠ بدل −٢٠٠',
+  trixDeclare: 'مُعلَن (×٢)',
+  trixChecksumWarn: (expected, actual) => `المجموع ${actual}، والمتوقع ${expected}.`,
+  trixDealLabel: (contracts) => contracts,
 };
 
 export const STRINGS: Record<Lang, Strings> = { en, ar };

@@ -4,7 +4,7 @@
 // PersistedState `gameMode` union. Screens drive their behaviour from these
 // fields rather than `isKout/isSebeeta/isCustom` branches.
 import type { FC } from 'react';
-import { CustomArt, KoutArt, SebeetaArt } from '../screens/home/GameArt';
+import { CustomArt, KoutArt, SebeetaArt, TrixArt } from '../screens/home/GameArt';
 import type { StringKey } from '../i18n/strings';
 import type { GameMode, WinRule } from '../state/persistedState';
 
@@ -58,6 +58,25 @@ export const GAMES: Record<GameMode, Game> = {
     configurable: false,
     contractsEnabled: true,
   },
+  trix: {
+    key: 'trix',
+    i18nKey: 'gameTrix',
+    descKey: 'gameTrixDesc',
+    metaKey: 'gameTrixMeta',
+    hintKey: 'trixHint',
+    ArtComponent: TrixArt,
+    // Threshold/winRule are not user-facing: the game ends when all 4
+    // kingdoms are complete, and lowest total wins. Kept for the shared
+    // engine plumbing only.
+    defaultThreshold: 0,
+    winRule: 'lowest',
+    isTeamMode: false,    // P1 ships individual-only (partnership = P2)
+    teamSize: null,
+    numPlayers: 4,
+    scoreScope: 'player',
+    configurable: false,
+    contractsEnabled: true,
+  },
   custom: {
     key: 'custom',
     i18nKey: 'gameCustom',
@@ -76,6 +95,6 @@ export const GAMES: Record<GameMode, Game> = {
   },
 };
 
-export const GAME_ORDER: GameMode[] = ['sebeeta', 'kout', 'custom'];
+export const GAME_ORDER: GameMode[] = ['sebeeta', 'kout', 'trix', 'custom'];
 
 export const getGame = (key: GameMode): Game => GAMES[key];

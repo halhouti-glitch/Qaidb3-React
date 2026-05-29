@@ -1,4 +1,4 @@
-import type { GameMode, WinRule } from '../state/persistedState';
+import type { GameMode, TrixMatch, WinRule } from '../state/persistedState';
 
 export type KoutLevel = 'bab' | '6' | '7' | '8' | 'bawan' | 'malzoom';
 export type KoutOutcome = 'made' | 'failed';
@@ -26,4 +26,6 @@ export type GameStateSlice = {
   players: string[];
   playerTeam: number[];
   scores: number[][];
+  // Trix-only. Drives the kingdoms-complete game-over check (threshold unused).
+  trixMatch?: TrixMatch;
 };
