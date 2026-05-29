@@ -55,27 +55,41 @@ describe('trixExpectedDealTotal — zero-sum guard', () => {
       }),
     ).toBe(500);
   });
-  it('doubles King of Hearts (75→150) and Queens (100→200) when declared', () => {
+  it('doubles a declared King of Hearts (75→150)', () => {
     expect(
       trixExpectedDealTotal({ kind: 'penalty', contracts: ['kingOfHearts'], doubled: ['kingOfHearts'] }),
     ).toBe(150);
+  });
+
+  it('adds +25 per declared queen (per-queen, mixable)', () => {
+    // 2 of the 4 queens declared → 2×50 + 2×25 = 150.
     expect(
-      trixExpectedDealTotal({ kind: 'penalty', contracts: ['queens'], doubled: ['queens'] }),
+      trixExpectedDealTotal({ kind: 'penalty', contracts: ['queens'], declaredQueens: 2 }),
+    ).toBe(150);
+    // All 4 declared → 200.
+    expect(
+      trixExpectedDealTotal({ kind: 'penalty', contracts: ['queens'], declaredQueens: 4 }),
     ).toBe(200);
-    // A merged deal: King doubled, queens normal, plus diamonds.
+    // None declared → base 100.
+    expect(trixExpectedDealTotal({ kind: 'penalty', contracts: ['queens'] })).toBe(100);
+  });
+
+  it('combines a declared King with declared queens in a merged deal', () => {
+    // King ×2 (150) + queens with 1 declared (125) + diamonds (130).
     expect(
       trixExpectedDealTotal({
         kind: 'penalty',
         contracts: ['kingOfHearts', 'queens', 'diamonds'],
         doubled: ['kingOfHearts'],
+        declaredQueens: 1,
       }),
-    ).toBe(150 + 100 + 130);
+    ).toBe(150 + 125 + 130);
   });
 
-  it('ignores a doubled contract that is not part of the deal', () => {
+  it('ignores declaring fields when the contract is not in the deal', () => {
     expect(
-      trixExpectedDealTotal({ kind: 'penalty', contracts: ['queens'], doubled: ['kingOfHearts'] }),
-    ).toBe(100);
+      trixExpectedDealTotal({ kind: 'penalty', contracts: ['diamonds'], doubled: ['kingOfHearts'], declaredQueens: 2 }),
+    ).toBe(130);
   });
 
   it('Trix ladder deal sums to −500, naghil to −700', () => {

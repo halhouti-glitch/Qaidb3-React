@@ -13,7 +13,15 @@ export type TrixPenalty = 'kingOfHearts' | 'queens' | 'diamonds' | 'tricks';
 // Trix ladder. `doubled` (declared/doubled King or Queens) is P3 — carried in
 // the type now so the data model is stable, ignored by P1 scoring.
 export type TrixDeal =
-  | { kind: 'penalty'; contracts: TrixPenalty[]; doubled?: TrixPenalty[] }
+  | {
+      kind: 'penalty';
+      contracts: TrixPenalty[];
+      // King of Hearts declared/doubled (binary — it's one card → ×2).
+      doubled?: TrixPenalty[];
+      // Count of queens that were declared this deal (each scores 50 not 25).
+      // Per-queen, so a deal can mix declared + normal queens.
+      declaredQueens?: number;
+    }
   | { kind: 'trix'; naghil?: boolean };
 
 export type TrixRoundMeta = TrixDeal & {
@@ -184,6 +192,13 @@ const sanitizeTrixRound = (v: unknown): TrixRoundMeta | null => {
     const round: TrixRoundMeta = { kind: 'penalty', contracts, kingdom, kingIdx };
     const doubled = trixPenaltyArray(v.doubled);
     if (doubled.length > 0) round.doubled = doubled;
+    if (
+      typeof v.declaredQueens === 'number' &&
+      Number.isFinite(v.declaredQueens) &&
+      v.declaredQueens > 0
+    ) {
+      round.declaredQueens = Math.floor(v.declaredQueens);
+    }
     return round;
   }
   return null;

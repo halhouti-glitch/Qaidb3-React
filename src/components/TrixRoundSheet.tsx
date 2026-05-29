@@ -212,14 +212,18 @@ function PenaltyEntry({ targets, nSeats, remaining, onSubmit, onClose }: Penalty
   const zeros = useMemo(() => targets.map(() => 0), [targets]);
 
   const [selected, setSelected] = useState<TrixPenalty[]>([]);
-  const [doubled, setDoubled] = useState<TrixPenalty[]>([]);
   const [kohCapturer, setKohCapturer] = useState<number | null>(null);
+  const [kohDoubled, setKohDoubled] = useState(false);
+  // Queens are tracked as two per-target counts: normal (×25) and declared
+  // (×50). Declaring is per-queen, so a deal can mix both.
   const [queens, setQueens] = useState<number[]>(zeros);
+  const [queensDeclared, setQueensDeclared] = useState<number[]>(zeros);
+  const [queensDeclareMode, setQueensDeclareMode] = useState(false);
   const [diamonds, setDiamonds] = useState<number[]>(zeros);
   const [tricks, setTricks] = useState<number[]>(zeros);
 
-  const counts: Record<'queens' | 'diamonds' | 'tricks', [number[], (v: number[]) => void]> = {
-    queens: [queens, setQueens],
+  // Generic single-count contracts (diamonds, tricks). Queens is special-cased.
+  const counts: Record<'diamonds' | 'tricks', [number[], (v: number[]) => void]> = {
     diamonds: [diamonds, setDiamonds],
     tricks: [tricks, setTricks],
   };
@@ -227,16 +231,16 @@ function PenaltyEntry({ targets, nSeats, remaining, onSubmit, onClose }: Penalty
   const toggle = (c: TrixPenalty) =>
     setSelected((prev) => {
       const next = prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c];
-      // Deselecting a contract also clears its declared/doubled flag.
-      if (!next.includes(c)) setDoubled((d) => d.filter((x) => x !== c));
+      if (!next.includes(c)) {
+        // Deselecting clears that contract's declaring state.
+        if (c === 'kingOfHearts') setKohDoubled(false);
+        if (c === 'queens') {
+          setQueensDeclareMode(false);
+          setQueensDeclared(zeros);
+        }
+      }
       return next;
     });
-
-  // Declaring/doubling (×2) — King of Hearts + Queens only.
-  const toggleDouble = (c: TrixPenalty) =>
-    setDoubled((prev) => (prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]));
-  const kohPer = doubled.includes('kingOfHearts') ? 150 : PENALTY_PER.kingOfHearts;
-  const queenPer = doubled.includes('queens') ? 50 : PENALTY_PER.queens;
 
   const contractName = (c: TrixPenalty): string =>
     c === 'kingOfHearts'
@@ -248,13 +252,14 @@ function PenaltyEntry({ targets, nSeats, remaining, onSubmit, onClose }: Penalty
           : t('trixTricks');
 
   const sum = (arr: number[]) => arr.reduce((a, b) => a + b, 0);
+  const queensAssigned = sum(queens) + sum(queensDeclared);
 
   // Per-target amounts, then folded onto the per-seat scores matrix.
   const scores = new Array<number>(nSeats).fill(0);
   targets.forEach((tg, ti) => {
     let s = 0;
-    if (selected.includes('kingOfHearts') && kohCapturer === ti) s += kohPer;
-    if (selected.includes('queens')) s += queens[ti] * queenPer;
+    if (selected.includes('kingOfHearts') && kohCapturer === ti) s += kohDoubled ? 150 : 75;
+    if (selected.includes('queens')) s += queens[ti] * 25 + queensDeclared[ti] * 50;
     if (selected.includes('diamonds')) s += diamonds[ti] * PENALTY_PER.diamonds;
     if (selected.includes('tricks')) s += tricks[ti] * PENALTY_PER.tricks;
     scores[tg.seat] += s;
@@ -263,15 +268,18 @@ function PenaltyEntry({ targets, nSeats, remaining, onSubmit, onClose }: Penalty
   const complete =
     selected.length > 0 &&
     (!selected.includes('kingOfHearts') || kohCapturer !== null) &&
-    (!selected.includes('queens') || sum(queens) === PENALTY_TARGET.queens) &&
+    (!selected.includes('queens') || queensAssigned === PENALTY_TARGET.queens) &&
     (!selected.includes('diamonds') || sum(diamonds) === PENALTY_TARGET.diamonds) &&
     (!selected.includes('tricks') || sum(tricks) === PENALTY_TARGET.tricks);
 
-  const dealDoubled = doubled.filter((c) => selected.includes(c));
+  const declaredQueensTotal = sum(queensDeclared);
   const deal: TrixDeal = {
     kind: 'penalty',
     contracts: selected,
-    ...(dealDoubled.length ? { doubled: dealDoubled } : {}),
+    ...(selected.includes('kingOfHearts') && kohDoubled ? { doubled: ['kingOfHearts'] } : {}),
+    ...(selected.includes('queens') && declaredQueensTotal > 0
+      ? { declaredQueens: declaredQueensTotal }
+      : {}),
   };
   const expected = trixExpectedDealTotal(deal);
   const actual = sum(scores);
@@ -282,9 +290,10 @@ function PenaltyEntry({ targets, nSeats, remaining, onSubmit, onClose }: Penalty
     arr: number[],
     p: number,
     d: number,
-    max: number,
+    disabled: boolean,
   ) => {
-    const next = Math.max(0, Math.min(max, (arr[p] ?? 0) + d));
+    if (d > 0 && disabled) return;
+    const next = Math.max(0, (arr[p] ?? 0) + d);
     setter(arr.map((v, i) => (i === p ? next : v)));
   };
 
@@ -310,7 +319,7 @@ function PenaltyEntry({ targets, nSeats, remaining, onSubmit, onClose }: Penalty
         <div className="trix-block">
           <div className="trix-label">
             {t('trixCapturerLabel')}
-            <DeclareToggle on={doubled.includes('kingOfHearts')} onToggle={() => toggleDouble('kingOfHearts')} label={t('trixDeclare')} />
+            <DeclareToggle on={kohDoubled} onToggle={() => setKohDoubled((v) => !v)} label={t('trixDeclare')} />
           </div>
           <div className="trix-capturer-row">
             {targets.map((tg, ti) => (
@@ -320,14 +329,90 @@ function PenaltyEntry({ targets, nSeats, remaining, onSubmit, onClose }: Penalty
                 className={`chip ${kohCapturer === ti ? 'active' : ''}`}
                 onClick={() => setKohCapturer(kohCapturer === ti ? null : ti)}
               >
-                {tg.label} <span className="num">+{kohPer}</span>
+                {tg.label} <span className="num">+{kohDoubled ? 150 : 75}</span>
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {(['queens', 'diamonds', 'tricks'] as const).map((c) =>
+      {/* Queens — per-queen declaring: a normal (×25) stepper always, plus a
+          declared (×50) stepper when declare mode is on. Σ all = 4. */}
+      {selected.includes('queens') && (
+        <div className="trix-block">
+          <div className="trix-label">
+            {contractName('queens')}
+            <span className="trix-remaining num">
+              {' · '}
+              {t('trixCountRemaining')(PENALTY_TARGET.queens! - queensAssigned)}
+            </span>
+            <DeclareToggle
+              on={queensDeclareMode}
+              onToggle={() => {
+                setQueensDeclareMode((v) => {
+                  if (v) setQueensDeclared(zeros); // turning off clears declared
+                  return !v;
+                });
+              }}
+              label={t('trixDeclare')}
+            />
+          </div>
+          <div className="trix-count-rows">
+            {targets.map((tg, ti) => (
+              <div key={ti} className="trix-count-row queens">
+                <span className="trix-count-name">{tg.label}</span>
+                <div className="pmcontrol">
+                  <button
+                    type="button"
+                    onClick={() => bump(setQueens, queens, ti, -1, false)}
+                    disabled={(queens[ti] ?? 0) === 0}
+                  >
+                    <Icon.Minus size={14} />
+                  </button>
+                  <span className="val">{queens[ti] ?? 0}</span>
+                  <button
+                    type="button"
+                    onClick={() => bump(setQueens, queens, ti, 1, queensAssigned >= 4)}
+                    disabled={queensAssigned >= 4}
+                  >
+                    <Icon.Plus size={14} />
+                  </button>
+                </div>
+                {queensDeclareMode && (
+                  <div className="pmcontrol declared">
+                    <button
+                      type="button"
+                      onClick={() => bump(setQueensDeclared, queensDeclared, ti, -1, false)}
+                      disabled={(queensDeclared[ti] ?? 0) === 0}
+                    >
+                      <Icon.Minus size={14} />
+                    </button>
+                    <span className="val">{queensDeclared[ti] ?? 0}</span>
+                    <button
+                      type="button"
+                      onClick={() => bump(setQueensDeclared, queensDeclared, ti, 1, queensAssigned >= 4)}
+                      disabled={queensAssigned >= 4}
+                    >
+                      <Icon.Plus size={14} />
+                    </button>
+                  </div>
+                )}
+                <span className="trix-count-pts num">
+                  +{(queens[ti] ?? 0) * 25 + (queensDeclared[ti] ?? 0) * 50}
+                </span>
+              </div>
+            ))}
+          </div>
+          {queensDeclareMode && (
+            <div className="trix-count-legend">
+              <span>×25</span>
+              <span>×50 · {t('trixDeclare')}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {(['diamonds', 'tricks'] as const).map((c) =>
         selected.includes(c) ? (
           <div key={c} className="trix-block">
             <div className="trix-label">
@@ -336,9 +421,6 @@ function PenaltyEntry({ targets, nSeats, remaining, onSubmit, onClose }: Penalty
                 {' · '}
                 {t('trixCountRemaining')((PENALTY_TARGET[c] as number) - sum(counts[c][0]))}
               </span>
-              {c === 'queens' && (
-                <DeclareToggle on={doubled.includes('queens')} onToggle={() => toggleDouble('queens')} label={t('trixDeclare')} />
-              )}
             </div>
             <div className="trix-count-rows">
               {targets.map((tg, ti) => {
@@ -349,7 +431,7 @@ function PenaltyEntry({ targets, nSeats, remaining, onSubmit, onClose }: Penalty
                     <div className="pmcontrol">
                       <button
                         type="button"
-                        onClick={() => bump(setter, arr, ti, -1, PENALTY_TARGET[c] as number)}
+                        onClick={() => bump(setter, arr, ti, -1, false)}
                         disabled={(arr[ti] ?? 0) === 0}
                       >
                         <Icon.Minus size={14} />
@@ -357,14 +439,14 @@ function PenaltyEntry({ targets, nSeats, remaining, onSubmit, onClose }: Penalty
                       <span className="val">{arr[ti] ?? 0}</span>
                       <button
                         type="button"
-                        onClick={() => bump(setter, arr, ti, 1, PENALTY_TARGET[c] as number)}
+                        onClick={() => bump(setter, arr, ti, 1, sum(arr) >= (PENALTY_TARGET[c] as number))}
                         disabled={sum(arr) >= (PENALTY_TARGET[c] as number)}
                       >
                         <Icon.Plus size={14} />
                       </button>
                     </div>
                     <span className="trix-count-pts num">
-                      +{(arr[ti] ?? 0) * (c === 'queens' ? queenPer : PENALTY_PER[c])}
+                      +{(arr[ti] ?? 0) * PENALTY_PER[c]}
                     </span>
                   </div>
                 );
