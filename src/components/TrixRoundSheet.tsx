@@ -121,6 +121,20 @@ function TrixEntry({ kingdom, onSubmit, onClose }: TrixEntryProps) {
   const players = state.players;
   const n = players.length;
 
+  // Penalty entry targets: teams in 2v2 (who took it is team-based), else the
+  // 4 players. Each target writes its score onto a single representative seat
+  // (the team's first seat) so the per-player scores matrix rolls up correctly.
+  // The Trix ladder always stays per-player.
+  const partnership = !!state.trixMatch?.partnership;
+  const teamLabel = (idx: 0 | 1): string =>
+    state.teamNames[idx]?.trim() || (idx === 0 ? t('teamAFull') : t('teamBFull'));
+  const targets: PenaltyTarget[] = partnership
+    ? ([0, 1] as const).map((ti) => ({
+        label: teamLabel(ti),
+        seat: Math.max(0, state.playerTeam.findIndex((tm) => tm === ti)),
+      }))
+    : players.map((name, i) => ({ label: name, seat: i }));
+
   const { penalties: remaining, trixAvailable } = useMemo(
     () => trixKingdomRemaining(state.trixMatch!.rounds, kingdom),
     [state.trixMatch, kingdom],
@@ -162,7 +176,8 @@ function TrixEntry({ kingdom, onSubmit, onClose }: TrixEntryProps) {
 
       {dealType === 'penalty' && (
         <PenaltyEntry
-          players={players}
+          targets={targets}
+          nSeats={n}
           remaining={remaining}
           onSubmit={onSubmit}
           onClose={onClose}
@@ -180,16 +195,21 @@ function TrixEntry({ kingdom, onSubmit, onClose }: TrixEntryProps) {
 
 // ── Penalty deal: merge multi-select + per-contract inputs ──────────
 
+// A penalty is attributed to a "target" — a player (individual mode) or a
+// team (2v2). Each target's score is written onto one representative seat.
+type PenaltyTarget = { label: string; seat: number };
+
 type PenaltyEntryProps = {
-  players: string[];
+  targets: PenaltyTarget[];
+  nSeats: number;
   remaining: TrixPenalty[];
   onSubmit: (scores: number[], deal: TrixDeal) => void;
   onClose: () => void;
 };
 
-function PenaltyEntry({ players, remaining, onSubmit, onClose }: PenaltyEntryProps) {
+function PenaltyEntry({ targets, nSeats, remaining, onSubmit, onClose }: PenaltyEntryProps) {
   const { t } = useLang();
-  const zeros = useMemo(() => players.map(() => 0), [players]);
+  const zeros = useMemo(() => targets.map(() => 0), [targets]);
 
   const [selected, setSelected] = useState<TrixPenalty[]>([]);
   const [kohCapturer, setKohCapturer] = useState<number | null>(null);
@@ -217,13 +237,15 @@ function PenaltyEntry({ players, remaining, onSubmit, onClose }: PenaltyEntryPro
 
   const sum = (arr: number[]) => arr.reduce((a, b) => a + b, 0);
 
-  const scores = players.map((_, p) => {
+  // Per-target amounts, then folded onto the per-seat scores matrix.
+  const scores = new Array<number>(nSeats).fill(0);
+  targets.forEach((tg, ti) => {
     let s = 0;
-    if (selected.includes('kingOfHearts') && kohCapturer === p) s += PENALTY_PER.kingOfHearts;
-    if (selected.includes('queens')) s += queens[p] * PENALTY_PER.queens;
-    if (selected.includes('diamonds')) s += diamonds[p] * PENALTY_PER.diamonds;
-    if (selected.includes('tricks')) s += tricks[p] * PENALTY_PER.tricks;
-    return s;
+    if (selected.includes('kingOfHearts') && kohCapturer === ti) s += PENALTY_PER.kingOfHearts;
+    if (selected.includes('queens')) s += queens[ti] * PENALTY_PER.queens;
+    if (selected.includes('diamonds')) s += diamonds[ti] * PENALTY_PER.diamonds;
+    if (selected.includes('tricks')) s += tricks[ti] * PENALTY_PER.tricks;
+    scores[tg.seat] += s;
   });
 
   const complete =
@@ -271,14 +293,14 @@ function PenaltyEntry({ players, remaining, onSubmit, onClose }: PenaltyEntryPro
         <div className="trix-block">
           <div className="trix-label">{t('trixCapturerLabel')}</div>
           <div className="trix-capturer-row">
-            {players.map((name, p) => (
+            {targets.map((tg, ti) => (
               <button
-                key={p}
+                key={ti}
                 type="button"
-                className={`chip ${kohCapturer === p ? 'active' : ''}`}
-                onClick={() => setKohCapturer(kohCapturer === p ? null : p)}
+                className={`chip ${kohCapturer === ti ? 'active' : ''}`}
+                onClick={() => setKohCapturer(kohCapturer === ti ? null : ti)}
               >
-                {name} <span className="num">+75</span>
+                {tg.label} <span className="num">+75</span>
               </button>
             ))}
           </div>
@@ -296,30 +318,30 @@ function PenaltyEntry({ players, remaining, onSubmit, onClose }: PenaltyEntryPro
               </span>
             </div>
             <div className="trix-count-rows">
-              {players.map((name, p) => {
+              {targets.map((tg, ti) => {
                 const [arr, setter] = counts[c];
                 return (
-                  <div key={p} className="trix-count-row">
-                    <span className="trix-count-name">{name}</span>
+                  <div key={ti} className="trix-count-row">
+                    <span className="trix-count-name">{tg.label}</span>
                     <div className="pmcontrol">
                       <button
                         type="button"
-                        onClick={() => bump(setter, arr, p, -1, PENALTY_TARGET[c] as number)}
-                        disabled={(arr[p] ?? 0) === 0}
+                        onClick={() => bump(setter, arr, ti, -1, PENALTY_TARGET[c] as number)}
+                        disabled={(arr[ti] ?? 0) === 0}
                       >
                         <Icon.Minus size={14} />
                       </button>
-                      <span className="val">{arr[p] ?? 0}</span>
+                      <span className="val">{arr[ti] ?? 0}</span>
                       <button
                         type="button"
-                        onClick={() => bump(setter, arr, p, 1, PENALTY_TARGET[c] as number)}
+                        onClick={() => bump(setter, arr, ti, 1, PENALTY_TARGET[c] as number)}
                         disabled={sum(arr) >= (PENALTY_TARGET[c] as number)}
                       >
                         <Icon.Plus size={14} />
                       </button>
                     </div>
                     <span className="trix-count-pts num">
-                      +{(arr[p] ?? 0) * PENALTY_PER[c]}
+                      +{(arr[ti] ?? 0) * PENALTY_PER[c]}
                     </span>
                   </div>
                 );
