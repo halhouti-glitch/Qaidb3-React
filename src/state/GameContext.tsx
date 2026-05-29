@@ -16,11 +16,15 @@ import {
   type RecentGame,
   type Screen,
   type Theme,
+  type TrixDeal,
+  type TrixMatch,
+  type TrixRoundMeta,
   type WinRule,
 } from './persistedState';
 import type { Lang } from '../i18n/strings';
 import { useLang } from '../i18n/LangContext';
 import { checkWinner, teamTotalsFromPlayers, totals } from '../engine/scoring';
+import { TRIX_KINGDOMS, trixCurrentKingdom, trixKingIdx } from '../engine/trix';
 import { upsertProfiles, winnerPlayerIndices } from './profiles';
 import { reverseGameLog } from './gameLog';
 
@@ -43,6 +47,14 @@ export type StartGameInput =
       /** Optional: when present and length matches players, Custom is played as teams. */
       playerTeam?: number[];
       teamNames?: [string, string];
+    }
+  | {
+      mode: 'trix';
+      players: string[]; // exactly 4
+      /** Seat index (0–3) of the 7♥ holder = King of kingdom 0. */
+      kingFirst: number;
+      /** P2 — 2v2 rollup. P1 ignores this (plays individual). */
+      partnership?: boolean;
     };
 
 export type GameActions = {
@@ -52,6 +64,13 @@ export type GameActions = {
   addRound: (round: number[]) => void;
   editRound: (idx: number, round: number[]) => void;
   deleteRound: (idx: number) => void;
+  /** Trix: append a deal (per-player scores + deal meta), kept index-aligned
+   * with trixMatch.rounds. Kingdom/King are derived from match progress. */
+  addTrixDeal: (scores: number[], deal: TrixDeal) => void;
+  /** Trix: replace a recorded deal's scores + payload (kingdom/King preserved). */
+  editTrixDeal: (idx: number, scores: number[], deal: TrixDeal) => void;
+  /** Trix: remove a recorded deal (scores + meta together). */
+  deleteTrixDeal: (idx: number) => void;
   undoRound: () => void;
   resetGame: () => void;
   clearPlayers: () => void;
@@ -112,11 +131,22 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
   //   - Un-win (was logged → no longer won): bounce off the now-stale Winner
   //     screen back to 'play'; otherwise leave screen alone.
   const applyScoresUpdate = useCallback(
-    (prev: PersistedState, nextScores: number[][]): PersistedState => {
+    (
+      prev: PersistedState,
+      nextScores: number[][],
+      // Trix only: the trixMatch that corresponds to `nextScores`, kept
+      // index-aligned by the caller. Other modes pass nothing.
+      nextTrixMatch?: TrixMatch,
+    ): PersistedState => {
       const wasLogged = prev.gameLogged;
       const baseline = wasLogged ? reverseGameLog(prev) : prev;
 
-      const probe = { ...baseline, scores: nextScores };
+      const trixMatch = nextTrixMatch ?? baseline.trixMatch;
+      const probe = {
+        ...baseline,
+        scores: nextScores,
+        ...(trixMatch ? { trixMatch } : {}),
+      };
       const totalsArr = totals(probe);
       const winner = checkWinner(probe, totalsArr);
       const gameOver = winner !== null;
@@ -156,6 +186,9 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
           threshold: baseline.threshold,
           winRule: baseline.winRule,
           koutEntryMode: baseline.koutEntryMode,
+          // Trix: snapshot the per-deal metadata so the finished game can be
+          // grouped by kingdom in History and reopened for editing.
+          ...(baseline.gameMode === 'trix' && trixMatch ? { trixMatch } : {}),
         };
 
         const winnerIdxSet = winnerPlayerIndices(baseline, winner);
@@ -199,7 +232,23 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
           gameOver: false,
           gameLogged: false,
           currentScreen: 'play',
+          // Clear any prior game's Trix metadata; the trix branch re-adds it.
+          trixMatch: undefined,
         };
+        if (input.mode === 'trix') {
+          return {
+            ...base,
+            playerTeam: [], // P1 individual; partnership rollup = P2
+            teamNames: [],
+            threshold: 0, // unused — kingdoms-complete ends the game
+            winRule: 'lowest',
+            trixMatch: {
+              partnership: !!input.partnership,
+              kingFirst: input.kingFirst,
+              rounds: [],
+            },
+          };
+        }
         if (input.mode === 'sebeeta') {
           return {
             ...base,
@@ -265,9 +314,64 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
   const undoRound = useCallback(() => {
     setState((s) => {
       if (s.scores.length === 0) return s;
+      if (s.trixMatch) {
+        const rounds = s.trixMatch.rounds.slice(0, -1);
+        return applyScoresUpdate(s, s.scores.slice(0, -1), { ...s.trixMatch, rounds });
+      }
       return applyScoresUpdate(s, s.scores.slice(0, -1));
     });
   }, [setState, applyScoresUpdate]);
+
+  // --- Trix deal operations (keep scores ⇄ trixMatch.rounds index-aligned) ---
+  const addTrixDeal = useCallback(
+    (dealScores: number[], deal: TrixDeal) => {
+      setState((s) => {
+        if (!s.trixMatch) return s;
+        const kingdom = trixCurrentKingdom(s.trixMatch.rounds);
+        if (kingdom >= TRIX_KINGDOMS) return s; // match already complete
+        const kingIdx = trixKingIdx(s.trixMatch.kingFirst, kingdom);
+        const round: TrixRoundMeta = { ...deal, kingdom, kingIdx };
+        const rounds = [...s.trixMatch.rounds, round];
+        return applyScoresUpdate(s, [...s.scores, dealScores.slice()], {
+          ...s.trixMatch,
+          rounds,
+        });
+      });
+    },
+    [setState, applyScoresUpdate],
+  );
+
+  const editTrixDeal = useCallback(
+    (idx: number, dealScores: number[], deal: TrixDeal) => {
+      setState((s) => {
+        if (!s.trixMatch) return s;
+        const existing = s.trixMatch.rounds[idx];
+        if (!existing) return s;
+        // Preserve the deal's kingdom/King — only its payload + scores change.
+        const round: TrixRoundMeta = {
+          ...deal,
+          kingdom: existing.kingdom,
+          kingIdx: existing.kingIdx,
+        };
+        const rounds = s.trixMatch.rounds.map((r, i) => (i === idx ? round : r));
+        const scores = s.scores.map((r, i) => (i === idx ? dealScores.slice() : r));
+        return applyScoresUpdate(s, scores, { ...s.trixMatch, rounds });
+      });
+    },
+    [setState, applyScoresUpdate],
+  );
+
+  const deleteTrixDeal = useCallback(
+    (idx: number) => {
+      setState((s) => {
+        if (!s.trixMatch) return s;
+        const rounds = s.trixMatch.rounds.filter((_, i) => i !== idx);
+        const scores = s.scores.filter((_, i) => i !== idx);
+        return applyScoresUpdate(s, scores, { ...s.trixMatch, rounds });
+      });
+    },
+    [setState, applyScoresUpdate],
+  );
 
   const resetGame = useCallback(() => {
     setState((s) => ({
@@ -276,6 +380,8 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
       gameOver: false,
       gameLogged: false,
       currentScreen: 'play',
+      // Trix: replay the same match (same King + format) from kingdom 0.
+      ...(s.trixMatch ? { trixMatch: { ...s.trixMatch, rounds: [] } } : {}),
     }));
   }, [setState]);
 
@@ -382,6 +488,8 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
           gameLogged: false,
           recentGames: s.recentGames.filter((_, i) => i !== idx),
           currentScreen: 'history',
+          // Trix: restore the per-deal metadata so History can group by kingdom.
+          ...(g.kind === 'trix' && g.trixMatch ? { trixMatch: g.trixMatch } : { trixMatch: undefined }),
         };
       });
     },
@@ -398,6 +506,9 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
         addRound,
         editRound,
         deleteRound,
+        addTrixDeal,
+        editTrixDeal,
+        deleteTrixDeal,
         undoRound,
         resetGame,
         clearPlayers,
@@ -422,6 +533,9 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
       addRound,
       editRound,
       deleteRound,
+      addTrixDeal,
+      editTrixDeal,
+      deleteTrixDeal,
       undoRound,
       resetGame,
       clearPlayers,

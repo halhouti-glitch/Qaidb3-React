@@ -90,10 +90,16 @@ export function trixKingdomRemaining(
   };
 }
 
+// The kingdom a new deal belongs to = the lowest not-yet-complete kingdom.
+// Returns TRIX_KINGDOMS (4) when every kingdom is complete (match over).
+export function trixCurrentKingdom(rounds: TrixRoundMeta[]): number {
+  for (let k = 0; k < TRIX_KINGDOMS; k++) {
+    if (!kingdomComplete(rounds, k)) return k;
+  }
+  return TRIX_KINGDOMS;
+}
+
 // Game over = all 4 kingdoms complete.
 export function trixGameOver(trixMatch: TrixMatch): boolean {
-  for (let k = 0; k < TRIX_KINGDOMS; k++) {
-    if (!kingdomComplete(trixMatch.rounds, k)) return false;
-  }
-  return true;
+  return trixCurrentKingdom(trixMatch.rounds) >= TRIX_KINGDOMS;
 }

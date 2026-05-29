@@ -53,6 +53,9 @@ export type RecentGame = {
   threshold?: number;
   winRule?: WinRule;
   koutEntryMode?: KoutEntryMode;
+  // Trix per-deal metadata snapshot, so a finished Trix game can be inspected
+  // by kingdom and reopened for editing. Absent for other modes.
+  trixMatch?: TrixMatch;
 };
 
 // Lifetime per-player memory. Keyed by `name.toLowerCase().trim()` so the
@@ -222,6 +225,8 @@ const sanitizeRecentGame = (v: unknown): RecentGame | null => {
   if (v.koutEntryMode === 'contract' || v.koutEntryMode === 'manual') {
     out.koutEntryMode = v.koutEntryMode;
   }
+  const trixMatch = sanitizeTrixMatch(v.trixMatch);
+  if (trixMatch) out.trixMatch = trixMatch;
   return out;
 };
 
