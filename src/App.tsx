@@ -15,6 +15,7 @@ import { SetupScreen } from './screens/SetupScreen';
 import { PlayScreen } from './screens/PlayScreen';
 import { HistoryScreen } from './screens/HistoryScreen';
 import { WinnerScreen } from './screens/WinnerScreen';
+import { StatsScreen } from './screens/StatsScreen';
 import { useAudio } from './lib/audio';
 import type { Screen } from './state/persistedState';
 
@@ -28,6 +29,9 @@ const screenDepth: Record<Screen, number> = {
   play: 2,
   history: 3,
   winner: 3,
+  // Reached from Home, so a sibling-of-setup depth gives it a forward slide
+  // in and a back slide out.
+  stats: 1,
 };
 
 export function App() {
@@ -116,6 +120,7 @@ function AppShell() {
       {screen === 'play' && <PlayScreen />}
       {screen === 'history' && <HistoryScreen />}
       {screen === 'winner' && <WinnerScreen />}
+      {screen === 'stats' && <StatsScreen />}
       <footer className="app-version" aria-label="App version">
         v{__APP_VERSION__}
       </footer>

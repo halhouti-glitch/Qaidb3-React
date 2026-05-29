@@ -1934,3 +1934,245 @@ button.numpad-input.active {
   color: #c1432f;
 }
 .btn-danger:hover { color: #8c2a1c; }
+
+/* ============================================================
+   Backlog epic: backup, quick-fill, recent detail, stats, share
+   ============================================================ */
+
+/* --- Recent row: clickable inner button (Home) --- */
+.recent-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.recent-main:hover .game-name { color: var(--ink); }
+
+/* --- Backup & restore (Home) --- */
+.backup-section {
+  margin-top: 28px;
+  padding: 16px;
+  background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+.backup-head h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--ink); }
+.backup-hint { margin: 6px 0 12px; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.backup-actions { display: flex; gap: 10px; }
+.backup-actions .btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+
+/* --- Setup quick-fill --- */
+.quickfill .label { margin-top: 4px; }
+.qf-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.qf-pills::-webkit-scrollbar { display: none; }
+.qf-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 6px 12px 6px 6px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 100px;
+  cursor: pointer;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+.qf-pill:hover { background: var(--surface-2); }
+.qf-avatar {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.qf-templates { display: flex; flex-direction: column; gap: 8px; }
+.qf-template {
+  text-align: start;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 13px;
+}
+.qf-template:hover { background: var(--surface-2); color: var(--ink); }
+.qf-shuffle-row { display: flex; }
+.qf-shuffle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* --- Recent-game detail sheet --- */
+.recent-sheet, .share-sheet { padding: 12px 22px 22px; }
+.recent-sheet-head, .share-sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.share-sheet-head h2 { margin: 0; font-size: 18px; font-weight: 700; color: var(--ink); }
+.rsh-mode { font-size: 17px; font-weight: 700; color: var(--ink); }
+.rsh-when { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.recent-sheet-winner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 6px;
+  color: var(--gold);
+}
+.rsw-name { font-size: 15px; font-weight: 700; color: var(--ink); }
+.rsw-score { margin-inline-start: auto; font-family: var(--font-num); font-weight: 600; color: var(--ink-soft); }
+.recent-sheet-body { overflow-y: auto; margin: 8px -4px; }
+.recent-sheet-empty { padding: 24px 8px; text-align: center; color: var(--muted); font-size: 13px; }
+.recent-rounds { display: flex; flex-direction: column; gap: 2px; }
+.rr-row {
+  display: grid;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 6px;
+  border-radius: 8px;
+}
+.recent-rounds > .rr-row:nth-child(even) { background: var(--accent-soft); }
+.rr-cell { text-align: center; font-size: 13px; color: var(--ink-soft); }
+.rr-cell.num { font-family: var(--font-num); }
+.rr-rownum { color: var(--muted); font-size: 12px; }
+.rr-headrow { position: sticky; top: 0; background: var(--surface); }
+.rr-head { font-weight: 700; color: var(--ink); font-size: 12px; }
+.rr-cell.neg { color: #c1432f; }
+.rr-totalrow { border-top: 1px solid var(--line-strong); margin-top: 4px; }
+.rr-total { font-weight: 700; color: var(--ink); }
+.recent-sheet-actions { margin-top: 14px; }
+
+/* --- Stats screen --- */
+.stats-body { padding: 4px 20px 28px; overflow-y: auto; }
+.stats-empty { padding: 48px 16px; text-align: center; color: var(--muted); }
+.stats-summary { display: flex; gap: 12px; margin-bottom: 8px; }
+.stat-pill {
+  flex: 1;
+  padding: 16px;
+  text-align: center;
+  background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+.sp-value { font-family: var(--font-num); font-size: 28px; font-weight: 700; color: var(--ink); }
+.sp-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.stats-section { margin-top: 22px; }
+.stats-section h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; color: var(--ink); }
+.stats-muted { color: var(--muted); font-size: 13px; }
+.stats-modes { display: flex; flex-direction: column; gap: 8px; }
+.mode-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-radius: var(--radius-s);
+  box-shadow: var(--shadow-card);
+}
+.ms-name { flex: 1; font-size: 14px; color: var(--ink); }
+.ms-count { font-family: var(--font-num); font-weight: 700; color: var(--ink); }
+.leaderboard, .streaks, .stats-recent { display: flex; flex-direction: column; gap: 8px; }
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-radius: var(--radius-s);
+  box-shadow: var(--shadow-card);
+}
+.lb-rank { width: 18px; text-align: center; font-family: var(--font-num); color: var(--muted); font-weight: 700; }
+.lb-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.lb-name { flex: 1; font-size: 14px; font-weight: 600; color: var(--ink); min-width: 0; }
+.lb-meta { display: flex; flex-direction: column; align-items: flex-end; }
+.lb-rate { font-family: var(--font-num); font-weight: 700; color: var(--ink); }
+.lb-played { font-size: 11px; color: var(--muted); }
+.streak-row, .stats-recent-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border-radius: var(--radius-s);
+  box-shadow: var(--shadow-card);
+}
+.streak-row { color: #e08a2b; }
+.streak-name { flex: 1; font-size: 14px; font-weight: 600; color: var(--ink); }
+.streak-count { font-family: var(--font-num); font-size: 13px; color: var(--ink-soft); }
+.stats-recent-row {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: start;
+  width: 100%;
+}
+.stats-recent-row:hover { background: var(--surface-2); }
+.srr-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.srr-winner { font-size: 14px; font-weight: 600; color: var(--ink); }
+.srr-when { font-size: 11.5px; color: var(--muted); }
+.srr-score { font-family: var(--font-num); font-weight: 600; color: var(--ink-soft); }
+
+/* Shared mode swatch (stats) — mirrors the Home recent-row swatch palette. */
+.ms-swatch, .srr-swatch {
+  width: 26px; height: 26px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: var(--accent-soft);
+}
+.ms-swatch[data-game="sebeeta"], .srr-swatch[data-game="sebeeta"] { background: linear-gradient(135deg, #f3d9d3, #c1432f); }
+.ms-swatch[data-game="kout"],    .srr-swatch[data-game="kout"]    { background: linear-gradient(135deg, #d8e6d7, #143527); }
+.ms-swatch[data-game="custom"],  .srr-swatch[data-game="custom"]  { background: linear-gradient(135deg, #d4d9e3, #7c2528); }
+
+/* --- Share options sheet --- */
+.share-lang {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 0;
+}
+.share-lang-label { font-size: 13px; color: var(--muted); }
+.share-lang-seg { width: auto; }
+.share-actions { display: flex; flex-direction: column; gap: 10px; }
+.share-actions .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }

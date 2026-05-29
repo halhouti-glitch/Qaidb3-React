@@ -5,7 +5,13 @@ export type WinRule = 'lowest' | 'highest';
 export type Theme = 'light' | 'dark';
 export type EntryStyle = 'pm' | 'numpad';
 export type KoutEntryMode = 'contract' | 'manual';
-export type Screen = 'home' | 'setup' | 'play' | 'history' | 'winner';
+export type Screen =
+  | 'home'
+  | 'setup'
+  | 'play'
+  | 'history'
+  | 'winner'
+  | 'stats';
 
 export type RecentGame = {
   kind: GameMode;
@@ -15,6 +21,14 @@ export type RecentGame = {
   roundCount: number;
   winner: string;
   score: string;
+  // Optional round snapshot (added after v0.3.0). Lets a finished game be
+  // inspected round-by-round and reopened for editing. Absent on entries
+  // logged by older builds — features must degrade gracefully when missing.
+  scores?: number[][];
+  playerTeam?: number[];
+  threshold?: number;
+  winRule?: WinRule;
+  koutEntryMode?: KoutEntryMode;
 };
 
 // Lifetime per-player memory. Keyed by `name.toLowerCase().trim()` so the
@@ -115,7 +129,7 @@ const scoresMatrix = (v: unknown): number[][] =>
 const sanitizeRecentGame = (v: unknown): RecentGame | null => {
   if (!isObject(v)) return null;
   const kind = oneOf('sebeeta', 'kout', 'custom')(v.kind, 'custom');
-  return {
+  const out: RecentGame = {
     kind,
     players: stringArray(v.players),
     teamNames: stringArray(v.teamNames),
@@ -124,6 +138,18 @@ const sanitizeRecentGame = (v: unknown): RecentGame | null => {
     winner: typeof v.winner === 'string' ? v.winner : '',
     score: typeof v.score === 'string' ? v.score : '',
   };
+  // Optional round snapshot — only attach when present so older entries stay
+  // lean and `g.scores`-style truthiness checks remain meaningful.
+  if (Array.isArray(v.scores)) out.scores = scoresMatrix(v.scores);
+  if (Array.isArray(v.playerTeam)) out.playerTeam = numberArray(v.playerTeam);
+  if (typeof v.threshold === 'number' && Number.isFinite(v.threshold)) {
+    out.threshold = positiveInt(v.threshold, 0);
+  }
+  if (v.winRule === 'lowest' || v.winRule === 'highest') out.winRule = v.winRule;
+  if (v.koutEntryMode === 'contract' || v.koutEntryMode === 'manual') {
+    out.koutEntryMode = v.koutEntryMode;
+  }
+  return out;
 };
 
 const sanitizeProfile = (v: unknown): Profile | null => {
@@ -174,7 +200,7 @@ export function sanitizeState(raw: unknown): PersistedState {
     lang: oneOf('en', 'ar')(raw.lang, DEFAULT_STATE.lang),
     koutEntryMode: oneOf('contract', 'manual')(raw.koutEntryMode, DEFAULT_STATE.koutEntryMode),
     entryStyle: oneOf('pm', 'numpad')(raw.entryStyle, DEFAULT_STATE.entryStyle),
-    currentScreen: oneOf('home', 'setup', 'play', 'history', 'winner')(
+    currentScreen: oneOf('home', 'setup', 'play', 'history', 'winner', 'stats')(
       raw.currentScreen,
       DEFAULT_STATE.currentScreen,
     ),

@@ -5,6 +5,8 @@ import { Header } from '../components/Header';
 import { Icon } from '../components/Icon';
 import { getGame } from '../games/registry';
 import { topProfiles } from '../state/profiles';
+import { shuffle } from '../lib/shuffle';
+import { QuickFill } from './setup/QuickFill';
 import type { WinRule } from '../state/persistedState';
 
 type IndividualMode = 'individual' | 'teams';
@@ -99,6 +101,29 @@ export function SetupScreen() {
 
   const setName = (i: number, v: string) =>
     setPlayerNames((prev) => prev.map((n, ix) => (ix === i ? v : n)));
+
+  // A seat still holding its placeholder ("Player N") or left blank is
+  // considered "open" for quick-add fills.
+  const isOpenSeat = (name: string, i: number): boolean => {
+    const trimmed = name.trim();
+    return trimmed === '' || trimmed === `${t('playerDefault')} ${i + 1}`;
+  };
+
+  // Quick-add: drop a tapped top-player name into the first open seat.
+  const fillNextSeat = (name: string) =>
+    setPlayerNames((prev) => {
+      const idx = prev.findIndex((n, i) => isOpenSeat(n, i));
+      if (idx === -1) return prev;
+      return prev.map((n, i) => (i === idx ? name : n));
+    });
+
+  // Recent line-up: replace the roster wholesale (templates are pre-filtered
+  // to the current player count).
+  const applyTemplate = (names: string[]) =>
+    setPlayerNames(() => names.slice(0, count));
+
+  // Shuffle seat order — randomises partners for team formats.
+  const shuffleNames = () => setPlayerNames((prev) => shuffle(prev));
 
   const canStart =
     playerNames.every((n) => n.trim().length > 0) &&
@@ -222,6 +247,16 @@ export function SetupScreen() {
             ))}
           </div>
         </div>
+
+        {/* Quick-fill helpers: top players, recent line-ups, shuffle. */}
+        <QuickFill
+          mode={mode}
+          count={count}
+          showShuffle={showsAsTeams}
+          onPick={fillNextSeat}
+          onApplyTemplate={applyTemplate}
+          onShuffle={shuffleNames}
+        />
 
         {/* Player names — flat list or team blocks. */}
         <div className="setup-section">

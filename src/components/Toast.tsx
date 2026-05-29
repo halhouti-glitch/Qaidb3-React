@@ -78,7 +78,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ show }}>
       {children}
       {toast && (
-        <div className={`toast${toast.visible ? ' show' : ''}`}>
+        <div
+          className={`toast${toast.visible ? ' show' : ''}`}
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <span className="toast-message">{toast.message}</span>
           {toast.action && (
             <button

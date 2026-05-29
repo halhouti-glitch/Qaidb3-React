@@ -116,4 +116,44 @@ export const Icon = {
       <path d="M23 9l-6 6M17 9l6 6" />
     </svg>
   ),
+  Download: ({ size = 18 }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...stroke}>
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+      <path d="M7 10l5 5 5-5" />
+      <path d="M12 15V3" />
+    </svg>
+  ),
+  Upload: ({ size = 18 }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...stroke}>
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+      <path d="M17 8l-5-5-5 5" />
+      <path d="M12 3v12" />
+    </svg>
+  ),
+  Shuffle: ({ size = 18 }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...stroke}>
+      <path d="M16 3h5v5" />
+      <path d="M4 20L21 3" />
+      <path d="M21 16v5h-5" />
+      <path d="M15 15l6 6" />
+      <path d="M4 4l5 5" />
+    </svg>
+  ),
+  Chart: ({ size = 18 }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...stroke}>
+      <path d="M3 3v18h18" />
+      <path d="M7 16v-5M12 16V8M17 16v-3" />
+    </svg>
+  ),
+  Copy: ({ size = 18 }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" {...stroke}>
+      <rect x="9" y="9" width="13" height="13" rx="2" />
+      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+    </svg>
+  ),
+  Flame: ({ size = 18 }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2c1 3-1 5-2.5 6.5C8 10 7 11.5 7 14a5 5 0 0010 0c0-2-1-4-2.5-5.5C13 7 13.5 4 12 2zm0 17a2.5 2.5 0 01-2.5-2.5c0-1.3 1-2.3 1.7-3 .5 1 1.5 1.3 2.3.6.6 1 1 1.7 1 2.4A2.5 2.5 0 0112 19z" />
+    </svg>
+  ),
 };

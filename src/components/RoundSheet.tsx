@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLang } from '../i18n/LangContext';
 import { useGame } from '../state/GameContext';
 import { useAudio } from '../lib/audio';
 import { useToast } from './Toast';
+import { useFocusTrap } from '../lib/useFocusTrap';
 import { Icon } from './Icon';
 import {
   KOUT_CONTRACT_SCORES,
@@ -27,6 +28,9 @@ export function RoundSheet({ open, onClose }: RoundSheetProps) {
   const { state, actions } = useGame();
   const toast = useToast();
   const fx = useAudio();
+  const sheetRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(sheetRef, open);
 
   // Lock body scroll + ESC closes while open
   useEffect(() => {
@@ -74,10 +78,12 @@ export function RoundSheet({ open, onClose }: RoundSheetProps) {
         aria-hidden="true"
       />
       <div
+        ref={sheetRef}
         className={`sheet${open ? ' open' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label={`${t('roundLabel')} ${roundNum}`}
+        tabIndex={-1}
       >
         <div className="grabber" />
         <div className="sheet-header">

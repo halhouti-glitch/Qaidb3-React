@@ -211,6 +211,57 @@ export type Strings = {
   updateAvailable: string;
   updateReload: string;
   updateLater: string;
+
+  // ── Backup / export / import ─────────────────────────────────
+  backupTitle: string;
+  backupHint: string;
+  backupExport: string;
+  backupImport: string;
+  backupExported: string;
+  backupRestored: string;
+  backupImportError: string;
+  backupConfirmReplace: string;
+
+  // ── Setup quick-fill / shuffle ───────────────────────────────
+  setupQuickAdd: string;
+  setupRecentLineups: string;
+  setupShuffleTeams: string;
+  setupShuffleDone: string;
+
+  // ── Recent-game detail + reopen ──────────────────────────────
+  recentDetailRounds: string;
+  recentDetailStandings: string;
+  recentReopen: string;
+  recentReopenConfirm: string;
+  recentReopened: string;
+  recentNoRounds: string;
+  recentViewLabel: string;
+
+  // ── Stats dashboard ──────────────────────────────────────────
+  statsTitle: string;
+  statsOpen: string;
+  statsEmpty: string;
+  statsTotalGames: string;
+  statsByMode: string;
+  statsLeaderboard: string;
+  statsStreaks: string;
+  statsNoStreaks: string;
+  statsRecent: string;
+  statsWinRate: string;
+  statsStreakOf: (n: number) => string;
+  statsPlayedShort: (n: number) => string;
+
+  // ── Share options ────────────────────────────────────────────
+  shareOptionsTitle: string;
+  shareImageBtn: string;
+  shareImageLangLabel: string;
+  shareCopyText: string;
+  shareTextBtn: string;
+  shareCopied: string;
+  shareTextError: string;
+
+  // ── Generic a11y ─────────────────────────────────────────────
+  closeLabel: string;
 };
 
 const en: Strings = {
@@ -417,6 +468,51 @@ const en: Strings = {
   updateAvailable: 'A new version is available.',
   updateReload: 'Update',
   updateLater: 'Later',
+
+  backupTitle: 'Backup & restore',
+  backupHint: 'Save your players, games, and settings to a file — or restore from one.',
+  backupExport: 'Export',
+  backupImport: 'Import',
+  backupExported: 'Backup downloaded',
+  backupRestored: 'Backup restored',
+  backupImportError: "That file isn't a valid Qaid backup.",
+  backupConfirmReplace: 'Replace all current data with this backup?',
+
+  setupQuickAdd: 'Quick add',
+  setupRecentLineups: 'Recent line-ups',
+  setupShuffleTeams: 'Shuffle',
+  setupShuffleDone: 'Shuffled',
+
+  recentDetailRounds: 'Rounds',
+  recentDetailStandings: 'Final standings',
+  recentReopen: 'Edit rounds',
+  recentReopenConfirm: 'Reopen this game for editing? A game in progress will be replaced.',
+  recentReopened: 'Game reopened',
+  recentNoRounds: "Round details weren't saved for this game.",
+  recentViewLabel: 'View game',
+
+  statsTitle: 'Stats',
+  statsOpen: 'Stats',
+  statsEmpty: 'Play a game to see your stats.',
+  statsTotalGames: 'Games played',
+  statsByMode: 'By game',
+  statsLeaderboard: 'Leaderboard',
+  statsStreaks: 'On a streak',
+  statsNoStreaks: 'No active streaks',
+  statsRecent: 'Recent games',
+  statsWinRate: 'Win rate',
+  statsStreakOf: (n) => `${n} in a row`,
+  statsPlayedShort: (n) => `${n} played`,
+
+  shareOptionsTitle: 'Share result',
+  shareImageBtn: 'Share image',
+  shareImageLangLabel: 'Image language',
+  shareCopyText: 'Copy summary',
+  shareTextBtn: 'Share as text',
+  shareCopied: 'Copied to clipboard',
+  shareTextError: "Couldn't share.",
+
+  closeLabel: 'Close',
 };
 
 const ar: Strings = {
@@ -623,6 +719,51 @@ const ar: Strings = {
   updateAvailable: 'يتوفر إصدار جديد.',
   updateReload: 'تحديث',
   updateLater: 'لاحقاً',
+
+  backupTitle: 'النسخ والاستعادة',
+  backupHint: 'احفظ اللاعبين والألعاب والإعدادات في ملف — أو استعدها منه.',
+  backupExport: 'تصدير',
+  backupImport: 'استيراد',
+  backupExported: 'تم تنزيل النسخة',
+  backupRestored: 'تمت الاستعادة',
+  backupImportError: 'هذا الملف ليس نسخة قيد صالحة.',
+  backupConfirmReplace: 'استبدال جميع البيانات الحالية بهذه النسخة؟',
+
+  setupQuickAdd: 'إضافة سريعة',
+  setupRecentLineups: 'تشكيلات سابقة',
+  setupShuffleTeams: 'خلط',
+  setupShuffleDone: 'تم الخلط',
+
+  recentDetailRounds: 'الجولات',
+  recentDetailStandings: 'الترتيب النهائي',
+  recentReopen: 'تعديل الجولات',
+  recentReopenConfirm: 'إعادة فتح هذه اللعبة للتعديل؟ سيتم استبدال أي لعبة قيد التقدم.',
+  recentReopened: 'تم فتح اللعبة',
+  recentNoRounds: 'لم تُحفظ تفاصيل الجولات لهذه اللعبة.',
+  recentViewLabel: 'عرض اللعبة',
+
+  statsTitle: 'الإحصائيات',
+  statsOpen: 'الإحصائيات',
+  statsEmpty: 'العب لعبة لعرض إحصائياتك.',
+  statsTotalGames: 'الألعاب الملعوبة',
+  statsByMode: 'حسب اللعبة',
+  statsLeaderboard: 'المتصدرون',
+  statsStreaks: 'سلسلة انتصارات',
+  statsNoStreaks: 'لا سلاسل حالية',
+  statsRecent: 'ألعاب أخيرة',
+  statsWinRate: 'نسبة الفوز',
+  statsStreakOf: (n) => `${n} متتالية`,
+  statsPlayedShort: (n) => `${n} لعبة`,
+
+  shareOptionsTitle: 'مشاركة النتيجة',
+  shareImageBtn: 'مشاركة صورة',
+  shareImageLangLabel: 'لغة الصورة',
+  shareCopyText: 'نسخ الملخص',
+  shareTextBtn: 'مشاركة كنص',
+  shareCopied: 'تم النسخ',
+  shareTextError: 'تعذرت المشاركة.',
+
+  closeLabel: 'إغلاق',
 };
 
 export const STRINGS: Record<Lang, Strings> = { en, ar };

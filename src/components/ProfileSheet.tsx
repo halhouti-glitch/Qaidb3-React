@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLang } from '../i18n/LangContext';
 import { useGame } from '../state/GameContext';
 import { useToast } from './Toast';
 import { topTeammates } from '../state/profiles';
 import { relativeWhen } from '../lib/relativeWhen';
 import { initials } from '../lib/initials';
+import { useFocusTrap } from '../lib/useFocusTrap';
 import { Icon } from './Icon';
 
 type ProfileSheetProps = {
@@ -21,9 +22,12 @@ export function ProfileSheet({ profileKey, onClose }: ProfileSheetProps) {
   const { t, lang } = useLang();
   const { state, actions } = useGame();
   const toast = useToast();
+  const sheetRef = useRef<HTMLDivElement>(null);
   const open = profileKey !== null;
   const profile =
     profileKey !== null ? state.playerProfiles[profileKey] : undefined;
+
+  useFocusTrap(sheetRef, open);
 
   // Body scroll lock + Esc-to-close, mirrors RoundSheet.
   useEffect(() => {
@@ -63,10 +67,12 @@ export function ProfileSheet({ profileKey, onClose }: ProfileSheetProps) {
         aria-hidden="true"
       />
       <div
+        ref={sheetRef}
         className={`sheet profile-sheet${open ? ' open' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label={profile?.name ?? ''}
+        tabIndex={-1}
       >
         <div className="grabber" />
         {profile && (

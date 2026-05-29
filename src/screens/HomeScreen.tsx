@@ -8,6 +8,8 @@ import { ProfileSheet } from '../components/ProfileSheet';
 import { useConfirm } from '../components/ConfirmSheet';
 import { GAME_ORDER, GAMES } from '../games/registry';
 import { TopPlayersStrip } from './home/TopPlayersStrip';
+import { BackupControls } from './home/BackupControls';
+import { RecentGameSheet } from '../components/RecentGameSheet';
 import type { GameMode } from '../state/persistedState';
 import type { Lang } from '../i18n/strings';
 
@@ -16,10 +18,14 @@ export function HomeScreen() {
   const { state, actions } = useGame();
   const { confirm } = useConfirm();
   const [openProfile, setOpenProfile] = useState<string | null>(null);
+  const [openRecent, setOpenRecent] = useState<number | null>(null);
 
   const hasActive =
     state.players.length > 0 && state.scores.length > 0 && !state.gameOver;
   const recents = state.recentGames.slice(0, 5);
+  const hasData =
+    state.recentGames.length > 0 ||
+    Object.keys(state.playerProfiles).length > 0;
 
   return (
     <div className="screen">
@@ -47,6 +53,16 @@ export function HomeScreen() {
             >
               {state.sound ? <Icon.SoundOn /> : <Icon.SoundOff />}
             </button>
+            {hasData && (
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => actions.navigate('stats')}
+                aria-label={t('statsOpen')}
+              >
+                <Icon.Chart />
+              </button>
+            )}
           </>
         }
         right={<LangPicker lang={state.lang} setLang={actions.setLang} label={t('language')} />}
@@ -114,29 +130,36 @@ export function HomeScreen() {
             </div>
             {recents.map((g, i) => (
               <div key={`${g.when}-${i}`} className="recent-row">
-                <div className="left">
-                  <span className="swatch" data-game={g.kind} aria-hidden="true" />
-                  <div className="info">
-                    <div className="game-name">
-                      {t(
-                        g.kind === 'kout'
-                          ? 'gameKout'
-                          : g.kind === 'sebeeta'
-                            ? 'gameSebeeta'
-                            : 'gameCustom',
-                      )}{' '}
-                      · {g.players.join(', ')}
-                    </div>
-                    <div className="when">
-                      {relativeWhen(g.when, lang)} ·{' '}
-                      {t('historyCount')(g.roundCount)}
+                <button
+                  type="button"
+                  className="recent-main"
+                  onClick={() => setOpenRecent(i)}
+                  aria-label={t('recentViewLabel')}
+                >
+                  <div className="left">
+                    <span className="swatch" data-game={g.kind} aria-hidden="true" />
+                    <div className="info">
+                      <div className="game-name">
+                        {t(
+                          g.kind === 'kout'
+                            ? 'gameKout'
+                            : g.kind === 'sebeeta'
+                              ? 'gameSebeeta'
+                              : 'gameCustom',
+                        )}{' '}
+                        · {g.players.join(', ')}
+                      </div>
+                      <div className="when">
+                        {relativeWhen(g.when, lang)} ·{' '}
+                        {t('historyCount')(g.roundCount)}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="right">
-                  <div className="winner">{g.winner}</div>
-                  <div className="score">{g.score}</div>
-                </div>
+                  <div className="right">
+                    <div className="winner">{g.winner}</div>
+                    <div className="score">{g.score}</div>
+                  </div>
+                </button>
                 <button
                   type="button"
                   className="recent-remove"
@@ -149,11 +172,17 @@ export function HomeScreen() {
             ))}
           </div>
         )}
+
+        <BackupControls />
       </div>
 
       <ProfileSheet
         profileKey={openProfile}
         onClose={() => setOpenProfile(null)}
+      />
+      <RecentGameSheet
+        recentIndex={openRecent}
+        onClose={() => setOpenRecent(null)}
       />
     </div>
   );

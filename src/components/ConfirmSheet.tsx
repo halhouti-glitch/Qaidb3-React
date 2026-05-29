@@ -4,10 +4,12 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
 import { useLang } from '../i18n/LangContext';
+import { useFocusTrap } from '../lib/useFocusTrap';
 
 // App-native confirm dialog — replaces `window.confirm`, which is jarring
 // on mobile and breaks the Liquid Glass aesthetic. Reuses the same scrim +
@@ -38,6 +40,9 @@ type SheetState = ConfirmOptions & { id: number };
 export function ConfirmProvider({ children }: { children: ReactNode }) {
   const { t } = useLang();
   const [sheet, setSheet] = useState<SheetState | null>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(sheetRef, sheet !== null);
 
   const confirm = useCallback((opts: ConfirmOptions) => {
     setSheet({ ...opts, id: Date.now() });
@@ -82,10 +87,12 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
             aria-hidden="true"
           />
           <div
+            ref={sheetRef}
             className="sheet confirm-sheet open"
             role="alertdialog"
             aria-modal="true"
             aria-label={sheet.title}
+            tabIndex={-1}
           >
             <div className="grabber" />
             <div className="confirm-body">

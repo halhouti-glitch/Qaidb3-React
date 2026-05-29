@@ -64,6 +64,10 @@ export type GameActions = {
   removeRecentGame: (idx: number) => void;
   clearAllRecents: () => void;
   setSound: (sound: boolean) => void;
+  /** Replace the entire persisted state (backup import). Always lands on home. */
+  replaceState: (next: PersistedState) => void;
+  /** Pull a finished game out of recentGames and load it as the active game for editing. */
+  reopenRecentGame: (idx: number) => void;
 };
 
 type GameContextValue = {
@@ -146,6 +150,12 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
           roundCount: nextScores.length,
           winner: winnerName,
           score,
+          // Round snapshot so the finished game can be reopened/inspected.
+          scores: nextScores.map((r) => r.slice()),
+          playerTeam: baseline.playerTeam.slice(),
+          threshold: baseline.threshold,
+          winRule: baseline.winRule,
+          koutEntryMode: baseline.koutEntryMode,
         };
 
         const winnerIdxSet = winnerPlayerIndices(baseline, winner);
@@ -335,6 +345,49 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
     [setState],
   );
 
+  const replaceState = useCallback(
+    (next: PersistedState) =>
+      // Land on home so the imported state can't drop the user into a stale
+      // mid-game/winner screen that doesn't match what they expect.
+      setState(() => ({ ...next, currentScreen: 'home' })),
+    [setState],
+  );
+
+  // Reopen a finished game (from recentGames) as the active game so its rounds
+  // can be inspected and corrected on the History screen. Reconstructs the
+  // active-game fields from the stored snapshot, removes the entry from
+  // recentGames (re-logged on the next score change via applyScoresUpdate),
+  // and clears gameOver/gameLogged so editing re-evaluates from scratch.
+  // No-op when the entry predates round-snapshot storage (no `scores`).
+  const reopenRecentGame = useCallback(
+    (idx: number) => {
+      setState((s) => {
+        const g = s.recentGames[idx];
+        if (!g || !g.scores) return s;
+        const hasTeams =
+          !!g.playerTeam && g.playerTeam.length === g.players.length;
+        return {
+          ...s,
+          gameMode: g.kind,
+          players: g.players.slice(),
+          teamNames: g.teamNames.slice(),
+          playerTeam: hasTeams ? g.playerTeam!.slice() : [],
+          scores: g.scores.map((r) => r.slice()),
+          threshold: g.threshold ?? s.threshold,
+          winRule:
+            g.winRule ??
+            (g.kind === 'sebeeta' ? 'lowest' : g.kind === 'kout' ? 'highest' : s.winRule),
+          koutEntryMode: g.koutEntryMode ?? s.koutEntryMode,
+          gameOver: false,
+          gameLogged: false,
+          recentGames: s.recentGames.filter((_, i) => i !== idx),
+          currentScreen: 'history',
+        };
+      });
+    },
+    [setState],
+  );
+
   const value = useMemo<GameContextValue>(
     () => ({
       state,
@@ -357,6 +410,8 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
         removeRecentGame,
         clearAllRecents,
         setSound,
+        replaceState,
+        reopenRecentGame,
       },
     }),
     [
@@ -379,6 +434,8 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
       removeRecentGame,
       clearAllRecents,
       setSound,
+      replaceState,
+      reopenRecentGame,
     ],
   );
 

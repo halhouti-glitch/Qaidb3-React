@@ -96,6 +96,128 @@ export async function shareGameImage(state: PersistedState): Promise<void> {
   }
 }
 
+// ---------- Text summary ----------
+
+// Build a plain-text result summary (winner + ranked standings + rounds).
+// Localised to state.lang; safe to call mid-game or at game end.
+export function buildShareText(state: PersistedState): string {
+  const totalsArr = computeTotals(state);
+  const winner = checkWinner(state, totalsArr);
+  const hasTeams =
+    state.playerTeam.length === state.players.length && state.players.length > 0;
+
+  let rows: Array<{ name: string; score: number }>;
+  if (state.gameMode === 'kout') {
+    rows = [
+      { name: teamName(state, 0), score: totalsArr[0] ?? 0 },
+      { name: teamName(state, 1), score: totalsArr[1] ?? 0 },
+    ];
+  } else if (state.gameMode === 'sebeeta' || (state.gameMode === 'custom' && hasTeams)) {
+    const tt = teamTotalsFromPlayers(totalsArr, state.playerTeam);
+    rows = [
+      { name: teamName(state, 0), score: tt[0] },
+      { name: teamName(state, 1), score: tt[1] },
+    ];
+  } else {
+    rows = state.players.map((n, i) => ({ name: n, score: totalsArr[i] ?? 0 }));
+  }
+  rows = rows
+    .slice()
+    .sort((a, b) =>
+      state.winRule === 'highest' ? b.score - a.score : a.score - b.score,
+    );
+
+  // Winner line. Sebeeta hides the numeric subtitle (team game, individual board).
+  let winnerName = rows[0]?.name ?? '—';
+  let winnerScore = '';
+  if (winner && winner.type === 'team' && state.gameMode === 'kout') {
+    winnerName = teamName(state, winner.idx);
+    winnerScore = `${totalsArr[winner.idx]}–${totalsArr[1 - winner.idx]}`;
+  } else if (winner && winner.type === 'team' && state.gameMode === 'sebeeta') {
+    winnerName = teamName(state, winner.idx);
+  } else if (winner && winner.type === 'team') {
+    winnerName = teamName(state, winner.idx);
+    winnerScore = String((rows.find((r) => r.name === winnerName) ?? rows[0]).score);
+  } else if (winner && winner.type === 'player') {
+    winnerName = state.players[winner.idx] ?? '—';
+    winnerScore = String(totalsArr[winner.idx]);
+  }
+
+  const modeKey: StringKey =
+    state.gameMode === 'kout'
+      ? 'gameKout'
+      : state.gameMode === 'sebeeta'
+        ? 'gameSebeeta'
+        : 'gameCustom';
+  const brand = state.lang === 'ar' ? 'قيد' : 'Qaid';
+
+  const lines: string[] = [];
+  lines.push(`${tStr(state, modeKey)} · ${brand}`);
+  lines.push(`🏆 ${winnerName}${winnerScore ? ` — ${winnerScore}` : ''}`);
+  lines.push('');
+  lines.push(`${tStr(state, 'finalStandings')}:`);
+  rows.forEach((r, i) => lines.push(`${i + 1}. ${r.name} — ${r.score}`));
+
+  const roundsFn = STRINGS[state.lang].roundsPlayed;
+  lines.push('');
+  lines.push(
+    typeof roundsFn === 'function'
+      ? roundsFn(state.scores.length)
+      : `${state.scores.length} rounds`,
+  );
+
+  return lines.join('\n');
+}
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    /* fall through to legacy path */
+  }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
+// Copy the text summary to the clipboard. Resolves true on success.
+export function copyShareText(state: PersistedState): Promise<boolean> {
+  return copyText(buildShareText(state));
+}
+
+// Share the text summary via the native share sheet, falling back to clipboard
+// when Web Share isn't available. Resolves true if the user shared or copied
+// (a user-cancel also counts as "handled").
+export async function shareGameText(state: PersistedState): Promise<boolean> {
+  const text = buildShareText(state);
+  const nav = navigator as Navigator & {
+    share?: (data?: ShareData) => Promise<void>;
+  };
+  if (nav.share) {
+    try {
+      await nav.share({ title: tStr(state, 'shareTitle'), text });
+      return true;
+    } catch (e) {
+      if (e && (e as { name?: string }).name === 'AbortError') return true;
+      // Other errors → fall back to clipboard.
+    }
+  }
+  return copyText(text);
+}
+
 export async function renderGameSummaryPNG(
   state: PersistedState,
 ): Promise<Blob | null> {

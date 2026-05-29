@@ -4,7 +4,11 @@ import { WinnerScreen } from './WinnerScreen';
 import { renderWithGame } from '../test/harness';
 import * as shareModule from '../share';
 
-vi.mock('../share', () => ({ shareGameImage: vi.fn() }));
+vi.mock('../share', () => ({
+  shareGameImage: vi.fn(() => Promise.resolve()),
+  copyShareText: vi.fn(() => Promise.resolve(true)),
+  shareGameText: vi.fn(() => Promise.resolve(true)),
+}));
 
 const ROSTER = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3'];
 const TEAM = [0, 0, 0, 1, 1, 1];
@@ -53,66 +57,41 @@ describe('WinnerScreen', () => {
   });
 });
 
-describe('WinnerScreen — share button state', () => {
-  it('share button is enabled by default and disabled while sharing is in flight', async () => {
-    // Hold the share promise open so we can observe the disabled state.
-    let resolveShare: (() => void) | null = null;
-    const sharePromise = new Promise<void>((res) => {
-      resolveShare = res;
-    });
-    (shareModule.shareGameImage as ReturnType<typeof vi.fn>).mockReturnValue(
-      sharePromise,
-    );
-
-    const { getByLabelText } = renderWithGame(<WinnerScreen />, {
+describe('WinnerScreen — share sheet', () => {
+  it('opens the share sheet when the share button is tapped', () => {
+    const { getByLabelText, container } = renderWithGame(<WinnerScreen />, {
       initial: sebeetaWon,
     });
-    const shareBtn = getByLabelText('Share') as HTMLButtonElement;
-    expect(shareBtn.disabled).toBe(false);
-
+    expect(container.querySelector('.share-sheet.open')).toBeNull();
     act(() => {
-      fireEvent.click(shareBtn);
+      fireEvent.click(getByLabelText('Share'));
     });
-    expect(shareBtn.disabled).toBe(true);
-    expect(shareModule.shareGameImage).toHaveBeenCalledOnce();
-
-    // Resolve the in-flight share and let the finally block re-enable the button.
-    await act(async () => {
-      resolveShare!();
-      await sharePromise;
-    });
-    expect(shareBtn.disabled).toBe(false);
+    expect(container.querySelector('.share-sheet.open')).not.toBeNull();
   });
 
-  it('clicking share while already sharing is a no-op (no double invocation)', async () => {
-    let resolveShare: (() => void) | null = null;
-    const sharePromise = new Promise<void>((res) => {
-      resolveShare = res;
-    });
-    (shareModule.shareGameImage as ReturnType<typeof vi.fn>)
-      .mockReset()
-      .mockReturnValue(sharePromise);
-
-    const { getByLabelText } = renderWithGame(<WinnerScreen />, {
+  it('shares an image via the sheet', async () => {
+    const { getByLabelText, getByText } = renderWithGame(<WinnerScreen />, {
       initial: sebeetaWon,
     });
-    const shareBtn = getByLabelText('Share') as HTMLButtonElement;
-    // Separate act() per click so React commits the disabled state between them
-    // — otherwise all clicks land on the same render with the same closure.
     act(() => {
-      fireEvent.click(shareBtn);
+      fireEvent.click(getByLabelText('Share'));
     });
-    expect(shareBtn.disabled).toBe(true);
-    act(() => {
-      fireEvent.click(shareBtn);
-    });
-    act(() => {
-      fireEvent.click(shareBtn);
+    await act(async () => {
+      fireEvent.click(getByText('Share image'));
     });
     expect(shareModule.shareGameImage).toHaveBeenCalledOnce();
-    await act(async () => {
-      resolveShare!();
-      await sharePromise;
+  });
+
+  it('copies a text summary via the sheet', async () => {
+    const { getByLabelText, getByText } = renderWithGame(<WinnerScreen />, {
+      initial: sebeetaWon,
     });
+    act(() => {
+      fireEvent.click(getByLabelText('Share'));
+    });
+    await act(async () => {
+      fireEvent.click(getByText('Copy summary'));
+    });
+    expect(shareModule.copyShareText).toHaveBeenCalledOnce();
   });
 });
