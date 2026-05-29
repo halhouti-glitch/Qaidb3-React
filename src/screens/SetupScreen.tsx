@@ -3,6 +3,7 @@ import { useLang } from '../i18n/LangContext';
 import { useGame } from '../state/GameContext';
 import { Header } from '../components/Header';
 import { Icon } from '../components/Icon';
+import { TrixKingPick } from '../components/TrixKingPick';
 import { getGame } from '../games/registry';
 import { topProfiles } from '../state/profiles';
 import { QuickFill } from './setup/QuickFill';
@@ -26,7 +27,11 @@ export function SetupScreen() {
   const isKout = mode === 'kout';
   const isSebeeta = mode === 'sebeeta';
   const isCustom = mode === 'custom';
+  const isTrix = mode === 'trix';
   const isTeam = game.isTeamMode;
+
+  // Trix → after Start we pick who holds the 7♥ (King of kingdom 0).
+  const [kingPickOpen, setKingPickOpen] = useState(false);
 
   const initialCount = game.numPlayers ?? 4;
   const [count, setCount] = useState<number>(initialCount);
@@ -90,7 +95,9 @@ export function SetupScreen() {
     ? t('setupTitleKout')
     : isSebeeta
       ? t('setupTitleSebeeta')
-      : t('setupTitleCustom');
+      : isTrix
+        ? t('gameTrix')
+        : t('setupTitleCustom');
 
   const standardTargets = isKout
     ? [51, 101]
@@ -118,13 +125,28 @@ export function SetupScreen() {
 
   const canStart =
     playerNames.every((n) => n.trim().length > 0) &&
-    effectiveTarget > 0 &&
-    (isTeam
-      ? count === 4 || count === 6
-      : count >= 2 && count <= 6) &&
+    (isTrix || effectiveTarget > 0) &&
+    (isTrix
+      ? count === 4
+      : isTeam
+        ? count === 4 || count === 6
+        : count >= 2 && count <= 6) &&
     !(isCustom && format === 'teams' && count % 2 !== 0);
 
+  const resolvedNames = () =>
+    playerNames.map((n, i) => n.trim() || `${t('playerDefault')} ${i + 1}`);
+
+  // Trix: Start opens the King-pick sheet; startGame fires once a King is chosen.
+  const pickKing = (kingFirst: number) => {
+    setKingPickOpen(false);
+    actions.startGame({ mode: 'trix', players: resolvedNames(), kingFirst });
+  };
+
   const start = () => {
+    if (isTrix) {
+      setKingPickOpen(true);
+      return;
+    }
     const resolvedNames = playerNames.map(
       (n, i) => n.trim() || `${t('playerDefault')} ${i + 1}`,
     );
@@ -222,7 +244,9 @@ export function SetupScreen() {
           </div>
         )}
 
-        {/* Player count chips. Team modes show [4, 6]; Custom shows 2–6. */}
+        {/* Player count chips. Team modes show [4, 6]; Custom shows 2–6.
+            Trix is locked to exactly 4, so the chooser is hidden. */}
+        {!isTrix && (
         <div className="setup-section">
           <div className="label">{t('setupPlayersLabel')}</div>
           <div className="chip-row">
@@ -238,6 +262,7 @@ export function SetupScreen() {
             ))}
           </div>
         </div>
+        )}
 
         {/* Quick-add: tap a saved top player into the next open seat. */}
         <QuickFill onPick={fillNextSeat} />
@@ -275,7 +300,9 @@ export function SetupScreen() {
           )}
         </div>
 
-        {/* Play to */}
+        {/* Play to — hidden for Trix (the game ends when all 4 kingdoms
+            complete, not at a threshold). */}
+        {!isTrix && (
         <div className="setup-section">
           <div className="label">{t('setupPlayToLabel')}</div>
           {isCustom ? (
@@ -334,6 +361,7 @@ export function SetupScreen() {
             </>
           )}
         </div>
+        )}
 
         {/* Win condition (Custom only) */}
         {isCustom && (
@@ -371,6 +399,15 @@ export function SetupScreen() {
           <Icon.Check size={16} /> {t('setupStart')}
         </button>
       </div>
+
+      {isTrix && (
+        <TrixKingPick
+          open={kingPickOpen}
+          players={resolvedNames()}
+          onPick={pickKing}
+          onClose={() => setKingPickOpen(false)}
+        />
+      )}
     </div>
   );
 }

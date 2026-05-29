@@ -13,6 +13,14 @@ import { Icon } from '../components/Icon';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmSheet';
 import { RoundSheet } from '../components/RoundSheet';
+import { TrixRoundSheet } from '../components/TrixRoundSheet';
+import {
+  TRIX_KINGDOMS,
+  trixCurrentKingdom,
+  trixKingIdx,
+  trixKingdomRemaining,
+} from '../engine/trix';
+import type { TrixPenalty } from '../state/persistedState';
 import { useAudio } from '../lib/audio';
 
 export function PlayScreen() {
@@ -27,6 +35,7 @@ export function PlayScreen() {
   const isKout = state.gameMode === 'kout';
   const isSebeeta = state.gameMode === 'sebeeta';
   const isCustom = state.gameMode === 'custom';
+  const isTrix = state.gameMode === 'trix';
   const isCustomTeams =
     isCustom &&
     state.playerTeam.length === state.players.length &&
@@ -74,7 +83,17 @@ export function PlayScreen() {
     ? 'gameKout'
     : isSebeeta
       ? 'gameSebeeta'
-      : 'gameCustom';
+      : isTrix
+        ? 'gameTrix'
+        : 'gameCustom';
+
+  // Trix kingdom/contract progress (derived, individual, lowest-wins).
+  const trixKingdom = isTrix && state.trixMatch ? trixCurrentKingdom(state.trixMatch.rounds) : 0;
+  const trixKing = isTrix && state.trixMatch ? trixKingIdx(state.trixMatch.kingFirst, trixKingdom) : 0;
+  const trixRemaining =
+    isTrix && state.trixMatch
+      ? trixKingdomRemaining(state.trixMatch.rounds, trixKingdom)
+      : { penalties: [] as TrixPenalty[], trixAvailable: false };
 
   const lowestWins = state.winRule === 'lowest';
 
@@ -136,6 +155,23 @@ export function PlayScreen() {
       />
 
       <div className="play-body">
+        {isTrix ? (
+          <>
+            <TrixProgress
+              kingdom={trixKingdom}
+              kingName={state.players[trixKing] ?? '—'}
+              remaining={trixRemaining}
+            />
+            <TrixScoreboard
+              totals={totalsArr}
+              players={state.players}
+              dealer={dealer}
+              winnerIdx={winner?.type === 'player' ? winner.idx : null}
+              lastDelta={lastDelta}
+            />
+          </>
+        ) : (
+        <>
         <div className="round-strip">
           <span className="target">
             {lowestWins ? (
@@ -193,6 +229,8 @@ export function PlayScreen() {
             dealerLabel={t('dealerBadge')}
           />
         )}
+        </>
+        )}
       </div>
 
       <div className="play-actions">
@@ -225,7 +263,11 @@ export function PlayScreen() {
         </button>
       </div>
 
-      <RoundSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
+      {isTrix ? (
+        <TrixRoundSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
+      ) : (
+        <RoundSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
+      )}
     </div>
   );
 }
@@ -405,6 +447,114 @@ function IndividualScoreboard({
               <div className="pt-bar">
                 <div style={{ width: `${pct}%` }} />
               </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Trix kingdom/contract progress ───────────────────────────────
+
+type TrixProgressProps = {
+  kingdom: number;
+  kingName: string;
+  remaining: { penalties: TrixPenalty[]; trixAvailable: boolean };
+};
+
+function TrixProgress({ kingdom, kingName, remaining }: TrixProgressProps) {
+  const { t } = useLang();
+  const done = kingdom >= TRIX_KINGDOMS;
+  const contractName = (c: TrixPenalty): string =>
+    c === 'kingOfHearts'
+      ? t('trixKingOfHearts')
+      : c === 'queens'
+        ? t('trixQueens')
+        : c === 'diamonds'
+          ? t('trixDiamonds')
+          : t('trixTricks');
+  return (
+    <div className="trix-progress">
+      <div className="trix-progress-head">
+        <span className="trix-kingdom-pill">
+          {t('trixKingdomLabel')(Math.min(kingdom + 1, TRIX_KINGDOMS))}
+        </span>
+        {!done && <span className="trix-king-pill">{t('trixCurrentKing')(kingName)}</span>}
+      </div>
+      {!done && (
+        <div className="trix-remaining-chips">
+          <span className="trix-remaining-label">{t('trixRemainingLabel')}:</span>
+          {remaining.penalties.map((c) => (
+            <span key={c} className="trix-remaining-chip">
+              {contractName(c)}
+            </span>
+          ))}
+          {remaining.trixAvailable && (
+            <span className="trix-remaining-chip trix-ladder-chip">{t('trixTrix')}</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Trix individual scoreboard (lowest wins, negative-friendly) ───
+
+type TrixScoreboardProps = {
+  totals: number[];
+  players: string[];
+  dealer: number;
+  winnerIdx: number | null;
+  lastDelta: number[] | null;
+};
+
+function TrixScoreboard({ totals, players, dealer, winnerIdx, lastDelta }: TrixScoreboardProps) {
+  const { t } = useLang();
+  // Leader = the lowest current total (penalty tally). Highlight it live.
+  const anyScore = totals.some((v) => v !== 0);
+  let lowestIdx = -1;
+  let lowest = Infinity;
+  totals.forEach((v, i) => {
+    if (v < lowest) {
+      lowest = v;
+      lowestIdx = i;
+    }
+  });
+  return (
+    <div className="player-grid">
+      {players.map((name, i) => {
+        const total = totals[i] ?? 0;
+        const isWinner = winnerIdx === i;
+        const isLeader = winnerIdx != null ? isWinner : anyScore && i === lowestIdx;
+        const isDealer = anyScore && i === dealer && !isLeader;
+        const delta = lastDelta ? lastDelta[i] : null;
+        return (
+          <div key={i} className={`player-tile${isLeader ? ' leader' : ''}`}>
+            <div className="pt-head">
+              <div className="pt-name-wrap">
+                <span className="pt-name">{name}</span>
+                {isDealer && (
+                  <span className="dealer-badge" title="Dealer">
+                    {t('dealerBadge')}
+                  </span>
+                )}
+              </div>
+              <span className="pt-seat">{i + 1}</span>
+            </div>
+            {isLeader && (
+              <div className="crown">
+                <Icon.Crown />
+              </div>
+            )}
+            {delta != null && delta !== 0 && (
+              <div className="pt-delta show">
+                {delta > 0 ? '+' : ''}
+                {delta}
+              </div>
+            )}
+            <div>
+              <div className="pt-score">{total}</div>
             </div>
           </div>
         );
