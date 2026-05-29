@@ -304,7 +304,10 @@ function HistoryCardItem({
   return (
     <div className="history-card" style={{ cursor: 'default' }}>
       <div className="hc-head">
-        <span className="hc-no">{roundLabel}</span>
+        <span className="hc-no">
+          {roundLabel}
+          {dealLabel && <span className="hc-deal">{dealLabel}</span>}
+        </span>
         <span className="hc-actions">
           <button
             type="button"
