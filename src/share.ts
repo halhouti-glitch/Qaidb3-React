@@ -148,7 +148,9 @@ export function buildShareText(state: PersistedState): string {
       ? 'gameKout'
       : state.gameMode === 'sebeeta'
         ? 'gameSebeeta'
-        : 'gameCustom';
+        : state.gameMode === 'trix'
+          ? 'gameTrix'
+          : 'gameCustom';
   const brand = state.lang === 'ar' ? 'قيد' : 'Qaid';
 
   const lines: string[] = [];
@@ -303,7 +305,9 @@ export async function renderGameSummaryPNG(
       ? 'gameKout'
       : state.gameMode === 'sebeeta'
         ? 'gameSebeeta'
-        : 'gameCustom';
+        : state.gameMode === 'trix'
+          ? 'gameTrix'
+          : 'gameCustom';
   ctx.fillStyle = C.ink;
   ctx.font = fbody(72, 700);
   ctx.fillText(tStr(state, modeKey), headX, PAD + 44);

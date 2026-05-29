@@ -6,6 +6,7 @@ import { useConfirm } from '../components/ConfirmSheet';
 import { Header } from '../components/Header';
 import { Icon } from '../components/Icon';
 import { dealerIndex } from '../engine/scoring';
+import type { TrixPenalty, TrixRoundMeta } from '../state/persistedState';
 
 type Column = {
   short: string;
@@ -21,6 +22,24 @@ export function HistoryScreen() {
   const [editingRound, setEditingRound] = useState<number | null>(null);
 
   const isKout = state.gameMode === 'kout';
+  const isTrix = state.gameMode === 'trix';
+  const trixRounds = state.trixMatch?.rounds;
+
+  // Label a Trix deal by its contract set ("King of Hearts + Queens", "Trix",
+  // "Trix · Naghil"). Used as the per-card heading in trix history.
+  const contractName = (c: TrixPenalty): string =>
+    c === 'kingOfHearts'
+      ? t('trixKingOfHearts')
+      : c === 'queens'
+        ? t('trixQueens')
+        : c === 'diamonds'
+          ? t('trixDiamonds')
+          : t('trixTricks');
+  const dealLabel = (meta: TrixRoundMeta | undefined): string | null => {
+    if (!meta) return null;
+    if (meta.kind === 'trix') return meta.naghil ? `${t('trixTrix')} · ${t('trixNaghil')}` : t('trixTrix');
+    return meta.contracts.map(contractName).join(' + ');
+  };
 
   const teamLabel = (idx: 0 | 1): string =>
     state.teamNames[idx]?.trim() ||
@@ -75,7 +94,10 @@ export function HistoryScreen() {
       confirmLabel: t('deleteBtn'),
       destructive: true,
       onConfirm: () => {
-        actions.deleteRound(idx);
+        // Trix keeps scores ⇄ trixMatch.rounds index-aligned, so deletion must
+        // drop both — the generic deleteRound would desync the metadata.
+        if (isTrix) actions.deleteTrixDeal(idx);
+        else actions.deleteRound(idx);
         if (editingRound === idx) setEditingRound(null);
         else if (editingRound !== null && editingRound > idx) setEditingRound(editingRound - 1);
         toast.show(t('deleteBtn'));
@@ -130,24 +152,38 @@ export function HistoryScreen() {
             <div className="history-hint">{t('historyTapHint')}</div>
 
             <div className="history-list">
-              {state.scores.map((round, ri) => (
-                <HistoryCardItem
-                  key={ri}
-                  round={round}
-                  cols={cols}
-                  editing={editingRound === ri}
-                  onStartEdit={() => setEditingRound(ri)}
-                  onCancelEdit={() => setEditingRound(null)}
-                  onSave={(updated) => submitEdit(ri, updated)}
-                  onDelete={() => onDelete(ri)}
-                  saveLabel={t('saveBtn')}
-                  cancelLabel={t('cancelBtn')}
-                  roundLabel={t('historyRoundLabel')(ri + 1)}
-                  editLabel={t('editBtn')}
-                  deleteLabel={t('deleteBtn')}
-                  dealerForRow={totalsByRow[ri]?.dealer ?? -1}
-                />
-              ))}
+              {state.scores.map((round, ri) => {
+                const meta = trixRounds?.[ri];
+                // Trix: insert a kingdom header whenever the kingdom changes.
+                const prevKingdom = ri > 0 ? trixRounds?.[ri - 1]?.kingdom : undefined;
+                const showKingdomHeader =
+                  isTrix && meta && meta.kingdom !== prevKingdom;
+                return (
+                  <div key={ri}>
+                    {showKingdomHeader && (
+                      <div className="history-kingdom-head">
+                        {t('trixKingdomLabel')(meta!.kingdom + 1)}
+                      </div>
+                    )}
+                    <HistoryCardItem
+                      round={round}
+                      cols={cols}
+                      editing={editingRound === ri}
+                      onStartEdit={() => setEditingRound(ri)}
+                      onCancelEdit={() => setEditingRound(null)}
+                      onSave={(updated) => submitEdit(ri, updated)}
+                      onDelete={() => onDelete(ri)}
+                      saveLabel={t('saveBtn')}
+                      cancelLabel={t('cancelBtn')}
+                      roundLabel={t('historyRoundLabel')(ri + 1)}
+                      dealLabel={dealLabel(meta)}
+                      editLabel={t('editBtn')}
+                      deleteLabel={t('deleteBtn')}
+                      dealerForRow={totalsByRow[ri]?.dealer ?? -1}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </>
         )}
@@ -169,6 +205,7 @@ type CardItemProps = {
   editLabel: string;
   deleteLabel: string;
   roundLabel: string;
+  dealLabel?: string | null;
   dealerForRow: number;
 };
 
@@ -185,6 +222,7 @@ function HistoryCardItem({
   editLabel,
   deleteLabel,
   roundLabel,
+  dealLabel,
   dealerForRow,
 }: CardItemProps) {
   const [draft, setDraft] = useState<string[]>(() =>
@@ -209,7 +247,10 @@ function HistoryCardItem({
     return (
       <div className="history-card" style={{ cursor: 'default' }}>
         <div className="hc-head">
-          <span className="hc-no">{roundLabel}</span>
+          <span className="hc-no">
+            {roundLabel}
+            {dealLabel && <span className="hc-deal">{dealLabel}</span>}
+          </span>
         </div>
         <div
           className="history-edit-row"

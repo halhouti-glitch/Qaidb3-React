@@ -2306,3 +2306,20 @@ button.numpad-input.active {
 .trix-remaining-chip.trix-ladder-chip {
   background: color-mix(in srgb, var(--gold) 22%, transparent);
 }
+
+/* Trix history grouping */
+.history-kingdom-head {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 16px 2px 8px;
+}
+.hc-deal {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-top: 2px;
+}

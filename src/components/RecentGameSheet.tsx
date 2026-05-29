@@ -73,7 +73,9 @@ export function RecentGameSheet({ recentIndex, onClose }: Props) {
           ? 'gameKout'
           : game.kind === 'sebeeta'
             ? 'gameSebeeta'
-            : 'gameCustom',
+            : game.kind === 'trix'
+              ? 'gameTrix'
+              : 'gameCustom',
       )
     : '';
 
