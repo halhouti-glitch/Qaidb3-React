@@ -29,10 +29,10 @@ export const TRIX_LADDER: readonly number[] = [-200, -150, -100, -50];
 export const TRIX_NAGHIL = -400;
 export const TRIX_KINGDOMS = 4;
 
-// King rotation: 7♥ holder is kingdom 0's King, then counter-clockwise.
-// Seats numbered clockwise → kingIdx[n] = (kingFirst - n) mod 4.
+// King rotation: 7♥ holder is kingdom 0's King, then the crown advances by
+// seat each kingdom → kingIdx[n] = (kingFirst + n) mod 4.
 export function trixKingIdx(kingFirst: number, kingdom: number): number {
-  return (((kingFirst - kingdom) % TRIX_KINGDOMS) + TRIX_KINGDOMS) % TRIX_KINGDOMS;
+  return (((kingFirst + kingdom) % TRIX_KINGDOMS) + TRIX_KINGDOMS) % TRIX_KINGDOMS;
 }
 
 // Canonical total a deal's per-player deltas should sum to. Penalty deal =

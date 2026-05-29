@@ -25,14 +25,14 @@ function kingdom(
   return layout.map((r) => ({ ...r, kingdom: k, kingIdx }));
 }
 
-describe('trixKingIdx — 7♥ holder first, counter-clockwise', () => {
+describe('trixKingIdx — 7♥ holder first, then advancing by seat', () => {
   it('kingdom 0 is the 7♥ holder', () => {
     expect(trixKingIdx(2, 0)).toBe(2);
   });
-  it('rotates counter-clockwise and wraps mod 4', () => {
-    expect(trixKingIdx(2, 1)).toBe(1);
-    expect(trixKingIdx(2, 2)).toBe(0);
-    expect(trixKingIdx(2, 3)).toBe(3); // (2-3) mod 4 = 3
+  it('advances by one seat each kingdom and wraps mod 4', () => {
+    expect(trixKingIdx(2, 1)).toBe(3);
+    expect(trixKingIdx(2, 2)).toBe(0); // (2+2) mod 4 = 0
+    expect(trixKingIdx(2, 3)).toBe(1); // (2+3) mod 4 = 1
   });
   it('covers all 4 seats exactly once across a match', () => {
     const seats = [0, 1, 2, 3].map((n) => trixKingIdx(0, n));

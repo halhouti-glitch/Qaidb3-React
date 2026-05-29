@@ -82,15 +82,15 @@ describe('addTrixDeal — kingdom/King derivation + index alignment', () => {
     ]);
   });
 
-  it('advances to kingdom 1 (King rotates counter-clockwise) once kingdom 0 completes', () => {
+  it('advances to kingdom 1 (King advances by seat) once kingdom 0 completes', () => {
     const { api } = renderWithGame(null);
     act(() => api.actions.startGame({ mode: 'trix', players: PLAYERS, kingFirst: 2 }));
     act(() => playKingdom(api.actions.addTrixDeal));
-    // Next deal belongs to kingdom 1, King = (2-1) = 1.
+    // Next deal belongs to kingdom 1, King = (2+1) mod 4 = 3.
     act(() => api.actions.addTrixDeal([75, 0, 0, 0], { kind: 'penalty', contracts: ['kingOfHearts'] }));
     const last = api.state.trixMatch!.rounds.at(-1)!;
     expect(last.kingdom).toBe(1);
-    expect(last.kingIdx).toBe(1);
+    expect(last.kingIdx).toBe(3);
   });
 });
 
