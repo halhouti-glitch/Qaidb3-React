@@ -87,6 +87,12 @@ export function PlayScreen() {
         ? 'gameTrix'
         : 'gameCustom';
 
+  const isTrixTeams = isTrix && !!state.trixMatch?.partnership;
+  const trixTeamTotals = useMemo<[number, number] | null>(
+    () => (isTrixTeams ? teamTotalsFromPlayers(totalsArr, state.playerTeam) : null),
+    [isTrixTeams, totalsArr, state.playerTeam],
+  );
+
   // Trix kingdom/contract progress (derived, individual, lowest-wins).
   const trixKingdom = isTrix && state.trixMatch ? trixCurrentKingdom(state.trixMatch.rounds) : 0;
   const trixKing = isTrix && state.trixMatch ? trixKingIdx(state.trixMatch.kingFirst, trixKingdom) : 0;
@@ -162,13 +168,24 @@ export function PlayScreen() {
               kingName={state.players[trixKing] ?? '—'}
               remaining={trixRemaining}
             />
-            <TrixScoreboard
-              totals={totalsArr}
-              players={state.players}
-              dealer={dealer}
-              winnerIdx={winner?.type === 'player' ? winner.idx : null}
-              lastDelta={lastDelta}
-            />
+            {isTrixTeams && trixTeamTotals ? (
+              <TrixTeamScoreboard
+                totals={trixTeamTotals}
+                players={state.players}
+                playerTeam={state.playerTeam}
+                teamLabel={teamLabel}
+                winnerIdx={winner?.type === 'team' ? winner.idx : null}
+                lastDelta={lastDelta ? teamTotalsFromPlayers(lastDelta, state.playerTeam) : null}
+              />
+            ) : (
+              <TrixScoreboard
+                totals={totalsArr}
+                players={state.players}
+                dealer={dealer}
+                winnerIdx={winner?.type === 'player' ? winner.idx : null}
+                lastDelta={lastDelta}
+              />
+            )}
           </>
         ) : (
         <>
@@ -555,6 +572,66 @@ function TrixScoreboard({ totals, players, dealer, winnerIdx, lastDelta }: TrixS
             )}
             <div>
               <div className="pt-score">{total}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Trix team scoreboard (2v2, lowest team wins) ─────────────────
+
+type TrixTeamScoreboardProps = {
+  totals: [number, number];
+  players: string[];
+  playerTeam: number[];
+  teamLabel: (idx: 0 | 1) => string;
+  winnerIdx: 0 | 1 | null;
+  lastDelta: [number, number] | null;
+};
+
+function TrixTeamScoreboard({
+  totals,
+  players,
+  playerTeam,
+  teamLabel,
+  winnerIdx,
+  lastDelta,
+}: TrixTeamScoreboardProps) {
+  const anyScore = totals[0] !== 0 || totals[1] !== 0;
+  const lowerIdx: 0 | 1 = totals[0] <= totals[1] ? 0 : 1;
+  return (
+    <div className="team-stack">
+      {([0, 1] as const).map((ti) => {
+        const total = totals[ti];
+        const isWinner = winnerIdx === ti;
+        const isLeader = winnerIdx != null ? isWinner : anyScore && ti === lowerIdx;
+        const members = players.filter((_, pi) => playerTeam[pi] === ti).join(' & ');
+        const delta = lastDelta ? lastDelta[ti] : 0;
+        return (
+          <div key={ti} className={`team-tile${isLeader ? ' leader' : ''}`}>
+            {isLeader && (
+              <div className="crown">
+                <Icon.Crown size={16} />
+              </div>
+            )}
+            <div>
+              <div className="team-row">
+                <div>
+                  <div className="team-name">{teamLabel(ti)}</div>
+                  <div className="members">{members}</div>
+                </div>
+                {delta !== 0 && (
+                  <div className="pt-delta show" style={{ position: 'static' }}>
+                    {delta > 0 ? '+' : ''}
+                    {delta}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div>
+              <div className="team-score">{total}</div>
             </div>
           </div>
         );

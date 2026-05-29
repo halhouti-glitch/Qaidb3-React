@@ -28,6 +28,32 @@ describe('startGame — trix', () => {
     expect(api.state.currentScreen).toBe('play');
   });
 
+  it('configures a 2v2 partnership (across pairing) when teams are passed', () => {
+    const { api } = renderWithGame(null);
+    act(() =>
+      api.actions.startGame({
+        mode: 'trix',
+        players: PLAYERS,
+        kingFirst: 1,
+        partnership: true,
+        playerTeam: [0, 1, 0, 1],
+        teamNames: ['Reds', 'Blues'],
+      }),
+    );
+    expect(api.state.playerTeam).toEqual([0, 1, 0, 1]);
+    expect(api.state.teamNames).toEqual(['Reds', 'Blues']);
+    expect(api.state.trixMatch?.partnership).toBe(true);
+  });
+
+  it('falls back to individual when partnership is set without a playerTeam', () => {
+    const { api } = renderWithGame(null);
+    act(() =>
+      api.actions.startGame({ mode: 'trix', players: PLAYERS, kingFirst: 0, partnership: true }),
+    );
+    expect(api.state.trixMatch?.partnership).toBe(false);
+    expect(api.state.playerTeam).toEqual([]);
+  });
+
   it('clears a prior game trixMatch when starting a non-trix game', () => {
     const { api } = renderWithGame(null);
     act(() => api.actions.startGame({ mode: 'trix', players: PLAYERS, kingFirst: 0 }));

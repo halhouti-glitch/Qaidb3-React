@@ -112,7 +112,11 @@ export function buildShareText(state: PersistedState): string {
       { name: teamName(state, 0), score: totalsArr[0] ?? 0 },
       { name: teamName(state, 1), score: totalsArr[1] ?? 0 },
     ];
-  } else if (state.gameMode === 'sebeeta' || (state.gameMode === 'custom' && hasTeams)) {
+  } else if (
+    state.gameMode === 'sebeeta' ||
+    (state.gameMode === 'custom' && hasTeams) ||
+    (state.gameMode === 'trix' && state.trixMatch?.partnership && hasTeams)
+  ) {
     const tt = teamTotalsFromPlayers(totalsArr, state.playerTeam);
     rows = [
       { name: teamName(state, 0), score: tt[0] },
@@ -364,15 +368,21 @@ export async function renderGameSummaryPNG(
         players: teamPlayersWithScores(1, null),
       },
     ];
-  } else if (state.gameMode === 'sebeeta') {
+  } else if (
+    state.gameMode === 'sebeeta' ||
+    (state.gameMode === 'trix' && state.trixMatch?.partnership)
+  ) {
     const tT = teamTotalsFromPlayers(totalsArr, state.playerTeam);
+    // Sebeeta hides the team header score (shown as an individual board);
+    // Trix 2v2 shows it (team total is the score that wins).
+    const showTeamScore = state.gameMode === 'trix';
     rows = [
       {
         name: teamName(state, 0),
         score: tT[0],
         isTeam: true,
         idx: 0,
-        showHeaderScore: false,
+        showHeaderScore: showTeamScore,
         players: teamPlayersWithScores(0, totalsArr),
       },
       {
@@ -380,7 +390,7 @@ export async function renderGameSummaryPNG(
         score: tT[1],
         isTeam: true,
         idx: 1,
-        showHeaderScore: false,
+        showHeaderScore: showTeamScore,
         players: teamPlayersWithScores(1, totalsArr),
       },
     ];

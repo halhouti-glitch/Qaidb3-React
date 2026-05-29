@@ -53,8 +53,11 @@ export type StartGameInput =
       players: string[]; // exactly 4
       /** Seat index (0–3) of the 7♥ holder = King of kingdom 0. */
       kingFirst: number;
-      /** P2 — 2v2 rollup. P1 ignores this (plays individual). */
+      /** 2v2 rollup (default in Setup). When true, playerTeam must be set. */
       partnership?: boolean;
+      /** 0|1 per seat. Across pairing = [0,1,0,1] (seats 0&2 vs 1&3). */
+      playerTeam?: number[];
+      teamNames?: [string, string];
     };
 
 export type GameActions = {
@@ -236,14 +239,20 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
           trixMatch: undefined,
         };
         if (input.mode === 'trix') {
+          const teams =
+            !!input.partnership &&
+            !!input.playerTeam &&
+            input.playerTeam.length === input.players.length;
           return {
             ...base,
-            playerTeam: [], // P1 individual; partnership rollup = P2
-            teamNames: [],
+            // Deals are always entered per-player; teams only roll up the
+            // standings/winner. playerTeam drives that rollup.
+            playerTeam: teams ? input.playerTeam!.slice() : [],
+            teamNames: teams && input.teamNames ? input.teamNames.slice() : [],
             threshold: 0, // unused — kingdoms-complete ends the game
             winRule: 'lowest',
             trixMatch: {
-              partnership: !!input.partnership,
+              partnership: teams,
               kingFirst: input.kingFirst,
               rounds: [],
             },

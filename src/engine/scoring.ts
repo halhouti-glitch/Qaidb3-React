@@ -121,7 +121,13 @@ export function checkWinner(state: GameStateSlice, totalsArr: number[]): Winner 
   if (state.gameMode === 'trix') {
     // Threshold is unused — the game ends when all 4 kingdoms are complete.
     if (!state.trixMatch || !trixGameOver(state.trixMatch)) return null;
-    // Individual, lowest total wins. Partnership rollup is P2.
+    // Partnership (2v2): roll per-player totals up to two team totals; lowest
+    // team wins. Ties → team 0 (matches dealerIndex's first-occurrence rule).
+    if (state.trixMatch.partnership) {
+      const tt = teamTotalsFromPlayers(totalsArr, state.playerTeam);
+      return { type: 'team', idx: tt[0] <= tt[1] ? 0 : 1 };
+    }
+    // Individual: lowest total wins.
     let min = Infinity;
     let idx = -1;
     totalsArr.forEach((v, i) => {

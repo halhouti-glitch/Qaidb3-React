@@ -4,7 +4,7 @@ import { useGame } from '../state/GameContext';
 import { Header } from '../components/Header';
 import { Icon } from '../components/Icon';
 import { ShareSheet } from '../components/ShareSheet';
-import { checkWinner, totals as computeTotals } from '../engine/scoring';
+import { checkWinner, teamTotalsFromPlayers, totals as computeTotals } from '../engine/scoring';
 
 export function WinnerScreen() {
   const { t } = useLang();
@@ -45,9 +45,15 @@ export function WinnerScreen() {
         winnerScore = `${totalsArr[winner.idx]}–${totalsArr[1 - winner.idx]}`;
         rivalScore = totalsArr[1 - winner.idx] ?? 0;
       } else {
-        won = totalsArr[winner.idx] ?? 0;
-        winnerScore = totalsArr[winner.idx] ?? 0;
-        rivalScore = totalsArr[1 - winner.idx] ?? 0;
+        // Trix 2v2 (and Custom+teams): totalsArr is per-player, so roll up to
+        // team totals before indexing by the winning side.
+        const src =
+          state.gameMode === 'trix' && state.trixMatch?.partnership
+            ? teamTotalsFromPlayers(totalsArr, state.playerTeam)
+            : totalsArr;
+        won = src[winner.idx] ?? 0;
+        winnerScore = src[winner.idx] ?? 0;
+        rivalScore = src[1 - winner.idx] ?? 0;
       }
     }
   }

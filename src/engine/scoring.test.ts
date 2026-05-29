@@ -354,6 +354,25 @@ describe('checkWinner — trix', () => {
     expect(checkWinner(s, totals(s))).toEqual({ type: 'player', idx: 2 });
   });
 
+  it('rolls up to teams when partnership is on (lowest team wins)', () => {
+    const rounds = fullRounds();
+    // Per-deal: team A (seats 0&2) eats penalties, team B (1&3) takes the ladder.
+    const scores = rounds.map((r) =>
+      r.kind === 'trix' ? [0, -200, 0, -300] : [250, 0, 250, 0],
+    );
+    const s: GameStateSlice = {
+      gameMode: 'trix',
+      winRule: 'lowest',
+      threshold: 0,
+      players,
+      playerTeam: [0, 1, 0, 1], // across pairing
+      scores,
+      trixMatch: { partnership: true, kingFirst: 0, rounds },
+    };
+    // Team A = p0+p2 = (250+250)*4 = 2000; Team B = p1+p3 = (-200-300)*4 = -2000.
+    expect(checkWinner(s, totals(s))).toEqual({ type: 'team', idx: 1 });
+  });
+
   it('returns null when trixMatch is missing', () => {
     const s: GameStateSlice = {
       gameMode: 'trix',

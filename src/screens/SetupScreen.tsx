@@ -36,9 +36,9 @@ export function SetupScreen() {
   const initialCount = game.numPlayers ?? 4;
   const [count, setCount] = useState<number>(initialCount);
 
-  // For Custom only: individual vs teams format
+  // Custom + Trix: individual vs teams format. Trix defaults to teams (2v2).
   const [format, setFormat] = useState<IndividualMode>(
-    isTeam ? 'teams' : 'individual',
+    isTeam || isTrix ? 'teams' : 'individual',
   );
 
   // Win condition (Custom only — registry's configurable flag)
@@ -89,7 +89,8 @@ export function SetupScreen() {
     ? Math.max(1, parseInt(customTargetStr, 10) || 0)
     : target;
 
-  const showsAsTeams = isTeam || (isCustom && format === 'teams');
+  const showsAsTeams =
+    isTeam || ((isCustom || isTrix) && format === 'teams');
 
   const titleText = isKout
     ? t('setupTitleKout')
@@ -139,7 +140,21 @@ export function SetupScreen() {
   // Trix: Start opens the King-pick sheet; startGame fires once a King is chosen.
   const pickKing = (kingFirst: number) => {
     setKingPickOpen(false);
-    actions.startGame({ mode: 'trix', players: resolvedNames(), kingFirst });
+    const names = resolvedNames();
+    if (format === 'teams') {
+      // Across pairing: seats 0&2 → team A, 1&3 → team B (i % 2).
+      const playerTeam = names.map((_, i) => i % 2);
+      actions.startGame({
+        mode: 'trix',
+        players: names,
+        kingFirst,
+        partnership: true,
+        playerTeam,
+        teamNames: [teamA.trim() || t('teamAFull'), teamB.trim() || t('teamBFull')],
+      });
+      return;
+    }
+    actions.startGame({ mode: 'trix', players: names, kingFirst });
   };
 
   const start = () => {
@@ -211,9 +226,9 @@ export function SetupScreen() {
       />
 
       <div className="setup-body">
-        {/* Format toggle: Custom only. Sebeeta + Kout are hard-coded to teams
-            in the engine (legacy parity). */}
-        {isCustom && (
+        {/* Format toggle: Custom + Trix. Sebeeta + Kout are hard-coded to teams
+            in the engine (legacy parity). Trix defaults to teams (2v2). */}
+        {(isCustom || isTrix) && (
           <div className="setup-section">
             <div className="label">{t('setupFormat')}</div>
             <div className="segmented">
