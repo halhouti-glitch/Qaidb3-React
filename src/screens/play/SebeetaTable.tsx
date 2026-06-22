@@ -33,8 +33,6 @@ export function SebeetaTable({
 
   return (
     <div className="sebeeta-table">
-      <div className="st-table-header">{t('sebeetaTableHeader')}</div>
-
       {hasScores && (
         <div className="st-top-section">
           <div className="play-section-label st-top-header">
@@ -63,6 +61,8 @@ export function SebeetaTable({
           </div>
         </div>
       )}
+
+      <div className="st-table-header">{t('sebeetaTableHeader')}</div>
 
       <div className="st-ring">
         <div className="st-center">
