@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLang } from '../i18n/LangContext';
 import { useGame } from '../state/GameContext';
 import { useAudio } from '../lib/audio';
 import { useToast } from './Toast';
-import { useFocusTrap } from '../lib/useFocusTrap';
+import { BottomSheet } from './BottomSheet';
+import { SheetFooter } from './SheetFooter';
 import { Icon } from './Icon';
 import {
   KOUT_CONTRACT_SCORES,
@@ -28,24 +29,6 @@ export function RoundSheet({ open, onClose }: RoundSheetProps) {
   const { state, actions } = useGame();
   const toast = useToast();
   const fx = useAudio();
-  const sheetRef = useRef<HTMLDivElement>(null);
-
-  useFocusTrap(sheetRef, open);
-
-  // Lock body scroll + ESC closes while open
-  useEffect(() => {
-    if (!open) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open, onClose]);
 
   const submit = (round: number[]) => {
     // Vanilla flow (PORT_FROM_VANILLA.md item 5): commit, then surface a
@@ -71,46 +54,35 @@ export function RoundSheet({ open, onClose }: RoundSheetProps) {
   const isKout = state.gameMode === 'kout';
 
   return (
-    <>
-      <div
-        className={`sheet-scrim${open ? ' open' : ''}`}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div
-        ref={sheetRef}
-        className={`sheet${open ? ' open' : ''}`}
-        role="dialog"
-        aria-modal="true"
-        aria-label={`${t('roundLabel')} ${roundNum}`}
-        tabIndex={-1}
-      >
-        <div className="grabber" />
-        <div className="sheet-header">
-          <h2>
-            {t('roundLabel')} {roundNum}
-          </h2>
-          {isKout ? (
-            <KoutModeTabs
-              mode={state.koutEntryMode}
-              setMode={actions.setKoutEntryMode}
-              contractLabel={t('koutTabContract')}
-              manualLabel={t('koutTabManual')}
-            />
-          ) : (
-            <div className="round-meta">{t('sheetPlayersHint')}</div>
-          )}
-        </div>
-        <div className={`sheet-body${isKout ? ' kout-entry' : ''}`}>
-          {open &&
-            (isKout ? (
-              <KoutEntry onSubmit={submit} onClose={onClose} />
-            ) : (
-              <PlayerEntry onSubmit={submit} onClose={onClose} />
-            ))}
-        </div>
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      label={`${t('roundLabel')} ${roundNum}`}
+    >
+      <div className="sheet-header">
+        <h2>
+          {t('roundLabel')} {roundNum}
+        </h2>
+        {isKout ? (
+          <KoutModeTabs
+            mode={state.koutEntryMode}
+            setMode={actions.setKoutEntryMode}
+            contractLabel={t('koutTabContract')}
+            manualLabel={t('koutTabManual')}
+          />
+        ) : (
+          <div className="round-meta">{t('sheetPlayersHint')}</div>
+        )}
       </div>
-    </>
+      <div className={`sheet-body${isKout ? ' kout-entry' : ''}`}>
+        {open &&
+          (isKout ? (
+            <KoutEntry onSubmit={submit} onClose={onClose} />
+          ) : (
+            <PlayerEntry onSubmit={submit} onClose={onClose} />
+          ))}
+      </div>
+    </BottomSheet>
   );
 }
 
@@ -612,36 +584,6 @@ function NumpadEntry({ onSubmit, onClose }: EntryProps) {
       </div>
       <SheetFooter onSubmit={submit} onClose={onClose} disabled={false} />
     </>
-  );
-}
-
-// ── Footer (Cancel + Save) ───────────────────────────────────────
-
-type SheetFooterProps = {
-  onSubmit: () => void;
-  onClose: () => void;
-  disabled: boolean;
-};
-
-function SheetFooter({ onSubmit, onClose, disabled }: SheetFooterProps) {
-  const { t } = useLang();
-  return (
-    <div
-      className="sheet-foot"
-      style={{ marginTop: 14, marginInline: -22, marginBottom: -16 }}
-    >
-      <button type="button" className="btn btn-ghost" onClick={onClose}>
-        {t('sheetCancel')}
-      </button>
-      <button
-        type="button"
-        className="btn btn-primary"
-        onClick={onSubmit}
-        disabled={disabled}
-      >
-        <Icon.Check size={16} /> {t('sheetSave')}
-      </button>
-    </div>
   );
 }
 

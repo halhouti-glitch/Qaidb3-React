@@ -2,14 +2,12 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from 'react';
 import { useLang } from '../i18n/LangContext';
-import { useFocusTrap } from '../lib/useFocusTrap';
+import { BottomSheet } from './BottomSheet';
 
 // App-native confirm dialog — replaces `window.confirm`, which is jarring
 // on mobile and breaks the Liquid Glass aesthetic. Reuses the same scrim +
@@ -40,9 +38,6 @@ type SheetState = ConfirmOptions & { id: number };
 export function ConfirmProvider({ children }: { children: ReactNode }) {
   const { t } = useLang();
   const [sheet, setSheet] = useState<SheetState | null>(null);
-  const sheetRef = useRef<HTMLDivElement>(null);
-
-  useFocusTrap(sheetRef, sheet !== null);
 
   const confirm = useCallback((opts: ConfirmOptions) => {
     setSheet({ ...opts, id: Date.now() });
@@ -56,21 +51,6 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     setSheet(null);
   }, [sheet]);
 
-  // Escape key cancels.
-  useEffect(() => {
-    if (!sheet) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') close();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [sheet, close]);
-
   const value = useMemo<ConfirmContextValue>(() => ({ confirm }), [confirm]);
 
   const confirmLabel = sheet?.confirmLabel ?? t('saveBtn');
@@ -80,46 +60,33 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     <ConfirmContext.Provider value={value}>
       {children}
       {sheet && (
-        <>
-          <div
-            className="sheet-scrim open"
-            onClick={close}
-            aria-hidden="true"
-          />
-          <div
-            ref={sheetRef}
-            className="sheet confirm-sheet open"
-            role="alertdialog"
-            aria-modal="true"
-            aria-label={sheet.title}
-            tabIndex={-1}
-          >
-            <div className="grabber" />
-            <div className="confirm-body">
-              <h2 className="confirm-title">{sheet.title}</h2>
-              {sheet.message && (
-                <p className="confirm-message">{sheet.message}</p>
-              )}
-              <div className="confirm-actions">
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  onClick={close}
-                >
-                  {cancelLabel}
-                </button>
-                <button
-                  type="button"
-                  className={`btn ${sheet.destructive ? 'btn-danger' : 'btn-primary'}`}
-                  onClick={onConfirm}
-                  autoFocus
-                >
-                  {confirmLabel}
-                </button>
-              </div>
+        <BottomSheet
+          open
+          onClose={close}
+          label={sheet.title}
+          className="confirm-sheet"
+          role="alertdialog"
+        >
+          <div className="confirm-body">
+            <h2 className="confirm-title">{sheet.title}</h2>
+            {sheet.message && (
+              <p className="confirm-message">{sheet.message}</p>
+            )}
+            <div className="confirm-actions">
+              <button type="button" className="btn btn-ghost" onClick={close}>
+                {cancelLabel}
+              </button>
+              <button
+                type="button"
+                className={`btn ${sheet.destructive ? 'btn-danger' : 'btn-primary'}`}
+                onClick={onConfirm}
+                autoFocus
+              >
+                {confirmLabel}
+              </button>
             </div>
           </div>
-        </>
+        </BottomSheet>
       )}
     </ConfirmContext.Provider>
   );

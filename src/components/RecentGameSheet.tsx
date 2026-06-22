@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { useLang } from '../i18n/LangContext';
 import { useGame } from '../state/GameContext';
 import { useConfirm } from './ConfirmSheet';
 import { useToast } from './Toast';
 import { relativeWhen } from '../lib/relativeWhen';
-import { useFocusTrap } from '../lib/useFocusTrap';
 import { Icon } from './Icon';
+import { BottomSheet } from './BottomSheet';
 import type { RecentGame } from '../state/persistedState';
 
 type Props = {
@@ -26,26 +26,9 @@ export function RecentGameSheet({ recentIndex, onClose }: Props) {
   const { state, actions } = useGame();
   const { confirm } = useConfirm();
   const toast = useToast();
-  const sheetRef = useRef<HTMLDivElement>(null);
   const open = recentIndex !== null;
   const game: RecentGame | undefined =
     recentIndex !== null ? state.recentGames[recentIndex] : undefined;
-
-  useFocusTrap(sheetRef, open);
-
-  useEffect(() => {
-    if (!open) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open, onClose]);
 
   const cols: Col[] = useMemo(() => {
     if (!game) return [];
@@ -102,22 +85,13 @@ export function RecentGameSheet({ recentIndex, onClose }: Props) {
   const gridCols = `minmax(36px, auto) repeat(${cols.length}, minmax(0, 1fr))`;
 
   return (
-    <>
-      <div
-        className={`sheet-scrim${open ? ' open' : ''}`}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div
-        ref={sheetRef}
-        className={`sheet recent-sheet${open ? ' open' : ''}`}
-        role="dialog"
-        aria-modal="true"
-        aria-label={game ? `${modeLabel} · ${game.winner}` : ''}
-        tabIndex={-1}
-      >
-        <div className="grabber" />
-        {game && (
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      label={game ? `${modeLabel} · ${game.winner}` : ''}
+      className="recent-sheet"
+    >
+      {game && (
           <>
             <div className="recent-sheet-head">
               <div className="rsh-titles">
@@ -211,7 +185,6 @@ export function RecentGameSheet({ recentIndex, onClose }: Props) {
             )}
           </>
         )}
-      </div>
-    </>
+    </BottomSheet>
   );
 }

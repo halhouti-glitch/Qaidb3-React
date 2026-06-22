@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLang } from '../i18n/LangContext';
 import { useGame } from '../state/GameContext';
 import { useAudio } from '../lib/audio';
 import { useToast } from './Toast';
-import { useFocusTrap } from '../lib/useFocusTrap';
+import { BottomSheet } from './BottomSheet';
+import { SheetFooter } from './SheetFooter';
 import { Icon } from './Icon';
 import {
   TRIX_LADDER,
@@ -40,23 +41,6 @@ export function TrixRoundSheet({ open, onClose }: TrixRoundSheetProps) {
   const { state, actions } = useGame();
   const toast = useToast();
   const fx = useAudio();
-  const sheetRef = useRef<HTMLDivElement>(null);
-
-  useFocusTrap(sheetRef, open);
-
-  useEffect(() => {
-    if (!open) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open, onClose]);
 
   const trixMatch = state.trixMatch;
   const kingdom = trixMatch ? trixCurrentKingdom(trixMatch.rounds) : 0;
@@ -78,34 +62,23 @@ export function TrixRoundSheet({ open, onClose }: TrixRoundSheetProps) {
   };
 
   return (
-    <>
-      <div
-        className={`sheet-scrim${open ? ' open' : ''}`}
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div
-        ref={sheetRef}
-        className={`sheet${open ? ' open' : ''}`}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('trixKingdomLabel')(kingdom + 1)}
-        tabIndex={-1}
-      >
-        <div className="grabber" />
-        <div className="sheet-header">
-          <h2>{t('trixKingdomLabel')(kingdom + 1)}</h2>
-          <div className="round-meta">
-            {t('trixCurrentKing')(state.players[kingIdx] ?? '—')}
-          </div>
-        </div>
-        <div className="sheet-body">
-          {open && trixMatch && (
-            <TrixEntry kingdom={kingdom} onSubmit={submit} onClose={onClose} />
-          )}
+    <BottomSheet
+      open={open}
+      onClose={onClose}
+      label={t('trixKingdomLabel')(kingdom + 1)}
+    >
+      <div className="sheet-header">
+        <h2>{t('trixKingdomLabel')(kingdom + 1)}</h2>
+        <div className="round-meta">
+          {t('trixCurrentKing')(state.players[kingIdx] ?? '—')}
         </div>
       </div>
-    </>
+      <div className="sheet-body">
+        {open && trixMatch && (
+          <TrixEntry kingdom={kingdom} onSubmit={submit} onClose={onClose} />
+        )}
+      </div>
+    </BottomSheet>
   );
 }
 
@@ -568,32 +541,3 @@ function DeclareToggle({
   );
 }
 
-// ── Footer (Cancel + Save) — mirrors RoundSheet's. ──────────────────
-
-type SheetFooterProps = {
-  onSubmit: () => void;
-  onClose: () => void;
-  disabled: boolean;
-};
-
-function SheetFooter({ onSubmit, onClose, disabled }: SheetFooterProps) {
-  const { t } = useLang();
-  return (
-    <div
-      className="sheet-foot"
-      style={{ marginTop: 14, marginInline: -22, marginBottom: -16 }}
-    >
-      <button type="button" className="btn btn-ghost" onClick={onClose}>
-        {t('sheetCancel')}
-      </button>
-      <button
-        type="button"
-        className="btn btn-primary"
-        onClick={onSubmit}
-        disabled={disabled}
-      >
-        <Icon.Check size={16} /> {t('sheetSave')}
-      </button>
-    </div>
-  );
-}
