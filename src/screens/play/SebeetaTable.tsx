@@ -33,10 +33,40 @@ export function SebeetaTable({
 
   return (
     <div className="sebeeta-table">
+      {hasScores && (
+        <div className="st-top-section">
+          <div className="play-section-label st-top-header">
+            {t('sebeetaTargetHeader')}
+          </div>
+          <div className="st-tops">
+            {([0, 1] as const).map((ti) => {
+              const top = tops[ti];
+              const name = top ? players[top.playerIdx] ?? '—' : '—';
+              const score = top?.score ?? 0;
+              return (
+                <div
+                  key={ti}
+                  className={`st-top ${ti === 0 ? 'team-a' : 'team-b'}`}
+                >
+                  <div className="st-top-avatar">{top ? initials(name) : '—'}</div>
+                  <div className="st-top-info">
+                    <span className="st-top-team">{teamLabel(ti)}</span>
+                    <span className="st-top-line">
+                      {name} · <span className="num">{score}</span>
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="st-ring">
         <div className="st-center">
           {hasScores ? (
             <>
+              <span className="st-center-badge">{t('dealerBadge')}</span>
               <span className="st-center-pre">{t('sebeetaDealer')}</span>
               <span className="st-center-name">{players[dealer] ?? '—'}</span>
             </>
@@ -73,27 +103,6 @@ export function SebeetaTable({
           );
         })}
       </div>
-
-      {hasScores && (
-        <div className="st-tops">
-          {([0, 1] as const).map((ti) => {
-            const top = tops[ti];
-            const name = top ? players[top.playerIdx] ?? '—' : '—';
-            const score = top?.score ?? 0;
-            return (
-              <div key={ti} className={`st-top ${ti === 0 ? 'team-a' : 'team-b'}`}>
-                <div className="st-top-avatar">{top ? initials(name) : '—'}</div>
-                <div className="st-top-info">
-                  <span className="st-top-team">{teamLabel(ti)}</span>
-                  <span className="st-top-line">
-                    {name} · <span className="num">{score}</span>
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }

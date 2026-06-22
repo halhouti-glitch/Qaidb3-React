@@ -207,6 +207,7 @@ export type Strings = {
   playTargetLabel: string;
   playTotalScoreLabel: string;
   sebeetaDealer: string;
+  sebeetaTargetHeader: string;
 
   // ── PWA update prompt ────────────────────────────────────────
   updateAvailable: string;
@@ -501,6 +502,7 @@ const en: Strings = {
   playTargetLabel: 'Target',
   playTotalScoreLabel: 'Total score',
   sebeetaDealer: 'Dealer',
+  sebeetaTargetHeader: 'Target',
 
   updateAvailable: 'A new version is available.',
   updateReload: 'Update',
@@ -785,7 +787,8 @@ const ar: Strings = {
 
   playTargetLabel: 'الهدف',
   playTotalScoreLabel: 'مجموع النقاط',
-  sebeetaDealer: 'الموزّع',
+  sebeetaDealer: 'الشيال',
+  sebeetaTargetHeader: 'تارغت',
 
   updateAvailable: 'يتوفر إصدار جديد.',
   updateReload: 'تحديث',

@@ -2390,6 +2390,16 @@ html[dir="rtl"] .numpad .numpad-nav { flex-direction: row-reverse; }
   --seat-b-ink: #9bbcff;
 }
 
+/* Header + each team's top scorer, above the ring. */
+.st-top-section {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.st-top-header { margin: 0; text-align: center; }
+
 .st-ring {
   position: relative;
   width: 100%;
@@ -2416,6 +2426,16 @@ html[dir="rtl"] .numpad .numpad-nav { flex-direction: row-reverse; }
   text-align: center;
 }
 .st-center-pre { font-size: 11px; color: var(--muted); }
+.st-center-badge {
+  font-family: var(--font-num);
+  font-size: 10px; font-weight: 700;
+  color: var(--ink);
+  background: var(--gold);
+  border-radius: 999px;
+  padding: 1px 8px;
+  line-height: 1.5;
+  margin-bottom: 1px;
+}
 .st-center-name {
   font-size: 18px; font-weight: 600; color: var(--ink);
   letter-spacing: -0.01em; line-height: 1.05;
