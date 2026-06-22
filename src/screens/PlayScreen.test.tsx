@@ -61,11 +61,13 @@ describe('PlayScreen', () => {
   });
 
   it('Sebeeta scoreboard toggles between the list and circular table views', () => {
+    // Pin to list explicitly so the test exercises both directions regardless
+    // of the global default (which is 'table').
     const { api, getByText, queryByText } = renderWithGame(<PlayScreen />, {
-      initial: { ...sebeetaInit, scores: [[10, 5, 8, 40, 2, 1]] },
+      initial: { ...sebeetaInit, sebeetaView: 'list' as const, scores: [[10, 5, 8, 40, 2, 1]] },
     });
-    // Defaults to the list view: the "Total score" section label is shown and
-    // the table-only center subtitle is not.
+    // List view: the "Total score" section label is shown and the table-only
+    // center subtitle is not.
     expect(getByText('Total score')).toBeDefined();
     expect(queryByText('lowest stays in')).toBeNull();
 

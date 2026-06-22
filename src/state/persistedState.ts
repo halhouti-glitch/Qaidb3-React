@@ -130,7 +130,7 @@ export const DEFAULT_STATE: PersistedState = {
   lang: 'ar',
   koutEntryMode: 'contract',
   entryStyle: 'pm',
-  sebeetaView: 'list',
+  sebeetaView: 'table',
   currentScreen: 'home',
   recentGames: [],
   theme: 'light',
