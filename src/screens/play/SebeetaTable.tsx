@@ -1,20 +1,19 @@
 import { useLang } from '../../i18n/LangContext';
 import { initials } from '../../lib/initials';
+import { topScorerPerTeam } from '../../engine/scoring';
 
 // Circular Sebeeta scoreboard — six seats around a felt, mirroring the real
-// table. Teams alternate around the ring (playerTeam drives the colour, so it
-// stays correct even if seating isn't strictly A-B-A-B). The highest scorer is
-// the one closest to busting the threshold (Sebeeta: crossing it loses for
-// their team), so it gets the danger highlight. An opt-in alternative to the
-// list scoreboard — toggled on the Play screen, persisted in state.
+// table. Teams are coloured by playerTeam. The centre names the dealer (the
+// highest scorer — in Sebeeta, closest to busting the threshold and the one
+// who deals next). Below the ring, two circles call out each team's highest
+// individual (the player each team must watch). The only Sebeeta scoreboard.
 type SebeetaTableProps = {
   players: string[];
   totals: number[];
   playerTeam: number[];
   threshold: number;
-  /** Index of the player closest to out (highest total). */
-  atRisk: number;
-  teamTotals: [number, number];
+  /** Index of the dealer = the highest-scoring player. */
+  dealer: number;
   teamLabel: (idx: 0 | 1) => string;
   lastDelta: number[] | null;
 };
@@ -24,59 +23,77 @@ export function SebeetaTable({
   totals,
   playerTeam,
   threshold,
-  atRisk,
-  teamTotals,
+  dealer,
   teamLabel,
   lastDelta,
 }: SebeetaTableProps) {
   const { t } = useLang();
+  const hasScores = totals.some((v) => v !== 0);
+  const tops = topScorerPerTeam(totals, playerTeam);
+
   return (
     <div className="sebeeta-table">
       <div className="st-ring">
-        <div className="st-center" aria-hidden="true">
-          <span className="st-center-pre">{t('playTargetLabel')}</span>
-          <span className="st-center-num num">{threshold}</span>
-          <span className="st-center-sub">{t('sebeetaLowestStays')}</span>
+        <div className="st-center">
+          {hasScores ? (
+            <>
+              <span className="st-center-pre">{t('sebeetaDealer')}</span>
+              <span className="st-center-name">{players[dealer] ?? '—'}</span>
+            </>
+          ) : (
+            <>
+              <span className="st-center-pre">{t('playTargetLabel')}</span>
+              <span className="st-center-num num">{threshold}</span>
+            </>
+          )}
         </div>
 
         {players.map((name, i) => {
           const total = totals[i] ?? 0;
           const team = playerTeam[i] === 1 ? 1 : 0;
-          const isAtRisk = i === atRisk && total > 0;
+          const isDealer = hasScores && i === dealer;
           const delta = lastDelta ? lastDelta[i] ?? null : null;
           return (
             <div
               key={i}
               className={`st-seat st-seat-${i} ${team === 0 ? 'team-a' : 'team-b'}${
-                isAtRisk ? ' at-risk' : ''
+                isDealer ? ' dealer' : ''
               }`}
             >
               <div className="st-avatar">{initials(name)}</div>
               <div className="st-name">{name}</div>
               <div className="st-score num">{total}</div>
-              {isAtRisk ? (
-                <div className="st-risk">{t('sebeetaAtRisk')}</div>
-              ) : (
-                delta != null && (
-                  <div className="st-delta num">
-                    {delta > 0 ? '+' : ''}
-                    {delta}
-                  </div>
-                )
+              {delta != null && (
+                <div className="st-delta num">
+                  {delta > 0 ? '+' : ''}
+                  {delta}
+                </div>
               )}
             </div>
           );
         })}
       </div>
 
-      <div className="sebeeta-legend">
-        {([0, 1] as const).map((ti) => (
-          <span key={ti} className={`st-leg ${ti === 0 ? 'team-a' : 'team-b'}`}>
-            <span className="st-leg-dot" aria-hidden="true" />
-            {teamLabel(ti)} · <span className="num">{teamTotals[ti]}</span>
-          </span>
-        ))}
-      </div>
+      {hasScores && (
+        <div className="st-tops">
+          {([0, 1] as const).map((ti) => {
+            const top = tops[ti];
+            const name = top ? players[top.playerIdx] ?? '—' : '—';
+            const score = top?.score ?? 0;
+            return (
+              <div key={ti} className={`st-top ${ti === 0 ? 'team-a' : 'team-b'}`}>
+                <div className="st-top-avatar">{top ? initials(name) : '—'}</div>
+                <div className="st-top-info">
+                  <span className="st-top-team">{teamLabel(ti)}</span>
+                  <span className="st-top-line">
+                    {name} · <span className="num">{score}</span>
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

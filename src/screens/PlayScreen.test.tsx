@@ -60,29 +60,14 @@ describe('PlayScreen', () => {
     expect(api.state.scores).toEqual([]);
   });
 
-  it('Sebeeta scoreboard toggles between the list and circular table views', () => {
-    // Pin to list explicitly so the test exercises both directions regardless
-    // of the global default (which is 'table').
-    const { api, getByText, queryByText } = renderWithGame(<PlayScreen />, {
-      initial: { ...sebeetaInit, sebeetaView: 'list' as const, scores: [[10, 5, 8, 40, 2, 1]] },
+  it('Sebeeta table names the dealer (highest scorer) in the centre', () => {
+    const { getByText, getAllByText } = renderWithGame(<PlayScreen />, {
+      // B1 (index 3) has the highest total → dealer.
+      initial: { ...sebeetaInit, scores: [[10, 5, 8, 40, 2, 1]] },
     });
-    // List view: the "Total score" section label is shown and the table-only
-    // center subtitle is not.
-    expect(getByText('Total score')).toBeDefined();
-    expect(queryByText('lowest stays in')).toBeNull();
-
-    act(() => {
-      fireEvent.click(getByText('Table'));
-    });
-    expect(api.state.sebeetaView).toBe('table');
-    expect(getByText('lowest stays in')).toBeDefined();
-    expect(queryByText('Total score')).toBeNull();
-
-    act(() => {
-      fireEvent.click(getByText('List'));
-    });
-    expect(api.state.sebeetaView).toBe('list');
-    expect(getByText('Total score')).toBeDefined();
+    expect(getByText('Dealer')).toBeDefined();
+    // B1 appears both in the centre (dealer) and on their seat.
+    expect(getAllByText('B1').length).toBeGreaterThanOrEqual(2);
   });
 
   it('Reset can be cancelled — scores remain intact', () => {

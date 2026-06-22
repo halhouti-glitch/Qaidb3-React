@@ -1155,7 +1155,7 @@ button.numpad-input.active {
   margin-top: 14px;
 }
 .numpad button {
-  height: 52px;
+  height: 60px;
   border: 0;
   background: var(--bg);
   border-radius: var(--radius);
@@ -1200,9 +1200,12 @@ button.numpad-input.active {
   display: flex;
   gap: 6px;
 }
+/* Arabic: swap Prev/Next so السابق sits where التالي would be and vice
+   versa — match the user's expected RTL layout for the nav controls. */
+html[dir="rtl"] .numpad .numpad-nav { flex-direction: row-reverse; }
 .numpad .numpad-nav button {
   flex: 1;
-  height: 52px;
+  height: 60px;
   border: 0;
   border-radius: var(--radius);
   cursor: pointer;
@@ -1221,8 +1224,8 @@ button.numpad-input.active {
 }
 .numpad .numpad-nav button.prev:active { background: var(--accent-soft); }
 .numpad.compact { margin-top: 10px; gap: 4px; }
-.numpad.compact button { height: 40px; font-size: 18px; border-radius: var(--radius-s); }
-.numpad.compact .numpad-nav button { height: 40px; font-size: 13px; border-radius: var(--radius-s); }
+.numpad.compact button { height: 50px; font-size: 18px; border-radius: var(--radius-s); }
+.numpad.compact .numpad-nav button { height: 50px; font-size: 13px; border-radius: var(--radius-s); }
 
 /* ============================================================
    Kout round entry
@@ -2364,9 +2367,7 @@ button.numpad-input.active {
   margin-top: 4px;
 }
 
-/* ── Sebeeta circular "table" scoreboard (opt-in view) ─────────── */
-.sebeeta-view-toggle { flex: 0 0 auto; margin-bottom: 12px; }
-
+/* ── Sebeeta circular "table" scoreboard ──────────────────────── */
 .sebeeta-table {
   /* Team accent tokens — light theme. */
   --seat-a-fill: color-mix(in oklch, var(--gold) 22%, transparent);
@@ -2375,7 +2376,6 @@ button.numpad-input.active {
   --seat-b-fill: rgba(47, 111, 237, 0.14);
   --seat-b-ring: #2f6fed;
   --seat-b-ink: #1f5fae;
-  --seat-danger: #c1432f;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -2388,38 +2388,44 @@ button.numpad-input.active {
   --seat-b-fill: rgba(91, 140, 255, 0.18);
   --seat-b-ring: #5b8cff;
   --seat-b-ink: #9bbcff;
-  --seat-danger: #ef6f5a;
 }
 
 .st-ring {
   position: relative;
   width: 100%;
   max-width: 320px;
-  max-height: 56vh;
+  max-height: 50vh;
   margin: 0 auto;
   aspect-ratio: 1 / 0.9;
 }
 
+/* Centre = the dealer (highest scorer). */
 .st-center {
   position: absolute;
   left: 50%; top: 50%;
   transform: translate(-50%, -50%);
-  width: 44%;
-  aspect-ratio: 1 / 0.62;
+  width: 46%;
+  aspect-ratio: 1 / 0.66;
   border-radius: 50%;
   background: var(--surface);
   box-shadow: inset 0 0 0 1px var(--line);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 1px;
+  gap: 2px;
+  padding: 0 6px;
+  text-align: center;
 }
 .st-center-pre { font-size: 11px; color: var(--muted); }
+.st-center-name {
+  font-size: 18px; font-weight: 600; color: var(--ink);
+  letter-spacing: -0.01em; line-height: 1.05;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .st-center-num {
   font-family: var(--font-num); font-weight: var(--num-weight);
   font-size: 30px; line-height: 1; color: var(--ink);
   letter-spacing: -0.03em;
 }
-.st-center-sub { font-size: 10px; color: var(--muted); }
 
 .st-seat {
   position: absolute;
@@ -2449,7 +2455,8 @@ button.numpad-input.active {
   background: var(--seat-b-fill); color: var(--seat-b-ink);
   box-shadow: inset 0 0 0 1.5px var(--seat-b-ring);
 }
-.st-seat.at-risk .st-avatar { box-shadow: inset 0 0 0 2px var(--seat-danger); }
+/* Dealer (highest scorer) — gold emphasis ring, matches the app's leader cue. */
+.st-seat.dealer .st-avatar { box-shadow: inset 0 0 0 2.5px var(--gold); }
 
 .st-name {
   font-size: 12px; font-weight: 600; color: var(--ink);
@@ -2459,25 +2466,40 @@ button.numpad-input.active {
   font-family: var(--font-num); font-weight: var(--num-weight);
   font-size: 20px; line-height: 1; color: var(--ink); letter-spacing: -0.02em;
 }
-.st-seat.at-risk .st-score { color: var(--seat-danger); }
-.st-risk { font-size: 10px; color: var(--seat-danger); }
 .st-delta {
   font-size: 11px; font-weight: 600; color: var(--gold);
 }
 
-.sebeeta-legend {
-  display: flex; align-items: center; justify-content: center; gap: 18px;
+/* Two pills below the ring: each team's highest individual. */
+.st-tops {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
   flex: 0 0 auto;
 }
-.st-leg {
-  font-size: 12px; color: var(--ink-soft);
-  display: inline-flex; align-items: center; gap: 6px;
+.st-top {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px; padding-inline-end: 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  min-width: 0;
 }
-.st-leg .num { font-weight: var(--num-weight); color: var(--ink); }
-.st-leg-dot { width: 10px; height: 10px; border-radius: 50%; }
-.st-leg.team-a .st-leg-dot {
-  background: var(--seat-a-fill); box-shadow: inset 0 0 0 1.5px var(--seat-a-ring);
+.st-top-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; flex: 0 0 auto;
 }
-.st-leg.team-b .st-leg-dot {
-  background: var(--seat-b-fill); box-shadow: inset 0 0 0 1.5px var(--seat-b-ring);
+.st-top.team-a .st-top-avatar {
+  background: var(--seat-a-fill); color: var(--seat-a-ink);
+  box-shadow: inset 0 0 0 1.5px var(--seat-a-ring);
 }
+.st-top.team-b .st-top-avatar {
+  background: var(--seat-b-fill); color: var(--seat-b-ink);
+  box-shadow: inset 0 0 0 1.5px var(--seat-b-ring);
+}
+.st-top-info { display: flex; flex-direction: column; min-width: 0; }
+.st-top-team { font-size: 10px; color: var(--muted); }
+.st-top-line {
+  font-size: 13px; color: var(--ink); font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.st-top-line .num { font-family: var(--font-num); font-weight: var(--num-weight); }

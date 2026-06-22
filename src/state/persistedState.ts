@@ -37,9 +37,6 @@ export type TrixMatch = {
 export type Theme = 'light' | 'dark';
 export type EntryStyle = 'pm' | 'numpad';
 export type KoutEntryMode = 'contract' | 'manual';
-// Sebeeta scoreboard layout: the classic 'list' (per-player tiles) or the
-// circular 'table' that mirrors the real seating. UI preference only.
-export type SebeetaView = 'list' | 'table';
 export type Screen =
   | 'home'
   | 'setup'
@@ -99,8 +96,6 @@ export type PersistedState = {
   lang: Lang;
   koutEntryMode: KoutEntryMode;
   entryStyle: EntryStyle;
-  // Sebeeta scoreboard layout preference (list vs circular table).
-  sebeetaView: SebeetaView;
   currentScreen: Screen;
   recentGames: RecentGame[];
   theme: Theme;
@@ -130,7 +125,6 @@ export const DEFAULT_STATE: PersistedState = {
   lang: 'ar',
   koutEntryMode: 'contract',
   entryStyle: 'pm',
-  sebeetaView: 'table',
   currentScreen: 'home',
   recentGames: [],
   theme: 'light',
@@ -300,7 +294,6 @@ export function sanitizeState(raw: unknown): PersistedState {
     lang: oneOf('en', 'ar')(raw.lang, DEFAULT_STATE.lang),
     koutEntryMode: oneOf('contract', 'manual')(raw.koutEntryMode, DEFAULT_STATE.koutEntryMode),
     entryStyle: oneOf('pm', 'numpad')(raw.entryStyle, DEFAULT_STATE.entryStyle),
-    sebeetaView: oneOf('list', 'table')(raw.sebeetaView, DEFAULT_STATE.sebeetaView),
     currentScreen: oneOf('home', 'setup', 'play', 'history', 'winner', 'stats')(
       raw.currentScreen,
       DEFAULT_STATE.currentScreen,

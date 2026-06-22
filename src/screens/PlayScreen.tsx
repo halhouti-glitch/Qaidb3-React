@@ -5,7 +5,6 @@ import {
   checkWinner,
   dealerIndex,
   teamTotalsFromPlayers,
-  topScorerPerTeam,
   totals as computeTotals,
 } from '../engine/scoring';
 import { Header } from '../components/Header';
@@ -207,85 +206,42 @@ export function PlayScreen() {
           </span>
         </div>
 
-        {isSebeeta && (
-          <div
-            className="segmented sebeeta-view-toggle"
-            role="group"
-            aria-label={t('sebeetaViewToggle')}
-          >
-            <button
-              type="button"
-              className={state.sebeetaView === 'list' ? 'on' : ''}
-              onClick={() => actions.setSebeetaView('list')}
-              aria-pressed={state.sebeetaView === 'list'}
-            >
-              {t('sebeetaViewList')}
-            </button>
-            <button
-              type="button"
-              className={state.sebeetaView === 'table' ? 'on' : ''}
-              onClick={() => actions.setSebeetaView('table')}
-              aria-pressed={state.sebeetaView === 'table'}
-            >
-              {t('sebeetaViewTable')}
-            </button>
-          </div>
-        )}
-
-        {isSebeeta && state.sebeetaView === 'table' ? (
+        {isSebeeta ? (
           <SebeetaTable
             players={state.players}
             totals={totalsArr}
             playerTeam={state.playerTeam}
             threshold={state.threshold}
-            atRisk={dealer}
-            teamTotals={teamTotalsFromPlayers(totalsArr, state.playerTeam)}
+            dealer={dealer}
             teamLabel={teamLabel}
             lastDelta={lastDelta}
           />
+        ) : showAsTeams && teamScoreboardTotals ? (
+          <TeamsScoreboard
+            totals={teamScoreboardTotals}
+            threshold={state.threshold}
+            dealer={dealer}
+            winnerIdx={winner?.type === 'team' ? winner.idx : null}
+            players={state.players}
+            playerTeam={state.playerTeam}
+            teamLabel={teamLabel}
+            lastDelta={
+              isCustomTeams && lastDelta
+                ? teamTotalsFromPlayers(lastDelta, state.playerTeam)
+                : lastDelta
+            }
+          />
         ) : (
-          <>
-            {isSebeeta && (
-              <>
-                <div className="play-section-label">{t('playTargetLabel')}</div>
-                <SebeetaTopSummary
-                  totals={totalsArr}
-                  players={state.players}
-                  playerTeam={state.playerTeam}
-                  teamLabel={teamLabel}
-                />
-                <div className="play-section-label">{t('playTotalScoreLabel')}</div>
-              </>
-            )}
-
-            {showAsTeams && teamScoreboardTotals ? (
-              <TeamsScoreboard
-                totals={teamScoreboardTotals}
-                threshold={state.threshold}
-                dealer={dealer}
-                winnerIdx={winner?.type === 'team' ? winner.idx : null}
-                players={state.players}
-                playerTeam={state.playerTeam}
-                teamLabel={teamLabel}
-                lastDelta={
-                  isCustomTeams && lastDelta
-                    ? teamTotalsFromPlayers(lastDelta, state.playerTeam)
-                    : lastDelta
-                }
-              />
-            ) : (
-              <IndividualScoreboard
-                totals={totalsArr}
-                threshold={state.threshold}
-                dealer={dealer}
-                winnerIdx={winner?.type === 'player' ? winner.idx : null}
-                players={state.players}
-                isSebeeta={isSebeeta}
-                lastDelta={lastDelta}
-                dealerLabel={t('dealerBadge')}
-              />
-            )}
-          </>
+          <IndividualScoreboard
+            totals={totalsArr}
+            threshold={state.threshold}
+            dealer={dealer}
+            winnerIdx={winner?.type === 'player' ? winner.idx : null}
+            players={state.players}
+            isSebeeta={isSebeeta}
+            lastDelta={lastDelta}
+            dealerLabel={t('dealerBadge')}
+          />
         )}
         </>
         )}
@@ -326,41 +282,6 @@ export function PlayScreen() {
       ) : (
         <RoundSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
       )}
-    </div>
-  );
-}
-
-// ── Top-scorer summary (Sebeeta) ─────────────────────────────────
-
-type TopSummaryProps = {
-  totals: number[];
-  players: string[];
-  playerTeam: number[];
-  teamLabel: (idx: 0 | 1) => string;
-};
-
-function SebeetaTopSummary({
-  totals,
-  players,
-  playerTeam,
-  teamLabel,
-}: TopSummaryProps) {
-  const tops = topScorerPerTeam(totals, playerTeam);
-  return (
-    <div className="team-summary">
-      {([0, 1] as const).map((ti) => {
-        const top = tops[ti];
-        const topName = top ? players[top.playerIdx] : '—';
-        const score = top?.score ?? 0;
-        return (
-          <div key={ti} className="team-summary-card">
-            <div className="label">
-              {teamLabel(ti)} · {topName}
-            </div>
-            <div className="value">{score}</div>
-          </div>
-        );
-      })}
     </div>
   );
 }

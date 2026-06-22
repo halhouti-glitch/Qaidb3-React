@@ -206,11 +206,7 @@ export type Strings = {
   // ── Sebeeta Play section labels ──────────────────────────────
   playTargetLabel: string;
   playTotalScoreLabel: string;
-  sebeetaViewList: string;
-  sebeetaViewTable: string;
-  sebeetaViewToggle: string;
-  sebeetaAtRisk: string;
-  sebeetaLowestStays: string;
+  sebeetaDealer: string;
 
   // ── PWA update prompt ────────────────────────────────────────
   updateAvailable: string;
@@ -504,11 +500,7 @@ const en: Strings = {
 
   playTargetLabel: 'Target',
   playTotalScoreLabel: 'Total score',
-  sebeetaViewList: 'List',
-  sebeetaViewTable: 'Table',
-  sebeetaViewToggle: 'Scoreboard view',
-  sebeetaAtRisk: 'closest to out',
-  sebeetaLowestStays: 'lowest stays in',
+  sebeetaDealer: 'Dealer',
 
   updateAvailable: 'A new version is available.',
   updateReload: 'Update',
@@ -793,11 +785,7 @@ const ar: Strings = {
 
   playTargetLabel: 'الهدف',
   playTotalScoreLabel: 'مجموع النقاط',
-  sebeetaViewList: 'قائمة',
-  sebeetaViewTable: 'طاولة',
-  sebeetaViewToggle: 'عرض النتائج',
-  sebeetaAtRisk: 'الأقرب للخروج',
-  sebeetaLowestStays: 'الأقل يبقى',
+  sebeetaDealer: 'الموزّع',
 
   updateAvailable: 'يتوفر إصدار جديد.',
   updateReload: 'تحديث',
