@@ -268,11 +268,16 @@ export async function renderGameSummaryPNG(
         glow2: 'rgba(150,200,255,0.55)',
       };
 
+  // Render at the device pixel ratio so the exported PNG is crisp on Retina /
+  // high-DPI phones (the main audience for sharing). Cap at 3× to bound canvas
+  // memory on extreme displays. All drawing below stays in logical W×H units.
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
   const canvas = document.createElement('canvas');
-  canvas.width = W;
-  canvas.height = H;
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
+  ctx.scale(dpr, dpr);
 
   // --- Background gradient + soft glow blobs ---
   const grad = ctx.createLinearGradient(0, 0, 0, H);
@@ -582,9 +587,27 @@ export async function renderGameSummaryPNG(
       : `${state.scores.length} rounds`;
   ctx.fillText(footer, W / 2, H - PAD);
 
-  return new Promise((resolve) =>
-    canvas.toBlob((b) => resolve(b), 'image/png', 0.95),
-  );
+  // Guard against toBlob never invoking its callback (some engines under
+  // memory pressure): resolve null after a timeout so the share flow falls back
+  // to text instead of hanging forever.
+  return new Promise<Blob | null>((resolve) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      resolve(null);
+    }, 5000);
+    canvas.toBlob(
+      (b) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(b);
+      },
+      'image/png',
+      0.95,
+    );
+  });
 }
 
 // ---------- Canvas primitives ----------

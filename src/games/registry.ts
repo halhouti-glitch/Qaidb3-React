@@ -7,6 +7,7 @@ import type { FC } from 'react';
 import { CustomArt, KoutArt, SebeetaArt, TrixArt } from '../screens/home/GameArt';
 import type { StringKey } from '../i18n/strings';
 import type { GameMode, WinRule } from '../state/persistedState';
+import { SCORE_SCOPE } from '../engine/modes';
 
 export type Game = {
   key: GameMode;
@@ -38,7 +39,7 @@ export const GAMES: Record<GameMode, Game> = {
     isTeamMode: true,
     teamSize: 3,
     numPlayers: 6,
-    scoreScope: 'player',
+    scoreScope: SCORE_SCOPE.sebeeta,
     configurable: false,
     contractsEnabled: false,
   },
@@ -54,7 +55,7 @@ export const GAMES: Record<GameMode, Game> = {
     isTeamMode: true,
     teamSize: 3,
     numPlayers: 6,
-    scoreScope: 'team',
+    scoreScope: SCORE_SCOPE.kout,
     configurable: false,
     contractsEnabled: true,
   },
@@ -73,7 +74,7 @@ export const GAMES: Record<GameMode, Game> = {
     isTeamMode: false,    // P1 ships individual-only (partnership = P2)
     teamSize: null,
     numPlayers: 4,
-    scoreScope: 'player',
+    scoreScope: SCORE_SCOPE.trix,
     configurable: false,
     contractsEnabled: true,
   },
@@ -89,7 +90,7 @@ export const GAMES: Record<GameMode, Game> = {
     isTeamMode: false,
     teamSize: null,
     numPlayers: null,
-    scoreScope: 'player',
+    scoreScope: SCORE_SCOPE.custom,
     configurable: true,
     contractsEnabled: false,
   },

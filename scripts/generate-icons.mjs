@@ -15,9 +15,14 @@ async function emit(srcSvg, size, name) {
   console.log(`✓ ${name} (${size}×${size})`);
 }
 
-await Promise.all([
-  emit('icon.svg', 192, 'icon-192.png'),
-  emit('icon.svg', 512, 'icon-512.png'),
-  emit('icon-maskable.svg', 512, 'icon-maskable-512.png'),
-  emit('icon.svg', 180, 'apple-touch-icon.png'),
-]);
+try {
+  await Promise.all([
+    emit('icon.svg', 192, 'icon-192.png'),
+    emit('icon.svg', 512, 'icon-512.png'),
+    emit('icon-maskable.svg', 512, 'icon-maskable-512.png'),
+    emit('icon.svg', 180, 'apple-touch-icon.png'),
+  ]);
+} catch (err) {
+  console.error('Icon generation failed:', err);
+  process.exitCode = 1;
+}

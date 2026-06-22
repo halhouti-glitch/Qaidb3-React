@@ -7,6 +7,8 @@ import type {
   Winner,
 } from './types';
 import { trixGameOver } from './trix';
+import { scoreScopeFor } from './modes';
+import { exhaustive } from '../lib/exhaustive';
 
 // Kout contract scoring table — per legacy.html:1946.
 // Each level has a 'made' value (paid to the caller) and a 'failed' value
@@ -49,7 +51,7 @@ export function isContractComplete(c: ContractEntry): boolean {
 //   custom/sebeeta → one total per player
 //   kout           → one total per team [A, B]
 export function totals(state: GameStateSlice): number[] {
-  const n = state.gameMode === 'kout' ? 2 : state.players.length;
+  const n = scoreScopeFor(state.gameMode) === 'team' ? 2 : state.players.length;
   const out = new Array<number>(n).fill(0);
   for (const round of state.scores) {
     for (let i = 0; i < n; i++) out[i] += round[i] ?? 0;
@@ -158,6 +160,18 @@ export function checkWinner(state: GameStateSlice, totalsArr: number[]): Winner 
     return { type: 'team', idx };
   }
 
+  if (state.gameMode === 'custom') {
+    return checkWinnerCustom(state, totalsArr);
+  }
+
+  // Exhaustiveness: every GameMode is handled above, so `state.gameMode` is
+  // `never` here. Adding a mode without a branch fails to compile. At runtime
+  // (unreachable for sanitized state) we report "no winner yet".
+  return exhaustive(state.gameMode, null);
+}
+
+// Custom mode winner detection — per-player, optionally rolled up to teams.
+function checkWinnerCustom(state: GameStateSlice, totalsArr: number[]): Winner | null {
   // custom + teams: roll per-player totals up to two team totals, then apply
   // the same win rule at the team level. Detected by playerTeam being sized
   // to match the roster.

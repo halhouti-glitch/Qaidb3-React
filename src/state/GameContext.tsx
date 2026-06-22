@@ -27,6 +27,7 @@ import { checkWinner, teamTotalsFromPlayers, totals } from '../engine/scoring';
 import { TRIX_KINGDOMS, trixCurrentKingdom, trixKingIdx } from '../engine/trix';
 import { upsertProfiles, winnerPlayerIndices } from './profiles';
 import { reverseGameLog } from './gameLog';
+import { exhaustive } from '../lib/exhaustive';
 
 type TeamSetup = {
   players: string[];
@@ -277,17 +278,23 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
             koutEntryMode: 'contract',
           };
         }
-        const hasTeams =
-          !!input.playerTeam &&
-          input.playerTeam.length === input.players.length &&
-          input.players.length > 0;
-        return {
-          ...base,
-          playerTeam: hasTeams ? input.playerTeam!.slice() : [],
-          teamNames: hasTeams && input.teamNames ? input.teamNames.slice() : [],
-          threshold: input.threshold,
-          winRule: input.winRule,
-        };
+        if (input.mode === 'custom') {
+          const hasTeams =
+            !!input.playerTeam &&
+            input.playerTeam.length === input.players.length &&
+            input.players.length > 0;
+          return {
+            ...base,
+            playerTeam: hasTeams ? input.playerTeam!.slice() : [],
+            teamNames: hasTeams && input.teamNames ? input.teamNames.slice() : [],
+            threshold: input.threshold,
+            winRule: input.winRule,
+          };
+        }
+        // Exhaustiveness: every StartGameInput mode is handled above. Adding a
+        // mode without a branch fails to compile; at runtime we fall back to
+        // the base state rather than crash.
+        return exhaustive(input, base);
       });
     },
     [setState],
