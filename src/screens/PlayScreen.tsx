@@ -14,6 +14,7 @@ import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmSheet';
 import { RoundSheet } from '../components/RoundSheet';
 import { TrixRoundSheet } from '../components/TrixRoundSheet';
+import { SebeetaTable } from './play/SebeetaTable';
 import {
   TRIX_KINGDOMS,
   trixCurrentKingdom,
@@ -207,44 +208,84 @@ export function PlayScreen() {
         </div>
 
         {isSebeeta && (
-          <>
-            <div className="play-section-label">{t('playTargetLabel')}</div>
-            <SebeetaTopSummary
-              totals={totalsArr}
-              players={state.players}
-              playerTeam={state.playerTeam}
-              teamLabel={teamLabel}
-            />
-            <div className="play-section-label">{t('playTotalScoreLabel')}</div>
-          </>
+          <div
+            className="segmented sebeeta-view-toggle"
+            role="group"
+            aria-label={t('sebeetaViewToggle')}
+          >
+            <button
+              type="button"
+              className={state.sebeetaView === 'list' ? 'on' : ''}
+              onClick={() => actions.setSebeetaView('list')}
+              aria-pressed={state.sebeetaView === 'list'}
+            >
+              {t('sebeetaViewList')}
+            </button>
+            <button
+              type="button"
+              className={state.sebeetaView === 'table' ? 'on' : ''}
+              onClick={() => actions.setSebeetaView('table')}
+              aria-pressed={state.sebeetaView === 'table'}
+            >
+              {t('sebeetaViewTable')}
+            </button>
+          </div>
         )}
 
-        {showAsTeams && teamScoreboardTotals ? (
-          <TeamsScoreboard
-            totals={teamScoreboardTotals}
-            threshold={state.threshold}
-            dealer={dealer}
-            winnerIdx={winner?.type === 'team' ? winner.idx : null}
+        {isSebeeta && state.sebeetaView === 'table' ? (
+          <SebeetaTable
             players={state.players}
+            totals={totalsArr}
             playerTeam={state.playerTeam}
+            threshold={state.threshold}
+            atRisk={dealer}
+            teamTotals={teamTotalsFromPlayers(totalsArr, state.playerTeam)}
             teamLabel={teamLabel}
-            lastDelta={
-              isCustomTeams && lastDelta
-                ? teamTotalsFromPlayers(lastDelta, state.playerTeam)
-                : lastDelta
-            }
+            lastDelta={lastDelta}
           />
         ) : (
-          <IndividualScoreboard
-            totals={totalsArr}
-            threshold={state.threshold}
-            dealer={dealer}
-            winnerIdx={winner?.type === 'player' ? winner.idx : null}
-            players={state.players}
-            isSebeeta={isSebeeta}
-            lastDelta={lastDelta}
-            dealerLabel={t('dealerBadge')}
-          />
+          <>
+            {isSebeeta && (
+              <>
+                <div className="play-section-label">{t('playTargetLabel')}</div>
+                <SebeetaTopSummary
+                  totals={totalsArr}
+                  players={state.players}
+                  playerTeam={state.playerTeam}
+                  teamLabel={teamLabel}
+                />
+                <div className="play-section-label">{t('playTotalScoreLabel')}</div>
+              </>
+            )}
+
+            {showAsTeams && teamScoreboardTotals ? (
+              <TeamsScoreboard
+                totals={teamScoreboardTotals}
+                threshold={state.threshold}
+                dealer={dealer}
+                winnerIdx={winner?.type === 'team' ? winner.idx : null}
+                players={state.players}
+                playerTeam={state.playerTeam}
+                teamLabel={teamLabel}
+                lastDelta={
+                  isCustomTeams && lastDelta
+                    ? teamTotalsFromPlayers(lastDelta, state.playerTeam)
+                    : lastDelta
+                }
+              />
+            ) : (
+              <IndividualScoreboard
+                totals={totalsArr}
+                threshold={state.threshold}
+                dealer={dealer}
+                winnerIdx={winner?.type === 'player' ? winner.idx : null}
+                players={state.players}
+                isSebeeta={isSebeeta}
+                lastDelta={lastDelta}
+                dealerLabel={t('dealerBadge')}
+              />
+            )}
+          </>
         )}
         </>
         )}

@@ -15,6 +15,7 @@ import {
   type PersistedState,
   type RecentGame,
   type Screen,
+  type SebeetaView,
   type Theme,
   type TrixDeal,
   type TrixMatch,
@@ -82,6 +83,7 @@ export type GameActions = {
   setLang: (lang: Lang) => void;
   setKoutEntryMode: (mode: KoutEntryMode) => void;
   setEntryStyle: (style: EntryStyle) => void;
+  setSebeetaView: (view: SebeetaView) => void;
   removeProfile: (key: string) => void;
   clearAllProfiles: () => void;
   removeRecentGame: (idx: number) => void;
@@ -429,6 +431,10 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
     (style: EntryStyle) => setState((s) => ({ ...s, entryStyle: style })),
     [setState],
   );
+  const setSebeetaView = useCallback(
+    (view: SebeetaView) => setState((s) => ({ ...s, sebeetaView: view })),
+    [setState],
+  );
 
   const removeProfile = useCallback(
     (key: string) =>
@@ -532,6 +538,7 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
         setLang,
         setKoutEntryMode,
         setEntryStyle,
+        setSebeetaView,
         removeProfile,
         clearAllProfiles,
         removeRecentGame,
@@ -559,6 +566,7 @@ export function GameProvider({ state, setState, children }: GameProviderProps) {
       setLang,
       setKoutEntryMode,
       setEntryStyle,
+      setSebeetaView,
       removeProfile,
       clearAllProfiles,
       removeRecentGame,

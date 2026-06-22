@@ -60,6 +60,29 @@ describe('PlayScreen', () => {
     expect(api.state.scores).toEqual([]);
   });
 
+  it('Sebeeta scoreboard toggles between the list and circular table views', () => {
+    const { api, getByText, queryByText } = renderWithGame(<PlayScreen />, {
+      initial: { ...sebeetaInit, scores: [[10, 5, 8, 40, 2, 1]] },
+    });
+    // Defaults to the list view: the "Total score" section label is shown and
+    // the table-only center subtitle is not.
+    expect(getByText('Total score')).toBeDefined();
+    expect(queryByText('lowest stays in')).toBeNull();
+
+    act(() => {
+      fireEvent.click(getByText('Table'));
+    });
+    expect(api.state.sebeetaView).toBe('table');
+    expect(getByText('lowest stays in')).toBeDefined();
+    expect(queryByText('Total score')).toBeNull();
+
+    act(() => {
+      fireEvent.click(getByText('List'));
+    });
+    expect(api.state.sebeetaView).toBe('list');
+    expect(getByText('Total score')).toBeDefined();
+  });
+
   it('Reset can be cancelled — scores remain intact', () => {
     const { api, getByText } = renderWithGame(<PlayScreen />, {
       initial: { ...sebeetaInit, scores: [[10, 0, 0, 0, 0, 0]] },

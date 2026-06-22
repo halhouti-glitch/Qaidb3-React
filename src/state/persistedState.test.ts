@@ -39,6 +39,13 @@ describe('sanitizeState — guards against bad localStorage payloads', () => {
     expect(next.players).toEqual(['Ali']); // valid sibling preserved
   });
 
+  it('defaults sebeetaView and preserves a valid one', () => {
+    expect(sanitizeState({ ...DEFAULT_STATE }).sebeetaView).toBe('list');
+    expect(sanitizeState({}).sebeetaView).toBe('list');
+    expect(sanitizeState({ sebeetaView: 'spiral' }).sebeetaView).toBe('list');
+    expect(sanitizeState({ sebeetaView: 'table' }).sebeetaView).toBe('table');
+  });
+
   it('drops non-string entries from players + teamNames', () => {
     const next = sanitizeState({
       ...DEFAULT_STATE,

@@ -2363,3 +2363,121 @@ button.numpad-input.active {
   color: var(--muted);
   margin-top: 4px;
 }
+
+/* ── Sebeeta circular "table" scoreboard (opt-in view) ─────────── */
+.sebeeta-view-toggle { flex: 0 0 auto; margin-bottom: 12px; }
+
+.sebeeta-table {
+  /* Team accent tokens — light theme. */
+  --seat-a-fill: color-mix(in oklch, var(--gold) 22%, transparent);
+  --seat-a-ring: var(--gold);
+  --seat-a-ink: #8a6400;
+  --seat-b-fill: rgba(47, 111, 237, 0.14);
+  --seat-b-ring: #2f6fed;
+  --seat-b-ink: #1f5fae;
+  --seat-danger: #c1432f;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  justify-content: center;
+  gap: 10px;
+}
+[data-theme="dark"] .sebeeta-table {
+  --seat-a-ink: #ffd860;
+  --seat-b-fill: rgba(91, 140, 255, 0.18);
+  --seat-b-ring: #5b8cff;
+  --seat-b-ink: #9bbcff;
+  --seat-danger: #ef6f5a;
+}
+
+.st-ring {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  max-height: 56vh;
+  margin: 0 auto;
+  aspect-ratio: 1 / 0.9;
+}
+
+.st-center {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 44%;
+  aspect-ratio: 1 / 0.62;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1px;
+}
+.st-center-pre { font-size: 11px; color: var(--muted); }
+.st-center-num {
+  font-family: var(--font-num); font-weight: var(--num-weight);
+  font-size: 30px; line-height: 1; color: var(--ink);
+  letter-spacing: -0.03em;
+}
+.st-center-sub { font-size: 10px; color: var(--muted); }
+
+.st-seat {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 72px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+.st-seat-0 { left: 50%; top: 88%; }
+.st-seat-1 { left: 85%; top: 70%; }
+.st-seat-2 { left: 85%; top: 28%; }
+.st-seat-3 { left: 50%; top: 12%; }
+.st-seat-4 { left: 15%; top: 28%; }
+.st-seat-5 { left: 15%; top: 70%; }
+
+.st-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600;
+}
+.st-seat.team-a .st-avatar {
+  background: var(--seat-a-fill); color: var(--seat-a-ink);
+  box-shadow: inset 0 0 0 1.5px var(--seat-a-ring);
+}
+.st-seat.team-b .st-avatar {
+  background: var(--seat-b-fill); color: var(--seat-b-ink);
+  box-shadow: inset 0 0 0 1.5px var(--seat-b-ring);
+}
+.st-seat.at-risk .st-avatar { box-shadow: inset 0 0 0 2px var(--seat-danger); }
+
+.st-name {
+  font-size: 12px; font-weight: 600; color: var(--ink);
+  max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.st-score {
+  font-family: var(--font-num); font-weight: var(--num-weight);
+  font-size: 20px; line-height: 1; color: var(--ink); letter-spacing: -0.02em;
+}
+.st-seat.at-risk .st-score { color: var(--seat-danger); }
+.st-risk { font-size: 10px; color: var(--seat-danger); }
+.st-delta {
+  font-size: 11px; font-weight: 600; color: var(--gold);
+}
+
+.sebeeta-legend {
+  display: flex; align-items: center; justify-content: center; gap: 18px;
+  flex: 0 0 auto;
+}
+.st-leg {
+  font-size: 12px; color: var(--ink-soft);
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.st-leg .num { font-weight: var(--num-weight); color: var(--ink); }
+.st-leg-dot { width: 10px; height: 10px; border-radius: 50%; }
+.st-leg.team-a .st-leg-dot {
+  background: var(--seat-a-fill); box-shadow: inset 0 0 0 1.5px var(--seat-a-ring);
+}
+.st-leg.team-b .st-leg-dot {
+  background: var(--seat-b-fill); box-shadow: inset 0 0 0 1.5px var(--seat-b-ring);
+}
